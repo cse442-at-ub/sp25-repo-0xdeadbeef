@@ -9,8 +9,8 @@
 7. After everyone confirms you all see all of the updates, have **1** person remove these steps from the README, commit the change, and push it back.
 
 # Project Member Names
-Eric Zhang
-Ornie Payer 
-Tien Minh Tran 
-Kenny Pang
-Naser Shabbir
+Ornie Payer<br>
+Eric Zhang<br>
+Tien Minh Tran<br>
+Kenny Pang<br>
+Naser Shabbir<br>
