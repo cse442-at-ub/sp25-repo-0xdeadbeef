@@ -1,5 +1,5 @@
 import pygame   # type: ignore
-import random   # For random snow positions and speeds
+import random   # [ADDED] For random snow positions and speeds
 
 pygame.init()   # Initialize Pygame
 
@@ -8,7 +8,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Main Menu with Hover Effect")
 
 # BLIZZARD SETUP
-num_snowflakes = random.randint(50, 200) # Randomly set the number of snowflakes to something between 50 and 2000
+num_snowflakes = random.randint(50, 200) # randomly set the number of snowflakes to something between 50 and 2000
 snowflakes = []
 
 def create_blizzard():
@@ -24,7 +24,7 @@ def create_blizzard():
 def update_and_draw_blizzard():
     # Move snowflakes in a slow, windy pattern and draw them.
     for flake in snowflakes:
-        # Flake: [x, y, speed_x, speed_y, size]
+        # flake: [x, y, speed_x, speed_y, size]
         flake[0] += flake[2]  # move horizontally (wind)
         flake[1] += flake[3]  # move downward
         if flake[1] > HEIGHT - 300:
@@ -48,7 +48,7 @@ settings_normal = pygame.image.load("Assets/Main Menu/SettingsButton.png").conve
 exit_normal = pygame.image.load("Assets/Main Menu/ExitButton.png").convert_alpha()
 
 # Scale normal size (wider and taller for a more relaxed look)
-start_normal = pygame.transform.scale(start_normal, (450, 220))
+start_normal = pygame.transform.scale(start_normal, (450, 120))
 settings_normal = pygame.transform.scale(settings_normal, (450, 120))
 exit_normal = pygame.transform.scale(exit_normal, (250, 120))
 
@@ -63,7 +63,7 @@ start_rect = start_normal.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 150))
 settings_rect = settings_normal.get_rect(center=(WIDTH // 2, HEIGHT // 2))
 exit_rect = exit_normal.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 150))
 
-# Initialize snow before main loop
+# [ADDED] Initialize snow before main loop
 create_blizzard()
 
 running = True
@@ -88,7 +88,7 @@ while running:
     # Clear screen by drawing background
     screen.blit(bg, (0, 0))
 
-    # Update and draw the blizzard behind the buttons
+    # [ADDED] Update and draw the blizzard behind the buttons
     update_and_draw_blizzard()
 
     # Get current mouse position
