@@ -80,6 +80,7 @@ def Screen_SaveSlot():
         TransparentButton("Back", font_path, WIDTH//2, HEIGHT - 100),
     ]
 
+    
     # Main loop
     running = True
     while running:
@@ -95,6 +96,11 @@ def Screen_SaveSlot():
                     running = False
                     main_menu.run_main_menu()  # Go back to main menu
 
+        mouse_position = pygame.mouse.get_pos()
+        for button in buttons:
+            button.check_hover(mouse_position)
+            button.draw(screen)
+
         screen.fill((255, 255, 255))
         
         if background:
@@ -105,8 +111,9 @@ def Screen_SaveSlot():
 
         pygame.display.flip()
 
-    pygame.quit()
+    
             
 
 if __name__ == "__main__":        
     Screen_SaveSlot()
+    pygame.quit()
