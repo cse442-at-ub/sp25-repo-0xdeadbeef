@@ -1,5 +1,11 @@
 import pygame
 
+pygame.init()   # Initialize Pygame
+
+WIDTH, HEIGHT = 1920, 1080
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Save Slot Screen")
+
 def render_text_with_outline(text, font, text_color, outline_color, outline_thickness):
     text_surface = font.render(text, True, text_color)
     outline_surface = pygame.Surface(
@@ -52,11 +58,6 @@ class TransparentButton:
     
 
 def Screen_SaveSlot():
-    # When running only this screen for testing, it should initialize basic screen and pygame
-    if __name__ == "__main__":
-        pygame.init()
-        WIDTH, HEIGHT = 1920, 1080
-        screen = pygame.display.set_mode((WIDTH, HEIGHT))
 
     # Display the screen title
     pygame.display.set_caption("Save Slot Screen")
@@ -110,5 +111,5 @@ def Screen_SaveSlot():
     pygame.quit()
             
 
-            
-Screen_SaveSlot()
+if __name__ == "__main__":        
+    Screen_SaveSlot()
