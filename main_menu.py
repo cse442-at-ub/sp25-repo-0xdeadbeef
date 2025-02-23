@@ -79,16 +79,16 @@ def run_main_menu():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # If a button is clicked, print an action
                 if start_rect.collidepoint(event.pos):
-                    print("Start Game")
+                    print("Start Game...")
                     # Switch to your game or next screen
                 elif settings_rect.collidepoint(event.pos):
-                    print("Settings")
+                    print("Settings...")
 
                     # Stop main menu loop, call settings menu 
                     running = False
                     settings_menu.run_settings_menu()
                 elif exit_rect.collidepoint(event.pos):
-                    print("Exit")
+                    print("Exit...")
                     running = False
 
         # Clear screen by drawing background

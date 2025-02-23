@@ -94,7 +94,7 @@ def run_settings_menu():
             # Handle clicks on Achievements and Back
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if achievements_rect.collidepoint(event.pos):
-                    print("Achievements clicked (do not implement yet)")
+                    print("Achievements clicked (Not implemented yet...)")
                 elif back_rect.collidepoint(event.pos):
                     print("Back clicked. Going to main menu...")
                     running = False
