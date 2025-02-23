@@ -1,5 +1,7 @@
 import pygame   # type: ignore
-import random   # [ADDED] For random snow positions and speeds
+import random   #For random snow positions and speeds
+import settings_menu 
+
 
 pygame.init()   # Initialize Pygame
 
@@ -63,60 +65,67 @@ start_rect = start_normal.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 150))
 settings_rect = settings_normal.get_rect(center=(WIDTH // 2, HEIGHT // 2))
 exit_rect = exit_normal.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 150))
 
-# [ADDED] Initialize snow before main loop
-create_blizzard()
+# Initialize snow before main loop
+def run_main_menu():
+    create_blizzard() # Initialize snow
 
-running = True
-while running:
-    # Check for events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            # If a button is clicked, print an action
-            if start_rect.collidepoint(event.pos):
-                print("Start Game")
-                # Switch to your game or next screen
-            elif settings_rect.collidepoint(event.pos):
-                print("Settings")
-                # Open settings menu
-            elif exit_rect.collidepoint(event.pos):
-                print("Exit")
+    running = True
+    while running:
+        # Check for events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
                 running = False
+            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # If a button is clicked, print an action
+                if start_rect.collidepoint(event.pos):
+                    print("Start Game")
+                    # Switch to your game or next screen
+                elif settings_rect.collidepoint(event.pos):
+                    print("Settings")
 
-    # Clear screen by drawing background
-    screen.blit(bg, (0, 0))
+                    # Stop main menu loop, call settings menu 
+                    running = False
+                    settings_menu.run_settings_menu()
+                elif exit_rect.collidepoint(event.pos):
+                    print("Exit")
+                    running = False
 
-    # [ADDED] Update and draw the blizzard behind the buttons
-    update_and_draw_blizzard()
+        # Clear screen by drawing background
+        screen.blit(bg, (0, 0))
 
-    # Get current mouse position
-    mouse_pos = pygame.mouse.get_pos()
+        # [ADDED] Update and draw the blizzard behind the buttons
+        update_and_draw_blizzard()
 
-    # --- Draw Start Button ---
-    if start_rect.collidepoint(mouse_pos):
-        hover_rect = start_hover.get_rect(center=start_rect.center)
-        screen.blit(start_hover, hover_rect)
-    else:
-        screen.blit(start_normal, start_rect)
-    
-    # --- Draw Settings Button ---
-    if settings_rect.collidepoint(mouse_pos):
-        hover_rect = settings_hover.get_rect(center=settings_rect.center)
-        screen.blit(settings_hover, hover_rect)
-    else:
-        screen.blit(settings_normal, settings_rect)
-    
-    # --- Draw Exit Button ---
-    if exit_rect.collidepoint(mouse_pos):
-        hover_rect = exit_hover.get_rect(center=exit_rect.center)
-        screen.blit(exit_hover, hover_rect)
-    else:
-        screen.blit(exit_normal, exit_rect)
+        # Get current mouse position
+        mouse_pos = pygame.mouse.get_pos()
 
-    # Update the window
-    pygame.display.flip()
+        # --- Draw Start Button ---
+        if start_rect.collidepoint(mouse_pos):
+            hover_rect = start_hover.get_rect(center=start_rect.center)
+            screen.blit(start_hover, hover_rect)
+        else:
+            screen.blit(start_normal, start_rect)
+        
+        # --- Draw Settings Button ---
+        if settings_rect.collidepoint(mouse_pos):
+            hover_rect = settings_hover.get_rect(center=settings_rect.center)
+            screen.blit(settings_hover, hover_rect)
+        else:
+            screen.blit(settings_normal, settings_rect)
+        
+        # --- Draw Exit Button ---
+        if exit_rect.collidepoint(mouse_pos):
+            hover_rect = exit_hover.get_rect(center=exit_rect.center)
+            screen.blit(exit_hover, hover_rect)
+        else:
+            screen.blit(exit_normal, exit_rect)
 
-# Quit Pygame properly
-pygame.quit()
+        # Update the window
+        pygame.display.flip()
+
+        
+# Start the main menu
+if __name__ == "__main__":
+    run_main_menu()
+    pygame.quit()  # Quit Pygame   
