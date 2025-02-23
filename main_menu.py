@@ -7,6 +7,15 @@ import pygame_widgets
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox 
 
+import sys 
+import subprocess 
+
+try: 
+    import python
+except ImportError:
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "python"])
+    import python_widgets
+
 pygame.init()   # Initialize Pygame
 
 WIDTH, HEIGHT = 1920, 1080
