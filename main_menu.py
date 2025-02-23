@@ -1,6 +1,7 @@
 import pygame   # type: ignore
 import random   #For random snow positions and speeds
 import settings_menu 
+import save_slots
 
 
 pygame.init()   # Initialize Pygame
@@ -80,7 +81,10 @@ def run_main_menu():
                 # If a button is clicked, print an action
                 if start_rect.collidepoint(event.pos):
                     print("Start Game...")
-                    # Switch to your game or next screen
+
+                    # Stop main menu loop, call save slot screen
+                    running = False
+                    save_slots.Screen_SaveSlot()
                 elif settings_rect.collidepoint(event.pos):
                     print("Settings...")
 
@@ -94,7 +98,7 @@ def run_main_menu():
         # Clear screen by drawing background
         screen.blit(bg, (0, 0))
 
-        # [ADDED] Update and draw the blizzard behind the buttons
+        # Update and draw the blizzard behind the buttons
         update_and_draw_blizzard()
 
         # Get current mouse position
