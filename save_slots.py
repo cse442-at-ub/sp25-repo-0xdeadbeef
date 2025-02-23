@@ -41,7 +41,6 @@ class TransparentButton:
         self.update_surface()
     
     def update_surface(self):
-        """ Update text surface and rect based on the current font """
         self.text_surface = render_text_with_outline(self.text, self.current_font, (255, 255, 255), (0, 0, 0), 2)
         self.rect = self.text_surface.get_rect(center=(self.x, self.y))
 
@@ -52,7 +51,6 @@ class TransparentButton:
         return self.rect.collidepoint(pos)
 
     def check_hover(self, mouse_pos):
-        """ Change font size when hovered """
         if self.rect.collidepoint(mouse_pos):
             if self.current_font != self.hover_font:
                 self.current_font = self.hover_font
@@ -64,13 +62,12 @@ class TransparentButton:
     
 
 def Screen_SaveSlot():
-
     # Display the screen title
     pygame.display.set_caption("Save Slot Screen")
     
     # Set custom values
-    background_path = 'background.png'
-    font_path = 'PixelifySans.ttf'
+    background_path = 'Assets/Save Slot Menu/background.png'
+    font_path = 'Assets/Save Slot Menu/PixelifySans.ttf'
     
     # Try setting the custom font & background
     try:
@@ -87,6 +84,7 @@ def Screen_SaveSlot():
         TransparentButton("Back", font_path, WIDTH//2, HEIGHT - 100),
     ]
 
+    
     # Main loop
     running = True
     while running:
@@ -102,6 +100,11 @@ def Screen_SaveSlot():
                     running = False
                     main_menu.run_main_menu()  # Go back to main menu
 
+        mouse_position = pygame.mouse.get_pos()
+        for button in buttons:
+            button.check_hover(mouse_position)
+            button.draw(screen)
+
         screen.fill((255, 255, 255))
         
         if background:
@@ -112,8 +115,9 @@ def Screen_SaveSlot():
 
         pygame.display.flip()
 
-    pygame.quit()
+    
             
 
 if __name__ == "__main__":        
     Screen_SaveSlot()
+    pygame.quit()
