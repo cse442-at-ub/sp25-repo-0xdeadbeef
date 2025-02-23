@@ -1,4 +1,6 @@
 import pygame
+import main_menu
+import settings_menu
 
 import pygame_widgets 
 from pygame_widgets.slider import Slider
@@ -88,29 +90,27 @@ def Screen_SaveSlot():
     # Main loop
     running = True
     while running:
+        events = pygame.event.get()
+        for event in events:
+            if event.type == pygame.QUIT:
+                running = False
+            
+            # Handle clicks on Back button using the fourth button in the array (index 3)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if buttons[3].is_clicked(event.pos):  # Use buttons[3] for the Back button
+                    print("Back clicked. Going to main menu...")
+                    running = False
+                    main_menu.run_main_menu()  # Go back to main menu
+
         screen.fill((255, 255, 255))
         
         if background:
             screen.blit(background, (0, 0))
 
-        mouse_position = pygame.mouse.get_pos()
         for button in buttons:
-            button.check_hover(mouse_position)
             button.draw(screen)
 
         pygame.display.flip()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                for i, button in enumerate(buttons):
-                    if button.is_clicked(event.pos):
-                        if i == 3:
-                            print("Back button clicked")
-                            running = False 
-                        else:
-                            print(f"Save {i+1} clicked")
 
     pygame.quit()
             
