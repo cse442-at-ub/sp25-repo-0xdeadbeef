@@ -17,21 +17,42 @@ def render_text_with_outline(text, font, text_color, outline_color, outline_thic
     return outline_surface
 
 class TransparentButton:
-    def __init__(self, text, font, x, y):
+    def __init__(self, text, font_path, x, y):
         self.text = text
-        self.text_surface = render_text_with_outline(text, font, (255, 255, 255), (0, 0, 0), 2)
-        self.rect = self.text_surface.get_rect(center=(x, y))
-        self.hovered = False
+        self.font_path = font_path
+        self.base_size = 64
+        self.hover_size = 72  # Slightly larger font for hover
+        self.x, self.y = x, y
+        self.normal_font = pygame.font.Font(font_path, self.base_size)
+        self.hover_font = pygame.font.Font(font_path, self.hover_size)
+        self.current_font = self.normal_font
+        self.update_surface()
+    
+    def update_surface(self):
+        """ Update text surface and rect based on the current font """
+        self.text_surface = render_text_with_outline(self.text, self.current_font, (255, 255, 255), (0, 0, 0), 2)
+        self.rect = self.text_surface.get_rect(center=(self.x, self.y))
 
     def draw(self, surface):
         surface.blit(self.text_surface, self.rect.topleft)
 
     def is_clicked(self, pos):
         return self.rect.collidepoint(pos)
+
+    def check_hover(self, mouse_pos):
+        """ Change font size when hovered """
+        if self.rect.collidepoint(mouse_pos):
+            if self.current_font != self.hover_font:
+                self.current_font = self.hover_font
+                self.update_surface()
+        else:
+            if self.current_font != self.normal_font:
+                self.current_font = self.normal_font
+                self.update_surface()
     
 
 def Screen_SaveSlot():
-    # When running only this screen, it should initialize basic screen
+    # When running only this screen for testing, it should initialize basic screen and pygame
     if __name__ == "__main__":
         pygame.init()
         WIDTH, HEIGHT = 1920, 1080
@@ -53,10 +74,10 @@ def Screen_SaveSlot():
         print('Custom font or background not found! Please try again...')
     
     buttons = [
-        TransparentButton("Save 1", font, WIDTH//2, HEIGHT//2 - 200),
-        TransparentButton("Save 2", font, WIDTH//2, HEIGHT//2 - 50),
-        TransparentButton("Save 3", font, WIDTH//2, HEIGHT//2 + 100),
-        TransparentButton("Back", font, WIDTH//2, HEIGHT - 100),
+        TransparentButton("Save 1", font_path, WIDTH//2, HEIGHT//2 - 200),
+        TransparentButton("Save 2", font_path, WIDTH//2, HEIGHT//2 - 50),
+        TransparentButton("Save 3", font_path, WIDTH//2, HEIGHT//2 + 100),
+        TransparentButton("Back", font_path, WIDTH//2, HEIGHT - 100),
     ]
 
     # Main loop
@@ -67,7 +88,9 @@ def Screen_SaveSlot():
         if background:
             screen.blit(background, (0, 0))
 
+        mouse_position = pygame.mouse.get_pos()
         for button in buttons:
+            button.check_hover(mouse_position)
             button.draw(screen)
 
         pygame.display.flip()
