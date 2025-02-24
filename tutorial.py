@@ -1,4 +1,5 @@
 import pygame # type: ignore
+import random
 
 # Initialize PyGame
 pygame.init()
@@ -6,7 +7,7 @@ pygame.init()
 # Screen settings
 
 info = pygame.display.Info()
-WIDTH, HEIGHT = info.current_w, info.current_h
+WIDTH, HEIGHT = info.current_w, info.current_h # Will only work with resolutions 1920 x 1080 or better
 TILE_SIZE = 40  # Adjusted for better layout
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -70,6 +71,18 @@ level_map = [[0] * level_width for _ in range(level_height)]  # Start with air
 
 GROUND = level_height - 4
 SURFACE = GROUND - 1
+
+WHITE = (255, 255, 255)
+NUM_SNOWFLAKES = 100
+snowflakes = []
+
+for _ in range(NUM_SNOWFLAKES):
+    x = random.randint(0, WIDTH)
+    y = random.randint(0, HEIGHT)
+    size = random.randint(2, 6)  # Random size
+    speed = random.uniform(1, 6)  # Falling speed
+    x_speed = random.uniform(-0.5, 0.5)  # Small horizontal drift
+    snowflakes.append([x, y, size, speed, x_speed])
 
 for row_index in range(GROUND, level_height):  # Only draw ground from row 23 down
     row = [1] * level_width  # Default to full ground row
@@ -173,6 +186,26 @@ while running:
         x = i * TILE_SIZE - camera_x
         y = (ground_levels[i] - 1) * TILE_SIZE  # Place tree 2 tiles above the ground
         screen.blit(rock, (x, y + TILE_SIZE // 2))
+
+    for i, snowflake in enumerate(snowflakes):
+        x, y, size, speed, x_speed = snowflake  # Unpack snowflake data
+        
+        # Move snowflake downward and drift sideways
+        y += speed  
+        x += x_speed  # Drift slightly left/right
+        
+        # Reset snowflake when it reaches the bottom or moves too far left/right
+        if y > HEIGHT:
+            y = 0
+            x = random.randint(0, WIDTH)  # Respawn at a new x position
+        if x < 0 or x > WIDTH:  # Keep it within screen bounds
+            x = random.randint(0, WIDTH)
+
+        # Update snowflake position in the list
+        snowflakes[i] = [x, y, size, speed, x_speed]
+
+        # Draw snowflake
+        pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)    
 
     # Draw player
     pygame.draw.rect(screen, (255, 0, 0), (player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE))
