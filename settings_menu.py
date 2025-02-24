@@ -1,6 +1,9 @@
 import pygame   # type: ignore
 import random   # For random snow positions and speeds
 import main_menu 
+import achievement_menu
+import save_slots
+
 
 import pygame_widgets 
 from pygame_widgets.slider import Slider
@@ -8,7 +11,9 @@ from pygame_widgets.textbox import TextBox
 
 pygame.init()   # Initialize Pygame
 
-WIDTH, HEIGHT = 1920, 1080
+info = pygame.display.Info()
+WIDTH = info.current_w
+HEIGHT = info.current_h
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Settings Menu")
 
@@ -94,7 +99,10 @@ def run_settings_menu():
             # Handle clicks on Achievements and Back
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if achievements_rect.collidepoint(event.pos):
-                    print("Achievements clicked (Not implemented yet...)")
+                    print("Achievements clicked. Going to achievements...")
+                    running = False
+                    achievement_menu.run_achievements_menu() # Go to achievements menu
+
                 elif back_rect.collidepoint(event.pos):
                     print("Back clicked. Going to main menu...")
                     running = False
