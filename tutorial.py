@@ -4,7 +4,7 @@ import pygame # type: ignore
 pygame.init()
 
 # Screen settings
-WIDTH, HEIGHT = 1200, 600
+WIDTH, HEIGHT = 1920, 1080
 TILE_SIZE = 40  # Adjusted for better layout
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Tutorial Level")
@@ -35,28 +35,62 @@ flipped_npc = pygame.transform.flip(npc, True, False)  # Flip horizontally (True
 house = pygame.image.load("./images/house.png")
 house = pygame.transform.scale(house, (TILE_SIZE * 5, TILE_SIZE * 3))
 
-# Set up the level with a width of 125 and an initial height of 11 rows
-level_width = 200
-level_height = 20  # Adjust height as needed
+thorn = pygame.image.load("./images/thorn.png")
+thorn = pygame.transform.scale(thorn, (TILE_SIZE, TILE_SIZE))
+
+flag = pygame.image.load("./images/flag.png")
+flag = pygame.transform.scale(flag, (TILE_SIZE, TILE_SIZE))
+
+super_speed_powerup = pygame.image.load("./images/super_speed_powerup.png")
+super_speed_powerup = pygame.transform.scale(super_speed_powerup, (TILE_SIZE, TILE_SIZE))
+
+dash_powerup = pygame.image.load("./images/dash_powerup.png")
+dash_powerup = pygame.transform.scale(dash_powerup, (TILE_SIZE, TILE_SIZE))
+
+fence = pygame.image.load("./images/fence.png")
+fence = pygame.transform.scale(fence, (TILE_SIZE, TILE_SIZE // 2))
+
+sign = pygame.image.load("./images/sign.png")
+sign = pygame.transform.scale(sign, (TILE_SIZE, TILE_SIZE))
+
+rock = pygame.image.load("./images/rock.png")
+rock = pygame.transform.scale(rock, (TILE_SIZE, TILE_SIZE // 2))
+
+background_tree = pygame.image.load("./images/background_tree.png")
+background_tree = pygame.transform.scale(background_tree, (TILE_SIZE * 1.5, TILE_SIZE * 2))
+
+# Set up the level with a width of 140 and a height of 40 rows
+level_width = 140
+level_height = 40  # Adjust height as needed
 
 level_map = [[0] * level_width for _ in range(level_height)]  # Start with air
 
-# Add ground with an **endless pit** at columns 20-25
-for row_index in range(11, level_height):  # Only draw ground from row 11 down
+GROUND = 23
+SURFACE = GROUND - 1
+
+for row_index in range(GROUND, level_height):  # Only draw ground from row 11 down
     row = [1] * level_width  # Default to full ground row
     if row_index >= 10:  # At row 10 and below, create a pit
         for col_index in range(20, 25):  # Remove ground in columns 20-25
             row[col_index] = 0  # Set to air (pit)
         for col_index in range(70, 85):
             row[col_index] = 0  # Set to air (pit)
+        for col_index in range(115, 120):
+            row[col_index] = 0  # Set to air (pit)
     level_map[row_index] = row  # Add row to level map
 
 # Add solid ground at the very bottom
 level_map.append([1] * level_width)  # Only if you want a final boundary
 
-level_map[6][35:40] = [1] * 5
-level_map[5][55:60] = [2] * 5
-level_map[9][74:76] = [2] * 2
+level_map[SURFACE - 4][35:40] = [1] * 5   # Ground
+level_map[SURFACE - 5][54:59] = [2] * 5   # Platform
+level_map[SURFACE - 1][74:76] = [2] * 2   # Platform
+
+level_map[SURFACE - 1][123:126] = [1] * 3 # Ground
+level_map[SURFACE - 2][126:128] = [1] * 2 # Ground
+level_map[SURFACE - 6][128:140] = [1] * 12 # Ground
+
+level_map[SURFACE - 5][122:124] = [2] * 2 # Platform
 
 # Find the ground level for each column
 ground_levels = [len(level_map)] * len(level_map[0])
@@ -65,20 +99,31 @@ for row_index, row in enumerate(level_map):
         if tile == 1 and ground_levels[col_index] == len(level_map):
             ground_levels[col_index] = row_index
 
-level_map[10][28] = 6 #Boots
-level_map[10][60] = 7
-level_map[8][62] = 8
+tiles = {1: ground_tile, 2: platform_tile, 3: boots, 4: flipped_npc, 5: house, 6: thorn, 7: flag, 8: super_speed_powerup, 9: dash_powerup, 10: fence, 11: sign, 12: npc} 
 
-level_map[4][57] = 6 #Boots
+level_map[SURFACE][28], level_map[SURFACE-6][56] = 3, 3 # Boots
+level_map[SURFACE][60] = 4 # NPC 
+level_map[SURFACE-2][62] = 5 # House
+
+level_map[SURFACE][98:104] , level_map[SURFACE][113:115]= [6] * 6, [6] * 2 # Thorns
+level_map[SURFACE][87] = 7 # Flag
+
+level_map[SURFACE][95] = 8 # Super speed powerup
+level_map[SURFACE-2][113] = 9 # Dash powerup
+
+level_map[SURFACE-6][122:124] = [10] * 2 # Fence
+level_map[SURFACE-7][135:140] = [10] * 5 # Fence
+
+level_map[SURFACE-7][130] = 11 # Sign
+
+rocks = {14, 33, 45, 68, 108, 124}
+background_trees = {16, 42, 55, 93, 133}
 
 # Camera position
 camera_x = 0
-player_x = 100  # Start position
-player_y = 400
-player_speed = 3
-
-# npc_x = 1000
-# npc_y = 400
+player_x = 200  # Start position
+player_y = HEIGHT - 200
+player_speed = 10 #Default to 10
 
 # Main loop
 running = True
@@ -89,16 +134,17 @@ while running:
     for row_index, row in enumerate(level_map):
         for col_index, tile in enumerate(row):
             x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
-            if tile == 1:
-                screen.blit(ground_tile, (x, y))  # Draw ground
-            elif tile == 2:
-                screen.blit(platform_tile, (x, y))  # Draw platform
-            elif tile == 6:
-                screen.blit(boots, (x, y)) #Draw boots
-            elif tile == 7:
-                screen.blit(flipped_npc, (x, y)) #Draw NPC
-            elif tile == 8:
-                screen.blit(house, (x, y)) #Draw house
+            if tile == 0:
+                continue
+            if tile == 10:
+                screen.blit(tiles.get(tile), (x, y + TILE_SIZE // 2))
+            else:
+                screen.blit(tiles.get(tile), (x, y))
+            if player_x > 2400:
+                level_map[SURFACE][60] = 12 # Draw the normal npc
+            else:
+                level_map[SURFACE][60] = 4 # Draw the flipped npc
+
 
     # Draw dirt below ground
     for col_index, ground_y in enumerate(ground_levels):
@@ -106,10 +152,20 @@ while running:
             x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
             screen.blit(dirt_tile, (x, y))  # Draw dirt using image
 
-    for i in range(10, 100, 20):  # Adding trees at columns 10 to 15
+    for i in range(10, 100, 20):  # Adding trees
         x = i * TILE_SIZE - camera_x
-        y = (ground_levels[i] - 3) * TILE_SIZE  # Place tree 2 tiles above the ground
+        y = (ground_levels[i] - 3) * TILE_SIZE  # Place tree 3 tiles above the ground
         screen.blit(tree, (x, y))
+
+    for i in background_trees:  # Adding background trees
+        x = i * TILE_SIZE - camera_x
+        y = (ground_levels[i] - 2) * TILE_SIZE  # Place tree 2 tiles above the ground
+        screen.blit(background_tree, (x, y))
+
+    for i in rocks:  # Adding rocks
+        x = i * TILE_SIZE - camera_x
+        y = (ground_levels[i] - 1) * TILE_SIZE  # Place tree 2 tiles above the ground
+        screen.blit(rock, (x, y + TILE_SIZE // 2))
 
     # Draw player
     pygame.draw.rect(screen, (255, 0, 0), (player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE))
