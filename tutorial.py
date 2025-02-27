@@ -8,6 +8,7 @@ pygame.init()
 
 info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h # Will only work with resolutions 1920 x 1080 or better
+# print(str(WIDTH) + " " + str(HEIGHT))
 TILE_SIZE = 40  # Adjusted for better layout
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -31,6 +32,9 @@ tree = pygame.transform.scale(tree, (TILE_SIZE * 2, TILE_SIZE * 3))  # Resize tr
 
 boots = pygame.image.load("./images/boots.png")
 boots = pygame.transform.scale(boots, (TILE_SIZE, TILE_SIZE))
+
+speed_boots = pygame.image.load("./images/speed_boots.png")
+speed_boots = pygame.transform.scale(speed_boots, (TILE_SIZE, TILE_SIZE))
 
 npc = pygame.image.load("./images/sprite.png")
 npc = pygame.transform.scale(npc, (TILE_SIZE, TILE_SIZE))
@@ -103,7 +107,7 @@ level_map.append([1] * level_width)
 for row_index in range(SURFACE - 4, GROUND): #Raised Ground
     level_map[row_index][35:40] = [1] * 5
 
-level_map[SURFACE - 5][53:58] = [2] * 5   # Platform containing speed boots
+level_map[SURFACE - 4][53:58] = [2] * 5   # Platform containing speed boots
 level_map[SURFACE - 1][74:76] = [2] * 2   # Platform
 
 for row_index in range(SURFACE - 1, GROUND): #Raised Ground
@@ -127,9 +131,10 @@ for row_index, row in enumerate(level_map):
 # All code after this line should be for props, npcs, gadgets, and powerups. Terrain should not be made here.
 
 # Dictionary containing which tile corresponds to what
-tiles = {1: ground_tile, 2: platform_tile, 3: boots, 4: flipped_npc, 5: house, 6: thorn, 7: flag, 8: super_speed_powerup, 9: dash_powerup, 10: fence, 11: sign, 12: npc} 
+tiles = {1: ground_tile, 2: platform_tile, 3: boots, 4: flipped_npc, 5: house, 6: thorn, 7: flag, 8: super_speed_powerup, 9: dash_powerup, 10: fence, 11: sign, 12: npc, 13: speed_boots} 
 
-level_map[SURFACE][28], level_map[SURFACE-6][55] = 3, 3 # Boots
+level_map[SURFACE][28] = 3 # Jump Boots
+level_map[SURFACE-5][55] = 13 # Speed Boots
 level_map[SURFACE][60] = 4 # NPC 
 level_map[SURFACE-2][62] = 5 # House
 
@@ -152,12 +157,14 @@ background_trees = {16, 42, 55, 93, 133} # Column numbers for all the background
 camera_x = 0
 player_x = 200  # Start position, change this number to spawn in a different place
 player_y = HEIGHT - 200
-player_speed = (WIDTH // 640) * 2 # Adjust player speed according to their resolution
+player_speed = (WIDTH // 640) * 4 # Adjust player speed according to their resolution
 
 player_vel_y = 0 # Vertical velocity for jumping
 gravity = 1 # Gravity effect (Greater number means stronger gravity)
 jump_power = -16 # Jump strength (Bigger negative number means higher jump)
 on_ground = False # Track if player is on the ground
+doubleJumpBoots = False # Track if player has double jump boots
+doubleJumped = False # Track if player double jumped already
 
 # Converts the x coordinates to the column on the map
 def calculate_column(x): 
@@ -237,9 +244,21 @@ while running:
         player_x += player_speed
     if keys[pygame.K_LEFT] or keys[pygame.K_a]:
         player_x -= player_speed
-    if (keys[pygame.K_SPACE] or keys[pygame.K_w]) and on_ground:
-        player_vel_y = jump_power # Apply jump force
-        on_ground = False # Player is now airborne
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        
+        # Jumping Logic (Space/W Pressed)
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE or event.key == pygame.K_w:
+                if on_ground:
+                    player_vel_y = jump_power  # Normal jump
+                    on_ground = False
+                    doubleJumped = False  # Reset double jump when landing
+                elif doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    doubleJumped = True  # Mark double jump as used
+        
 
     # Apply gravity
     player_vel_y += gravity
@@ -258,6 +277,7 @@ while running:
                     player_y = tile_y - TILE_SIZE
                     player_vel_y = 0
                     on_ground = True  # Player lands
+                    doubleJumped = False # Reset double jump
 
                 # This code block prevents collision with solid blocks from the left and right
                 if (player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):  # If the player is at the same height as the block
@@ -275,6 +295,23 @@ while running:
 
                     player_y = tile_y + TILE_SIZE  # Align player below the ceiling
                     player_vel_y = 0  # Stop upward motion
+            
+            # This code picks up the double jump boots
+            if tile == 3:
+                tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                    player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                    level_map[row_index][col_index] = 0  # Remove the boots from screen
+                    doubleJumpBoots = True
+                    doubleJumped = False
+
+            # This code picks up the speed boots
+            if tile == 13:
+                tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                    player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                    level_map[row_index][col_index] = 0  # Remove the boots from screen
+                    player_speed = (WIDTH // 640) * 6.4 # Up the player speed
         
 
     if player_x >= level_width * TILE_SIZE:  # If player reaches the end of the level
