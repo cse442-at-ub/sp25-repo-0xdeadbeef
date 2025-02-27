@@ -69,8 +69,8 @@ level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's re
 
 level_map = [[0] * level_width for _ in range(level_height)]  # Start with air
 
-GROUND = level_height - 4
-SURFACE = GROUND - 1
+GROUND = level_height - 4 #Constant for the ground level
+SURFACE = GROUND - 1 #Constant for the surface level
 
 WHITE = (255, 255, 255)
 NUM_SNOWFLAKES = 100
@@ -96,17 +96,24 @@ for row_index in range(GROUND, level_height):  # Only draw ground from row 23 do
     level_map[row_index] = row  # Add row to level map
 
 # Add solid ground at the very bottom
-level_map.append([1] * level_width)  # Only if you want a final boundary
+level_map.append([1] * level_width)
 
-level_map[SURFACE - 4][35:40] = [1] * 5   # Raised Ground
+for row_index in range(SURFACE - 4, GROUND): #Raised Ground
+    level_map[row_index][35:40] = [1] * 5
+
 level_map[SURFACE - 5][53:58] = [2] * 5   # Platform containing speed boots
 level_map[SURFACE - 1][74:76] = [2] * 2   # Platform
 
-level_map[SURFACE - 1][123:126] = [1] * 3 # Ground
-level_map[SURFACE - 2][126:128] = [1] * 2 # Ground
-level_map[SURFACE - 6][128:140] = [1] * 12 # Ground
+for row_index in range(SURFACE - 1, GROUND): #Raised Ground
+    level_map[row_index][123:126] = [1] * 3
+for row_index in range(SURFACE - 2, GROUND): #Raised Ground
+    level_map[row_index][126:128] = [1] * 2
+for row_index in range(SURFACE - 6, GROUND): #Raised Ground
+    level_map[row_index][128:140] = [1] * 12
 
 level_map[SURFACE - 5][122:124] = [2] * 2 # Platform
+
+# Make terrain before this line. The next code block calculates the ground levels
 
 # Find the ground level for each column
 ground_levels = [len(level_map)] * len(level_map[0])
@@ -115,10 +122,12 @@ for row_index, row in enumerate(level_map):
         if tile == 1 and ground_levels[col_index] == len(level_map):
             ground_levels[col_index] = row_index
 
+# All code after this line should be for props, npcs, gadgets, and powerups. Terrain should not made here.
+
 # Dictionary containing which tile corresponds to what
 tiles = {1: ground_tile, 2: platform_tile, 3: boots, 4: flipped_npc, 5: house, 6: thorn, 7: flag, 8: super_speed_powerup, 9: dash_powerup, 10: fence, 11: sign, 12: npc} 
 
-level_map[SURFACE][28], level_map[SURFACE-6][56] = 3, 3 # Boots
+level_map[SURFACE][28], level_map[SURFACE-6][55] = 3, 3 # Boots
 level_map[SURFACE][60] = 4 # NPC 
 level_map[SURFACE-2][62] = 5 # House
 
@@ -141,7 +150,12 @@ background_trees = {16, 42, 55, 93, 133}
 camera_x = 0
 player_x = 200  # Start position
 player_y = HEIGHT - 200
-player_speed = (WIDTH // 640) * 3 # Adjust player speed according to their resolution
+player_speed = (WIDTH // 640) * 2 # Adjust player speed according to their resolution
+
+player_vel_y = 0 # Vertical velocity for jumping
+gravity = 1 # Gravity effect (Greater number means stronger gravity)
+jump_power = -16 # Jump strength (Bigger negative number means higher jump)
+on_ground = False # Track if player is on the ground
 
 def calculate_column(x):
     return x // TILE_SIZE
@@ -212,10 +226,49 @@ while running:
 
     # Handle events
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_RIGHT]:
+    if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
         player_x += player_speed
-    if keys[pygame.K_LEFT]:
+    if keys[pygame.K_LEFT] or keys[pygame.K_a]:
         player_x -= player_speed
+    if (keys[pygame.K_SPACE] or keys[pygame.K_w]) and on_ground:
+        player_vel_y = jump_power # Apply jump force
+        on_ground = False # Player is now airborne
+
+    # Apply gravity
+    player_vel_y += gravity
+    player_y += player_vel_y
+
+    on_ground = False
+    for row_index, row in enumerate(level_map):
+        for col_index, tile in enumerate(row):
+            if tile in {1, 2}:  # Ground or platform tiles
+                tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+
+                # This code block prevents players from falling through solid ground
+                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
+                player_y + TILE_SIZE <= tile_y + player_vel_y and  # Only land if falling down
+                player_y + TILE_SIZE > tile_y):  # Ensures overlap
+                    player_y = tile_y - TILE_SIZE
+                    player_vel_y = 0
+                    on_ground = True  # Player lands
+
+                # This code block prevents collision with solid blocks from the left and right
+                if (player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):  # If the player is at the same height as the block
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and player_x + TILE_SIZE - player_speed <= tile_x):  
+                        # Moving right into a block
+                        player_x = tile_x - TILE_SIZE  
+
+                    elif (player_x < tile_x + TILE_SIZE and player_x + TILE_SIZE > tile_x and player_x + player_speed >= tile_x + TILE_SIZE):  
+                        # Moving left into a block
+                        player_x = tile_x + TILE_SIZE
+
+                # This code block checks if the player hits a solid block with their head
+                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
+                    player_y < tile_y + TILE_SIZE and player_y - player_vel_y >= tile_y + TILE_SIZE):
+
+                    player_y = tile_y + TILE_SIZE  # Align player below the ceiling
+                    player_vel_y = 0  # Stop upward motion
+        
 
     if player_x >= level_width * TILE_SIZE:  # If player reaches the end of the level
         running = False
