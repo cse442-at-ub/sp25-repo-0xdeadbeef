@@ -233,11 +233,11 @@ while running:
 
     # Handle events
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+    if keys[pygame.K_RIGHT] or keys[pygame.K_d]: # If player presses D or right arrow key
         player_x += player_speed
-    if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+    if keys[pygame.K_LEFT] or keys[pygame.K_a]: # If player presses A or left arrow key
         player_x -= player_speed
-    if (keys[pygame.K_SPACE] or keys[pygame.K_w]) and on_ground:
+    if (keys[pygame.K_SPACE] or keys[pygame.K_w]) and on_ground: # If player presses Spacebar or W key
         player_vel_y = jump_power # Apply jump force
         on_ground = False # Player is now airborne
 
