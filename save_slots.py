@@ -3,6 +3,9 @@ import main_menu
 import settings_menu
 import achievement_menu
 
+import character_customization
+import world_select
+
 import pygame_widgets 
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox 
@@ -96,6 +99,24 @@ def Screen_SaveSlot():
             if event.type == pygame.QUIT:
                 running = False
             
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if buttons[0].is_clicked(event.pos):  # Use buttons[0] for the Save Slot 1 button (New instance)
+                    print("Save Slot 1 Clicked. Going to character customization...")
+                    running = False
+                    character_customization.customization_screen()  # Go to character customization
+            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if buttons[1].is_clicked(event.pos):  # Use buttons[1] for the Save Slot 2 button (New instance) 
+                    print("Save Slot 2 Clicked. Going to character customization...")
+                    running = False
+                    main_menu.run_main_menu()  # Go to character customization
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if buttons[2].is_clicked(event.pos):  # Use buttons[2] for the Save Slot 3 button (Forwards to level/map selector - TO DO: saved state functionality)
+                    print("Save Slot 3 Clicked. Going to map/level selector...")
+                    running = False
+                    main_menu.run_main_menu()  # Go to character customization
+
             # Handle clicks on Back button using the fourth button in the array (index 3)
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if buttons[3].is_clicked(event.pos):  # Use buttons[3] for the Back button

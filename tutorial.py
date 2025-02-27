@@ -19,7 +19,7 @@ ground_tile = pygame.transform.scale(ground_tile, (TILE_SIZE, TILE_SIZE))
 
 platform_tile = pygame.image.load("./images/platform.png")
 platform_tile = pygame.transform.scale(platform_tile, (TILE_SIZE, TILE_SIZE))
-``
+
 dirt_tile = pygame.image.load("./images/dirt.png")
 dirt_tile = pygame.transform.scale(dirt_tile, (TILE_SIZE, TILE_SIZE))
 

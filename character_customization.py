@@ -1,12 +1,15 @@
+import pygame
 import pygame, sys
 from pygame.locals import *
 
+pygame.init()  # Initialize Pygame
 
-pygame.init() #initialize the pygame 
+info = pygame.display.Info()
+WIDTH = info.current_w
+HEIGHT = info.current_h
+DISPLAY = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Character Customization Screen")
 
-HEIGHT = 600 #1080
-WIDTH = 1200 #1920
-DISPLAY = pygame.display.set_mode((WIDTH,HEIGHT))
 FPS = pygame.time.Clock()
 FONT = pygame.font.SysFont("comicsans", 60)
 
@@ -22,23 +25,20 @@ class Button():
         DISPLAY.blit(self.image, self.rect)
 
     def input_check(self, coordinates):
+        # Check if the mouse click is within button rect boundaries
         if coordinates[0] in range(self.rect.left, self.rect.right) and coordinates[1] in range(self.rect.top, self.rect.bottom):
             return True
 
-#creates the frame of the screen 
+# Creates the frame of the screen
 def create_screen(display, bg):
     display.blit(bg, (0,0))
-
-
 
 def customization_screen(): 
     pygame.display.set_caption("customize")
     BG = pygame.image.load("Assets/character_customization/customization-screen.png").convert()
 
-     #-----Creates the background screen
+    #-----Creates the background screen
     create_screen(DISPLAY, BG)
-
-    # DISPLAY.fill("dark green")
 
     #-----Loads Confirm button onto screen
     confirm_button = pygame.image.load("Assets/character_customization/confirm-button.png")
@@ -126,7 +126,7 @@ def customization_screen():
     pants_index = 0
     skin_index = 0
 
-    #-----Loop fpr game events
+    #-----Loop for game events
     while True:
         
         #-----Updates the screen to include buttons
@@ -206,23 +206,9 @@ def customization_screen():
                     else:
                         pants_index = (pants_index+1)
 
-
-
-        # create_screen(DISPLAY, BG)
-
         FPS.tick(60)
         pygame.display.update()
         confirm_button_class.update()
-
-        #-----Updates the screen to include buttons
-        # hair_left_button_class.update()
-        # hair_right_button_class.update()
-        # shirt_left_button_class.update()
-        # shirt_right_button_class.update()
-        # pants_left_button_class.update()
-        # pants_right_button_class.update()
-        # skin_left_button_class.update()
-        # skin_right_button_class.update()
 
         #-----Make the desired character customizations appear
         shirt_size = pygame.transform.scale(shirt_images[shirt_index], (250,250))
@@ -235,26 +221,9 @@ def customization_screen():
         DISPLAY.blit(shirt_size, (300, 250))
         DISPLAY.blit(pants_size, (300, 250))
 
-        # DISPLAY.blit(shirt_images[shirt_index], (400, 500))
-        # DISPLAY.blit(hair_images[hair_index], (400, 400) )
-        # DISPLAY.blit(pants_images[pants_index], (400, 600))
-
-
-        #creates buttons
-        # confirm_button = pygame.image.load("Assets/confirm-button.png")
-        # confirm_button = pygame.transform.scale(confirm_button, (400, 150))
-        # button = Button(confirm_button, 400, 300)
-
         MOUSE_POSITION = pygame.mouse.get_pos()
-        # pygame.display.update()
-
         pygame.display.flip()
 
-
-
-
-if __name__ == "__main__":
+if __name__ == "__main__":        
     customization_screen()
-
-        
-
+    pygame.quit()
