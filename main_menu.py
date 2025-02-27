@@ -21,7 +21,7 @@ num_snowflakes = random.randint(50, 200) # randomly set the number of snowflakes
 snowflakes = []
 
 def create_blizzard():
-    # Create initial snowflakes at random positions, with random speeds."""
+    # Create initial snowflakes at random positions, with random speeds.
     for i in range(num_snowflakes):
         x = random.randint(0, WIDTH)
         y = random.randint(-HEIGHT, 0)  # start above the screen
