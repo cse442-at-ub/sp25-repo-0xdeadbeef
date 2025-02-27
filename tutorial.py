@@ -13,7 +13,7 @@ TILE_SIZE = 40  # Adjusted for better layout
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Tutorial Level")
 
-# Load tile images (ensure they are the same size)
+# Load all the images into their respective variables
 ground_tile = pygame.image.load("./images/ground.png")
 ground_tile = pygame.transform.scale(ground_tile, (TILE_SIZE, TILE_SIZE))
 
@@ -72,10 +72,12 @@ level_map = [[0] * level_width for _ in range(level_height)]  # Start with air
 GROUND = level_height - 4 #Constant for the ground level
 SURFACE = GROUND - 1 #Constant for the surface level
 
+# This is for the snowflake animations
 WHITE = (255, 255, 255)
 NUM_SNOWFLAKES = 100
 snowflakes = []
 
+#This for loop is also for snowflakes
 for _ in range(NUM_SNOWFLAKES):
     x = random.randint(0, WIDTH)
     y = random.randint(0, HEIGHT)
@@ -122,7 +124,7 @@ for row_index, row in enumerate(level_map):
         if tile == 1 and ground_levels[col_index] == len(level_map):
             ground_levels[col_index] = row_index
 
-# All code after this line should be for props, npcs, gadgets, and powerups. Terrain should not made here.
+# All code after this line should be for props, npcs, gadgets, and powerups. Terrain should not be made here.
 
 # Dictionary containing which tile corresponds to what
 tiles = {1: ground_tile, 2: platform_tile, 3: boots, 4: flipped_npc, 5: house, 6: thorn, 7: flag, 8: super_speed_powerup, 9: dash_powerup, 10: fence, 11: sign, 12: npc} 
@@ -142,13 +144,13 @@ level_map[SURFACE-7][135:140] = [10] * 5 # Fence
 
 level_map[SURFACE-7][130] = 11 # Sign
 
-rocks = {14, 33, 45, 68, 108, 124}
-trees = {10, 30, 50, 90}
-background_trees = {16, 42, 55, 93, 133}
+rocks = {14, 33, 45, 68, 108, 124} # Column numbers for all the rocks
+trees = {10, 30, 50, 90} # Column numbers for all the trees
+background_trees = {16, 42, 55, 93, 133} # Column numbers for all the background trees
 
 # Camera position
 camera_x = 0
-player_x = 200  # Start position
+player_x = 200  # Start position, change this number to spawn in a different place
 player_y = HEIGHT - 200
 player_speed = (WIDTH // 640) * 2 # Adjust player speed according to their resolution
 
@@ -174,11 +176,11 @@ while running:
     for row_index, row in enumerate(level_map):
         for col_index, tile in enumerate(row):
             x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
-            if tile == 0:
+            if tile == 0: # Continue if the tile is an air block
                 continue
-            if tile == 10:
+            if tile == 10: #Draw the fence at half size
                 screen.blit(tiles.get(tile), (x, y + TILE_SIZE // 2))
-            else:
+            else: # Draw according to the dictionary
                 screen.blit(tiles.get(tile), (x, y))
             if calculate_column(player_x) >= 60:
                 level_map[SURFACE][60] = 12 # Draw the normal npc
@@ -198,12 +200,12 @@ while running:
 
     for i in background_trees:  # Adding background trees
         x = i * TILE_SIZE - camera_x
-        y = (ground_levels[i] - 2) * TILE_SIZE  # Place tree 2 tiles above the ground
+        y = (ground_levels[i] - 2) * TILE_SIZE  # Place background trees 2 tiles above the ground
         screen.blit(background_tree, (x, y))
 
     for i in rocks:  # Adding rocks
         x = i * TILE_SIZE - camera_x
-        y = (ground_levels[i] - 1) * TILE_SIZE  # Place tree 2 tiles above the ground
+        y = (ground_levels[i] - 1) * TILE_SIZE  # Place rocks 1 tile above the ground
         screen.blit(rock, (x, y + TILE_SIZE // 2))
 
     for i, snowflake in enumerate(snowflakes):
@@ -249,7 +251,7 @@ while running:
             if tile in {1, 2}:  # Ground or platform tiles
                 tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
 
-                # This code block prevents players from falling through solid ground
+                # This code block prevents the player from falling through solid ground
                 if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
                 player_y + TILE_SIZE <= tile_y + player_vel_y and  # Only land if falling down
                 player_y + TILE_SIZE > tile_y):  # Ensures overlap
@@ -267,7 +269,7 @@ while running:
                         # Moving left into a block
                         player_x = tile_x + TILE_SIZE
 
-                # This code block checks if the player hits a solid block with their head
+                # This code block prevents collision with solid blocks above their head
                 if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
                     player_y < tile_y + TILE_SIZE and player_y - player_vel_y >= tile_y + TILE_SIZE):
 
