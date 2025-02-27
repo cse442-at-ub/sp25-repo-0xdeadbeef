@@ -157,8 +157,13 @@ gravity = 1 # Gravity effect (Greater number means stronger gravity)
 jump_power = -16 # Jump strength (Bigger negative number means higher jump)
 on_ground = False # Track if player is on the ground
 
-def calculate_column(x):
+# Converts the x coordinates to the column on the map
+def calculate_column(x): 
     return x // TILE_SIZE
+
+# Converts the column number to the x-coordinate
+def calculate_x_coordinate(column):
+    return column * TILE_SIZE
 
 # Main loop
 running = True
