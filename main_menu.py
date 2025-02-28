@@ -17,7 +17,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Main Menu with Hover Effect")
 
 # BLIZZARD SETUP
-num_snowflakes = random.randint(50, 200) # randomly set the number of snowflakes to something between 50 and 2000
+num_snowflakes = random.randint(50, 100) # randomly set the number of snowflakes to something between 50 and 2000
 snowflakes = []
 
 def create_blizzard():
@@ -87,19 +87,18 @@ def run_main_menu():
                 # If a button is clicked, print an action
                 if start_rect.collidepoint(event.pos):
                     print("Start Game...")
-
-                    # Stop main menu loop, call save slot screen
-                    running = False
+                    running = False # Stop main menu loop, call save slot screen
                     save_slots.Screen_SaveSlot()
+
                 elif settings_rect.collidepoint(event.pos):
                     print("Settings...")
-
-                    # Stop main menu loop, call settings menu 
-                    running = False
+                    running = False # Stop main menu loop, call settings menu 
                     settings_menu.run_settings_menu()
+
                 elif exit_rect.collidepoint(event.pos):
                     print("Exit...")
                     running = False
+                    sys.exit()
 
         # Clear screen by drawing background
         screen.blit(bg, (0, 0))
