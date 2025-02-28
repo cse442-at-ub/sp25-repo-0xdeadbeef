@@ -1,6 +1,6 @@
 import pygame # type: ignore
 import random
-from npc_dialogue import handle_npc_dialogue  # Import the NPC dialogue functionality
+from tutorial_npc_dialogue import handle_npc_dialogue  # Import the NPC dialogue functionality
 
 # Initialize PyGame
 pygame.init()
@@ -241,7 +241,7 @@ while running:
     pygame.draw.rect(screen, (255, 0, 0), (player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE))
 
     # Handle events
-    
+
     # Check if player is near the NPC
     npc_x = 60 * TILE_SIZE  # NPC's x position
     npc_y = (SURFACE) * TILE_SIZE  # NPC's y position
@@ -256,9 +256,9 @@ while running:
     # Handle movement
     keys = pygame.key.get_pressed()
     if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-        player_x += player_speed * 4
+        player_x += player_speed
     if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-        player_x -= player_speed * 4
+        player_x -= player_speed
     if (keys[pygame.K_SPACE] or keys[pygame.K_w]) and on_ground:
         player_vel_y = jump_power # Apply jump force
         on_ground = False # Player is now airborne
