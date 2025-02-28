@@ -74,9 +74,9 @@ def handle_npc_dialogue(screen, player_rect, npc_rect, keys, current_time):
     global current_dialogue_index, show_dialogue, last_key_press_time
 
     if player_rect.colliderect(npc_rect):
-        # Show prompt to press 'E'
-        prompt_text = font.render("Press 'E' to talk", True, (255, 255, 255))
-        screen.blit(prompt_text, (player_rect.x - 70, player_rect.y - 50))
+        # # Show prompt to press 'E'
+        # prompt_text = font.render("Press 'E' to talk", True, (255, 255, 255))
+        # screen.blit(prompt_text, (player_rect.x - 70, player_rect.y - 50))
 
         # Check if 'E' is pressed with cooldown
         if keys[pygame.K_e] and current_time - last_key_press_time > cooldown_time:
