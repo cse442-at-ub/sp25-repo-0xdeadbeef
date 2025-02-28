@@ -1,13 +1,12 @@
 import pygame # type: ignore
 import random
-from npc_dialogue import handle_npc_dialogue  # Import the NPC dialogue functionality
 
 # Initialize PyGame
 pygame.init()
 
 # Initialize font for dialogue
 pygame.font.init()
-level_name_font = pygame.font.Font(None, 48)  # Larger font for level name
+font = pygame.font.Font(None, 36) # Edit the number to change the font size
 
 # Screen settings
 
@@ -172,14 +171,52 @@ def calculate_column(x):
 def calculate_x_coordinate(column):
     return column * TILE_SIZE
 
+# List of dialogue lines
+dialogue_lines = [
+    "",                                             # For some reason, the first line is always skipped, so please don't delete this empty dialogue line
+    "Hello, adventurer!",
+    "Welcome to the tutorial level.",
+    "Press 'E' to continue the conversation.",
+    "Good luck on your journey!"
+]
+
+# Variables to track dialogue state
+current_dialogue_index = 0
+show_dialogue = False
+
+# Cooldown variables
+cooldown_time = 400  # If you want to read the dialogue quicker, set this to a lower number
+last_key_press_time = 0  # Tracks the last time "E" was pressed
+
+# Function to draw the dialogue box
+def draw_dialogue_box(screen, text, font, x, y):
+    # Calculate the size of the text
+    text_surface = font.render(text, True, (0, 0, 0))
+    text_width, text_height = text_surface.get_size()
+
+    # Define padding for the dialogue box
+    padding = 20
+
+    # Calculate the size of the dialogue box
+    box_width = text_width + padding * 2
+    box_height = text_height + padding * 2
+
+    # Position the box above the NPC
+    box_x = x - box_width // 2
+    box_y = y - box_height - 20  # Position above the NPC
+
+    # Draw the box
+    pygame.draw.rect(screen, (255, 255, 255), (box_x, box_y, box_width, box_height))
+    pygame.draw.rect(screen, (0, 0, 0), (box_x, box_y, box_width, box_height), 2)
+
+    # Render the text
+    text_rect = text_surface.get_rect(center=(x, box_y + box_height // 2))
+    screen.blit(text_surface, text_rect)
+
 # Main loop
 running = True
 while running:
     screen.blit(background, (0, 0))
-
-    # Draw level name in the top-left corner
-    level_name_text = level_name_font.render("Tutorial", True, (255, 255, 255))  # White text
-    screen.blit(level_name_text, (20, 20))  # Position at (20, 20)
 
     # Draw level using tile images
     for row_index, row in enumerate(level_map):
@@ -240,18 +277,39 @@ while running:
     # Draw player
     pygame.draw.rect(screen, (255, 0, 0), (player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE))
 
-    # Handle events
-    
     # Check if player is near the NPC
     npc_x = 60 * TILE_SIZE  # NPC's x position
     npc_y = (SURFACE) * TILE_SIZE  # NPC's y position
     player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
     npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
 
-    # Handle NPC dialogue
-    keys = pygame.key.get_pressed()
-    current_time = pygame.time.get_ticks()  # Get current time in milliseconds
-    handle_npc_dialogue(screen, player_rect, npc_rect, keys, current_time)
+    if player_rect.colliderect(npc_rect):
+        # Show prompt to press 'E'
+        prompt_text = font.render("Press 'E' to talk", True, (255, 255, 255))
+        screen.blit(prompt_text, (player_x - camera_x - 70, player_y - 50))
+
+        # Check if 'E' is pressed with cooldown
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        if keys[pygame.K_e] and current_time - last_key_press_time > cooldown_time:
+            # Only proceed if there are more dialogue lines to show
+            if current_dialogue_index < len(dialogue_lines) - 1:
+                show_dialogue = True
+                current_dialogue_index += 1  # Move to the next dialogue line
+            last_key_press_time = current_time  # Update the last key press time
+
+        # Draw dialogue box if active
+        if show_dialogue:
+            draw_dialogue_box(screen, dialogue_lines[current_dialogue_index], font, npc_x - camera_x + TILE_SIZE // 2, npc_y)
+    else:
+        # Hide dialogue box and reset dialogue when player moves out of range
+        show_dialogue = False
+        current_dialogue_index = 0  # Reset dialogue to the first line
+
+    # Handle events
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
     # Handle movement
     keys = pygame.key.get_pressed()
