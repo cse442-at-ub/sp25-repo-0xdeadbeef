@@ -1,5 +1,6 @@
 import pygame # type: ignore
 import random
+import sys
 
 import world_select 
 
