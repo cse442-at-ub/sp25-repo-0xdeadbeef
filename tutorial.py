@@ -1,6 +1,8 @@
 import pygame # type: ignore
 import random
 
+import world_select 
+
 # Initialize PyGame
 pygame.init()
 
@@ -136,8 +138,8 @@ level_map[SURFACE-2][62] = 5 # House
 level_map[SURFACE][98:104] , level_map[SURFACE][113:115]= [6] * 6, [6] * 2 # Thorns
 level_map[SURFACE][87] = 7 # Flag
 
-level_map[SURFACE][95] = 8 # Super speed powerup
-level_map[SURFACE-2][113] = 9 # Dash powerup
+level_map[SURFACE][95] = 8 # Super speed power up
+level_map[SURFACE-2][113] = 9 # Dash power up
 
 level_map[SURFACE-6][122:124] = [10] * 2 # Fence
 level_map[SURFACE-7][135:140] = [10] * 5 # Fence
@@ -148,16 +150,6 @@ rocks = {14, 33, 45, 68, 108, 124} # Column numbers for all the rocks
 trees = {10, 30, 50, 90} # Column numbers for all the trees
 background_trees = {16, 42, 55, 93, 133} # Column numbers for all the background trees
 
-# Camera position
-camera_x = 0
-player_x = 200  # Start position, change this number to spawn in a different place
-player_y = HEIGHT - 200
-player_speed = (WIDTH // 640) * 2 # Adjust player speed according to their resolution
-
-player_vel_y = 0 # Vertical velocity for jumping
-gravity = 1 # Gravity effect (Greater number means stronger gravity)
-jump_power = -16 # Jump strength (Bigger negative number means higher jump)
-on_ground = False # Track if player is on the ground
 
 # Converts the x coordinates to the column on the map
 def calculate_column(x): 
@@ -167,126 +159,143 @@ def calculate_column(x):
 def calculate_x_coordinate(column):
     return column * TILE_SIZE
 
-# Main loop
-running = True
-while running:
-    screen.blit(background, (0, 0))
+def tutorial_level():
 
-    # Draw level using tile images
-    for row_index, row in enumerate(level_map):
-        for col_index, tile in enumerate(row):
-            x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
-            if tile == 0: # Continue if the tile is an air block
-                continue
-            if tile == 10: #Draw the fence at half size
-                screen.blit(tiles.get(tile), (x, y + TILE_SIZE // 2))
-            else: # Draw according to the dictionary
-                screen.blit(tiles.get(tile), (x, y))
-            if calculate_column(player_x) >= 60:
-                level_map[SURFACE][60] = 12 # Draw the normal npc
-            else:
-                level_map[SURFACE][60] = 4 # Draw the flipped npc
+    # Camera position
+    camera_x = 0
+    player_x = 200  # Start position, change this number to spawn in a different place
+    player_y = HEIGHT - 200
+    player_speed = (WIDTH // 640) * 2 # Adjust player speed according to their resolution
 
-    # Draw dirt below ground
-    for col_index, ground_y in enumerate(ground_levels):
-        for row_index in range(ground_y + 1, len(level_map) + 10):  # Extra depth
-            x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
-            screen.blit(dirt_tile, (x, y))  # Draw dirt using image
+    player_vel_y = 0 # Vertical velocity for jumping
+    gravity = 1 # Gravity effect (Greater number means stronger gravity)
+    jump_power = -16 # Jump strength (Bigger negative number means higher jump)
+    on_ground = False # Track if player is on the ground
 
-    for i in trees:  # Adding trees
-        x = i * TILE_SIZE - camera_x
-        y = (ground_levels[i] - 3) * TILE_SIZE  # Place tree 3 tiles above the ground
-        screen.blit(tree, (x, y))
+    # Main loop
+    running = True
+    while running:
+        screen.blit(background, (0, 0))
 
-    for i in background_trees:  # Adding background trees
-        x = i * TILE_SIZE - camera_x
-        y = (ground_levels[i] - 2) * TILE_SIZE  # Place background trees 2 tiles above the ground
-        screen.blit(background_tree, (x, y))
+        # Draw level using tile images
+        for row_index, row in enumerate(level_map):
+            for col_index, tile in enumerate(row):
+                x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
+                if tile == 0: # Continue if the tile is an air block
+                    continue
+                if tile == 10: #Draw the fence at half size
+                    screen.blit(tiles.get(tile), (x, y + TILE_SIZE // 2))
+                else: # Draw according to the dictionary
+                    screen.blit(tiles.get(tile), (x, y))
+                if calculate_column(player_x) >= 60:
+                    level_map[SURFACE][60] = 12 # Draw the normal npc
+                else:
+                    level_map[SURFACE][60] = 4 # Draw the flipped npc
 
-    for i in rocks:  # Adding rocks
-        x = i * TILE_SIZE - camera_x
-        y = (ground_levels[i] - 1) * TILE_SIZE  # Place rocks 1 tile above the ground
-        screen.blit(rock, (x, y + TILE_SIZE // 2))
+        # Draw dirt below ground
+        for col_index, ground_y in enumerate(ground_levels):
+            for row_index in range(ground_y + 1, len(level_map) + 10):  # Extra depth
+                x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
+                screen.blit(dirt_tile, (x, y))  # Draw dirt using image
 
-    for i, snowflake in enumerate(snowflakes):
-        x, y, size, speed, x_speed = snowflake  # Unpack snowflake data
-        
-        # Move snowflake downward and drift sideways
-        y += speed  
-        x += x_speed  # Drift slightly left/right
-        
-        # Reset snowflake when it reaches the bottom or moves too far left/right
-        if y > HEIGHT:
-            y = 0
-            x = random.randint(0, WIDTH)  # Respawn at a new x position
-        if x < 0 or x > WIDTH:  # Keep it within screen bounds
-            x = random.randint(0, WIDTH)
+        for i in trees:  # Adding trees
+            x = i * TILE_SIZE - camera_x
+            y = (ground_levels[i] - 3) * TILE_SIZE  # Place tree 3 tiles above the ground
+            screen.blit(tree, (x, y))
 
-        # Update snowflake position in the list
-        snowflakes[i] = [x, y, size, speed, x_speed]
+        for i in background_trees:  # Adding background trees
+            x = i * TILE_SIZE - camera_x
+            y = (ground_levels[i] - 2) * TILE_SIZE  # Place background trees 2 tiles above the ground
+            screen.blit(background_tree, (x, y))
 
-        # Draw snowflake
-        pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)    
+        for i in rocks:  # Adding rocks
+            x = i * TILE_SIZE - camera_x
+            y = (ground_levels[i] - 1) * TILE_SIZE  # Place rocks 1 tile above the ground
+            screen.blit(rock, (x, y + TILE_SIZE // 2))
 
-    # Draw player
-    pygame.draw.rect(screen, (255, 0, 0), (player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE))
+        for i, snowflake in enumerate(snowflakes):
+            x, y, size, speed, x_speed = snowflake  # Unpack snowflake data
+            
+            # Move snowflake downward and drift sideways
+            y += speed  
+            x += x_speed  # Drift slightly left/right
+            
+            # Reset snowflake when it reaches the bottom or moves too far left/right
+            if y > HEIGHT:
+                y = 0
+                x = random.randint(0, WIDTH)  # Respawn at a new x position
+            if x < 0 or x > WIDTH:  # Keep it within screen bounds
+                x = random.randint(0, WIDTH)
 
-    # Handle events
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
-        player_x += player_speed
-    if keys[pygame.K_LEFT] or keys[pygame.K_a]:
-        player_x -= player_speed
-    if (keys[pygame.K_SPACE] or keys[pygame.K_w]) and on_ground:
-        player_vel_y = jump_power # Apply jump force
-        on_ground = False # Player is now airborne
+            # Update snowflake position in the list
+            snowflakes[i] = [x, y, size, speed, x_speed]
 
-    # Apply gravity
-    player_vel_y += gravity
-    player_y += player_vel_y
+            # Draw snowflake
+            pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)    
 
-    on_ground = False
-    for row_index, row in enumerate(level_map):
-        for col_index, tile in enumerate(row):
-            if tile in {1, 2}:  # Ground or platform tiles
-                tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+        # Draw player
+        pygame.draw.rect(screen, (255, 0, 0), (player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE))
 
-                # This code block prevents the player from falling through solid ground
-                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
-                player_y + TILE_SIZE <= tile_y + player_vel_y and  # Only land if falling down
-                player_y + TILE_SIZE > tile_y):  # Ensures overlap
-                    player_y = tile_y - TILE_SIZE
-                    player_vel_y = 0
-                    on_ground = True  # Player lands
+        # Handle events
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]: # If player presses D or right arrow key
+            player_x += player_speed
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]: # If player presses A or left arrow key
+            player_x -= player_speed
+        if (keys[pygame.K_SPACE] or keys[pygame.K_w]) and on_ground: # If player presses Space bar or W key
+            player_vel_y = jump_power # Apply jump force
+            on_ground = False # Player is now airborne
 
-                # This code block prevents collision with solid blocks from the left and right
-                if (player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):  # If the player is at the same height as the block
-                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and player_x + TILE_SIZE - player_speed <= tile_x):  
-                        # Moving right into a block
-                        player_x = tile_x - TILE_SIZE  
+        # Apply gravity
+        player_vel_y += gravity
+        player_y += player_vel_y
 
-                    elif (player_x < tile_x + TILE_SIZE and player_x + TILE_SIZE > tile_x and player_x + player_speed >= tile_x + TILE_SIZE):  
-                        # Moving left into a block
-                        player_x = tile_x + TILE_SIZE
+        on_ground = False
+        for row_index, row in enumerate(level_map):
+            for col_index, tile in enumerate(row):
+                if tile in {1, 2}:  # Ground or platform tiles
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
 
-                # This code block prevents collision with solid blocks above their head
-                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
-                    player_y < tile_y + TILE_SIZE and player_y - player_vel_y >= tile_y + TILE_SIZE):
+                    # This code block prevents the player from falling through solid ground
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
+                    player_y + TILE_SIZE <= tile_y + player_vel_y and  # Only land if falling down
+                    player_y + TILE_SIZE > tile_y):  # Ensures overlap
+                        player_y = tile_y - TILE_SIZE
+                        player_vel_y = 0
+                        on_ground = True  # Player lands
 
-                    player_y = tile_y + TILE_SIZE  # Align player below the ceiling
-                    player_vel_y = 0  # Stop upward motion
-        
+                    # This code block prevents collision with solid blocks from the left and right
+                    if (player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):  # If the player is at the same height as the block
+                        if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and player_x + TILE_SIZE - player_speed <= tile_x):  
+                            # Moving right into a block
+                            player_x = tile_x - TILE_SIZE  
 
-    if player_x >= level_width * TILE_SIZE:  # If player reaches the end of the level
-        running = False
+                        elif (player_x < tile_x + TILE_SIZE and player_x + TILE_SIZE > tile_x and player_x + player_speed >= tile_x + TILE_SIZE):  
+                            # Moving left into a block
+                            player_x = tile_x + TILE_SIZE
 
-    # Camera follows player
-    camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
+                    # This code block prevents collision with solid blocks above their head
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
+                        player_y < tile_y + TILE_SIZE and player_y - player_vel_y >= tile_y + TILE_SIZE):
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+                        player_y = tile_y + TILE_SIZE  # Align player below the ceiling
+                        player_vel_y = 0  # Stop upward motion
+            
+
+        if player_x >= level_width * TILE_SIZE:  # If player reaches the end of the level
             running = False
 
-    pygame.display.flip()  # Update display
+        # Camera follows player
+        camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
 
-pygame.quit()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+                sys.exit()
+
+        pygame.display.flip()  # Update display
+
+
+if __name__ == "__main__":
+    tutorial_level()
+    pygame.quit()
