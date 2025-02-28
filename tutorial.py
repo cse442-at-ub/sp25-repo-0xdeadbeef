@@ -18,6 +18,10 @@ player = pygame.image.load("./animations/right-stand.png")
 player = pygame.transform.scale(player, (TILE_SIZE, TILE_SIZE))
 flipped_player = pygame.transform.flip(player, True, False)
 
+run = pygame.image.load("./animations/right-run.png")
+run = pygame.transform.scale(run, (TILE_SIZE, TILE_SIZE))
+flipped_run = pygame.transform.flip(run, True, False)
+
 run_frames = [
     pygame.image.load("./animations/right-walk.png"),
     pygame.image.load("./animations/right-run.png")
@@ -269,13 +273,17 @@ while running:
     if direction == -1:  # Flip when moving left
         current_frame = pygame.transform.flip(current_frame, True, False)
 
-    # Draw player
-    if moving:
-        screen.blit(current_frame, (player_x - camera_x, player_y))
-    else:
-        if direction == 1:
+    if moving: # Animate the player running if they are moving
+        if not on_ground and direction == 1: # If they are airborne and moving right
+            screen.blit(run, (player_x - camera_x, player_y))
+        elif not on_ground and direction == -1: # If they are airborne and moving left
+            screen.blit(flipped_run, (player_x - camera_x, player_y))
+        else: # On ground
+            screen.blit(current_frame, (player_x - camera_x, player_y))
+    else: # Draw the player in an idle position
+        if direction == 1: # Right
             screen.blit(player, (player_x - camera_x, player_y))
-        else:
+        else: # Left
             screen.blit(flipped_player, (player_x - camera_x, player_y))
 
     # Apply gravity
