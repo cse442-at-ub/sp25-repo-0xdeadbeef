@@ -9,9 +9,25 @@ font = pygame.font.Font(None, 36)  # Font for dialogue
 # List of dialogue lines
 dialogue_lines = [
     "",  # Empty line to avoid skipping the first dialogue
-    "Hello, adventurer!",
-    "Welcome to the tutorial level.",
-    "Press 'E' to continue the conversation.",
+    "Ah! A visitor!",
+    "It's a strange thing that you seek a place to stay here.",
+    "Us folks around here have been living in these snowy mountains for years and everyone is just dying to find a lush green place to live.",
+    "But hey,",
+    "Beggers can't be chooser, right?",
+    "My apoloigies, I haven't told you my name have I?",
+    "The name's Kris.",
+    "If you want to know more about the locals, you need to get familiaried with the customs here.",
+    "Every folks around here talk by pressing 'E'",
+    "It's a bit unconventional, but you'll get used to it.",
+    "If you want to stay here, go talk to Sharon.",
+    "She and her husband have been staying here the longest",
+    "They know this land more than the speck of dust on my worn hair.",
+    "You can find her at the next area.",
+    "Just keep going right and you'll find her.",
+    "Although, nature can be very cruel sometimes.",
+    "There's spikes and ravines laying around this mountain so watch your step when you go around here.",
+    "But hey, you're a young lad!",
+    "I can tell you'll make it through.",
     "Good luck on your journey!"
 ]
 
