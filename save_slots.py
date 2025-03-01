@@ -84,11 +84,19 @@ def Screen_SaveSlot():
         background = pygame.transform.scale(background, (WIDTH, HEIGHT))
     except pygame.error or FileNotFoundError:
         print('Custom font or background not found! Please try again...')
+
+    buttonNames = []
+    
+    for i in range(0, 3):
+        if check_save(i+1):
+            buttonNames.append("Save " + f"{i+1}")
+        else:
+            buttonNames.append("Save " + f"{i+1}" + " {New}")
     
     buttons = [
-        TransparentButton("Save 1", font_path, WIDTH//2, HEIGHT//2 - 200),
-        TransparentButton("Save 2", font_path, WIDTH//2, HEIGHT//2 - 50),
-        TransparentButton("Save 3", font_path, WIDTH//2, HEIGHT//2 + 100),
+        TransparentButton(buttonNames[0], font_path, WIDTH//2, HEIGHT//2 - 200),
+        TransparentButton(buttonNames[1], font_path, WIDTH//2, HEIGHT//2 - 50),
+        TransparentButton(buttonNames[2], font_path, WIDTH//2, HEIGHT//2 + 100),
         TransparentButton("Back", font_path, WIDTH//2, HEIGHT - 100),
     ]
 
