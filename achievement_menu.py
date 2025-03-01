@@ -2,6 +2,7 @@ import pygame  # type: ignore
 import main_menu  
 import settings_menu  
 import save_slots  
+import sys
 
 # Initialize pygame
 pygame.init()

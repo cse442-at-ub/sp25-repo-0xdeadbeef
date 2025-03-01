@@ -2,6 +2,7 @@ import pygame
 import main_menu
 import settings_menu
 import achievement_menu
+import sys
 
 import character_customization
 import world_select
