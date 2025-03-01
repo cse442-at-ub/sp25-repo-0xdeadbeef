@@ -150,7 +150,7 @@ background_trees = {16, 42, 55, 93, 133} # Column numbers for all the background
 
 # Camera position
 camera_x = 0
-player_x = 200  # Start position, change this number to spawn in a different place
+player_x = 3480  # Start position, change this number to spawn in a different place
 player_y = HEIGHT - 200
 player_speed = (WIDTH // 640) * 2 # Adjust player speed according to their resolution
 
@@ -167,10 +167,25 @@ def calculate_column(x):
 def calculate_x_coordinate(column):
     return column * TILE_SIZE
 
+#-----Declared variables for speed boost to avoid undefined variable error
+super_speed_bool = False
+super_speed_respawn_time = 0
+super_speed_pickup_time = 0
+super_speed_effect_off_time = 0
+
+#-----Declared variables for Dash power-up to avoid undefined variable error
+dash_respawn_time = 0 
+dash_pickup_time = 0
+dash_duration = 0
+dashing = False
+
 # Main loop
 running = True
 while running:
     screen.blit(background, (0, 0))
+
+    #-----Get the current time of the game in milliseconds (for power-up resetting)
+    Game_time = pygame.time.get_ticks()
 
     # Draw level using tile images
     for row_index, row in enumerate(level_map):
@@ -230,6 +245,64 @@ while running:
 
     # Draw player
     pygame.draw.rect(screen, (255, 0, 0), (player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE))
+
+
+    #-----Handle player colliding into Super-Speed Power-up
+    if (level_map[calculate_column(player_y)][calculate_column(player_x)]) == level_map[SURFACE][95] and level_map[SURFACE][95] == 8:
+        super_speed_pickup_time = pygame.time.get_ticks()
+        super_speed_effect_off_time = super_speed_pickup_time + 5000
+        super_speed_bool = True
+        level_map[SURFACE][95] = 0
+        super_speed_respawn_time = super_speed_pickup_time + 10000
+        print("Super-Speed")
+        player_speed = (WIDTH // 640) * 4
+
+    # print(f"Current Player Speed: {player_speed}")
+
+    #-----Removes super-speed power-up effects after 5 seconds
+    if (super_speed_bool == True) and (pygame.time.get_ticks() >= super_speed_effect_off_time):
+        print("removal conditional entered")
+        player_speed = (WIDTH // 640) * 2
+        super_speed_bool = False
+        super_speed_pickup_time = 0
+        print ("Super-Speed Ran Out")
+
+    #-----Respawns super-speed power-up after 10 seconds
+    if (super_speed_respawn_time > 0) and (pygame.time.get_ticks() >= super_speed_respawn_time): 
+        level_map[SURFACE][95] = 8
+        super_speed_respawn_time = 0
+        print ("Super-Speed Respawned")
+    
+
+    #-----Handles player colliding into Dash Power-up
+    if (level_map[calculate_column(player_y)][calculate_column(player_x)]) == (level_map[SURFACE-2][113]) and level_map[SURFACE-2][113] == 9:
+        dash_pickup_time = pygame.time.get_ticks()
+        dash_respawn_time = dash_pickup_time + 5000
+        level_map[SURFACE-2][113] = 0 
+        player_speed = (WIDTH // 640) * 2 * 10
+        dash_duration = pygame.time.get_ticks() + 250
+        dashing = True
+
+        print("Dash")
+    
+    #-----Gives player a "Dash Boost" for approximately a quarter of a second
+    if dashing == True:
+        player_x += player_speed
+        print("dashing")
+        if (pygame.time.get_ticks() >= dash_duration) and (dash_duration != 0):
+            player_speed = (WIDTH // 640) * 2
+            dashing = False
+            dash_duration = 0
+            print("Dash Over")
+
+    
+    #-----Respawns Dash power-up after 5 seconds
+    if  (dash_respawn_time > 0 ) and (pygame.time.get_ticks() >= dash_respawn_time):
+        level_map[SURFACE-2][113] = 9
+        dash_respawn_time = 0
+        print("Dash Respawn")
+    # print(f"Dash Respawn Time: {dash_respawn_time}, Current Time: {pygame.time.get_ticks()}")
+
 
     # Handle events
     keys = pygame.key.get_pressed()
