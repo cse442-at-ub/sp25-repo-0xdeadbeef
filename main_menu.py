@@ -3,6 +3,7 @@ import random   #For random snow positions and speeds
 import settings_menu 
 import save_slots
 import achievement_menu
+import sys
 
 import pygame_widgets 
 from pygame_widgets.slider import Slider

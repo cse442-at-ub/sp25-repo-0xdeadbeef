@@ -1,5 +1,6 @@
 import pygame # type: ignore
 import random
+import sys
 
 # Initialize PyGame
 pygame.init()
