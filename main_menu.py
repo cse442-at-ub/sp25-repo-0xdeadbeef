@@ -2,6 +2,7 @@ import pygame   # type: ignore
 import random   #For random snow positions and speeds
 import settings_menu 
 import save_slots
+import achievement_menu
 
 import pygame_widgets 
 from pygame_widgets.slider import Slider
@@ -9,7 +10,9 @@ from pygame_widgets.textbox import TextBox
 
 pygame.init()   # Initialize Pygame
 
-WIDTH, HEIGHT = 1920, 1080
+info = pygame.display.Info()
+WIDTH = info.current_w
+HEIGHT = info.current_h
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Main Menu with Hover Effect")
 
@@ -18,7 +21,7 @@ num_snowflakes = random.randint(50, 200) # randomly set the number of snowflakes
 snowflakes = []
 
 def create_blizzard():
-    # Create initial snowflakes at random positions, with random speeds."""
+    # Create initial snowflakes at random positions, with random speeds.
     for i in range(num_snowflakes):
         x = random.randint(0, WIDTH)
         y = random.randint(-HEIGHT, 0)  # start above the screen

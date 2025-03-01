@@ -1,3 +1,4 @@
+=======
 import pygame  # type: ignore
 import sys
 from pygame.locals import *
