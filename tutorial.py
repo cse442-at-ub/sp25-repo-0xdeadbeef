@@ -15,6 +15,21 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Tutorial Level")
 
 # Load all the images into their respective variables
+player = pygame.image.load("./animations/right-stand.png")
+player = pygame.transform.scale(player, (TILE_SIZE, TILE_SIZE))
+flipped_player = pygame.transform.flip(player, True, False)
+
+run = pygame.image.load("./animations/right-run.png")
+run = pygame.transform.scale(run, (TILE_SIZE, TILE_SIZE))
+flipped_run = pygame.transform.flip(run, True, False)
+
+run_frames = [
+    pygame.image.load("./animations/right-walk.png"),
+    pygame.image.load("./animations/right-run.png")
+]
+
+run_frames = [pygame.transform.scale(frame, (TILE_SIZE, TILE_SIZE)) for frame in run_frames]
+
 ground_tile = pygame.image.load("./images/ground.png")
 ground_tile = pygame.transform.scale(ground_tile, (TILE_SIZE, TILE_SIZE))
 
@@ -33,10 +48,15 @@ tree = pygame.transform.scale(tree, (TILE_SIZE * 2, TILE_SIZE * 3))  # Resize tr
 boots = pygame.image.load("./images/boots.png")
 boots = pygame.transform.scale(boots, (TILE_SIZE, TILE_SIZE))
 
+
+npc = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_black pants.png")
+
 speed_boots = pygame.image.load("./images/speed_boots.png")
 speed_boots = pygame.transform.scale(speed_boots, (TILE_SIZE, TILE_SIZE))
 
 npc = pygame.image.load("./images/sprite.png")
+
+
 npc = pygame.transform.scale(npc, (TILE_SIZE, TILE_SIZE))
 flipped_npc = pygame.transform.flip(npc, True, False)  # Flip horizontally (True), no vertical flip (False)
 
@@ -174,6 +194,11 @@ def calculate_column(x):
 def calculate_x_coordinate(column):
     return column * TILE_SIZE
 
+animation_index = 0  # Alternates between 0 and 1
+animation_timer = 0  # Tracks when to switch frames
+animation_speed = 4  # Adjust this to control animation speed
+direction = 1  # 1 for right, -1 for left
+
 #-----Declared variables for speed boost to avoid undefined variable error
 super_speed_bool = False
 super_speed_respawn_time = 0
@@ -250,6 +275,7 @@ while running:
         # Draw snowflake
         pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)    
 
+
     # Draw player
     pygame.draw.rect(screen, (255, 0, 0), (player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE))
 
@@ -313,10 +339,44 @@ while running:
 
     # Handle events
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+    moving = False
+    if keys[pygame.K_d]: # If player presses D
         player_x += player_speed
-    if keys[pygame.K_LEFT] or keys[pygame.K_a]:
+        moving = True
+        direction = 1
+    if keys[pygame.K_a]: # If player presses A
         player_x -= player_speed
+
+        
+        moving = True
+        direction = -1
+    if keys[pygame.K_SPACE] and on_ground: # If player presses Spacebar
+        player_vel_y = jump_power # Apply jump force
+        on_ground = False # Player is now airborne
+    if moving:
+        animation_timer += 1
+        if animation_timer >= animation_speed:  
+            animation_timer = 0
+            animation_index = 1 - animation_index  # Alternate between 0 and 1
+
+    current_frame = run_frames[animation_index]
+
+    if direction == -1:  # Flip when moving left
+        current_frame = pygame.transform.flip(current_frame, True, False)
+
+    if moving: # Animate the player running if they are moving
+        if not on_ground and direction == 1: # If they are airborne and moving right
+            screen.blit(run, (player_x - camera_x, player_y))
+        elif not on_ground and direction == -1: # If they are airborne and moving left
+            screen.blit(flipped_run, (player_x - camera_x, player_y))
+        else: # On ground
+            screen.blit(current_frame, (player_x - camera_x, player_y))
+    else: # Draw the player in an idle position
+        if direction == 1: # Right
+            screen.blit(player, (player_x - camera_x, player_y))
+        else: # Left
+            screen.blit(flipped_player, (player_x - camera_x, player_y))
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -332,6 +392,7 @@ while running:
                     player_vel_y = jump_power  # Double jump
                     doubleJumped = True  # Mark double jump as used
         
+
 
     # Apply gravity
     player_vel_y += gravity
@@ -389,6 +450,9 @@ while running:
 
     if player_x >= level_width * TILE_SIZE:  # If player reaches the end of the level
         running = False
+
+    if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
+        player_x = 0
 
     # Camera follows player
     camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
