@@ -48,13 +48,10 @@ tree = pygame.transform.scale(tree, (TILE_SIZE * 2, TILE_SIZE * 3))  # Resize tr
 boots = pygame.image.load("./images/boots.png")
 boots = pygame.transform.scale(boots, (TILE_SIZE, TILE_SIZE))
 
-
-npc = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_black pants.png")
-
 speed_boots = pygame.image.load("./images/speed_boots.png")
 speed_boots = pygame.transform.scale(speed_boots, (TILE_SIZE, TILE_SIZE))
 
-npc = pygame.image.load("./images/sprite.png")
+npc = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_black pants.png")
 npc = pygame.transform.scale(npc, (TILE_SIZE, TILE_SIZE))
 flipped_npc = pygame.transform.flip(npc, True, False)  # Flip horizontally (True), no vertical flip (False)
 
@@ -173,9 +170,9 @@ background_trees = {16, 42, 55, 93, 133} # Column numbers for all the background
 
 # Camera position
 camera_x = 0
-player_x = 3480  # Start position, change this number to spawn in a different place
+player_x = 200  # Start position, change this number to spawn in a different place
 player_y = HEIGHT - 200
-player_speed = (WIDTH // 640) * 4 # Adjust player speed according to their resolution
+player_speed = (WIDTH // 640) * 2 # Adjust player speed according to their resolution
 
 player_vel_y = 0 # Vertical velocity for jumping
 gravity = 1.5 # Gravity effect (Greater number means stronger gravity)
@@ -186,11 +183,11 @@ doubleJumped = False # Track if player double jumped already
 
 # Converts the x coordinates to the column on the map
 def calculate_column(x): 
-    return x // TILE_SIZE
+    return int(x // TILE_SIZE)
 
 # Converts the column number to the x-coordinate
 def calculate_x_coordinate(column):
-    return column * TILE_SIZE
+    return int(column * TILE_SIZE)
 
 animation_index = 0  # Alternates between 0 and 1
 animation_timer = 0  # Tracks when to switch frames
@@ -273,67 +270,47 @@ while running:
         # Draw snowflake
         pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)    
 
-
-    # Draw player
-    pygame.draw.rect(screen, (255, 0, 0), (player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE))
-
-
     #-----Handle player colliding into Super-Speed Power-up
     if (level_map[calculate_column(player_y)][calculate_column(player_x)]) == level_map[SURFACE][95] and level_map[SURFACE][95] == 8:
         super_speed_pickup_time = pygame.time.get_ticks()
-        super_speed_effect_off_time = super_speed_pickup_time + 5000
+        super_speed_effect_off_time = super_speed_pickup_time + 2000
         super_speed_bool = True
         level_map[SURFACE][95] = 0
         super_speed_respawn_time = super_speed_pickup_time + 10000
-        print("Super-Speed")
-        player_speed = (WIDTH // 640) * 4
-
-    # print(f"Current Player Speed: {player_speed}")
+        player_speed = player_speed * 2
 
     #-----Removes super-speed power-up effects after 5 seconds
     if (super_speed_bool == True) and (pygame.time.get_ticks() >= super_speed_effect_off_time):
-        print("removal conditional entered")
-        player_speed = (WIDTH // 640) * 2
+        player_speed = player_speed / 2
         super_speed_bool = False
         super_speed_pickup_time = 0
-        print ("Super-Speed Ran Out")
 
     #-----Respawns super-speed power-up after 10 seconds
     if (super_speed_respawn_time > 0) and (pygame.time.get_ticks() >= super_speed_respawn_time): 
         level_map[SURFACE][95] = 8
         super_speed_respawn_time = 0
-        print ("Super-Speed Respawned")
-    
 
     #-----Handles player colliding into Dash Power-up
     if (level_map[calculate_column(player_y)][calculate_column(player_x)]) == (level_map[SURFACE-2][113]) and level_map[SURFACE-2][113] == 9:
         dash_pickup_time = pygame.time.get_ticks()
         dash_respawn_time = dash_pickup_time + 5000
         level_map[SURFACE-2][113] = 0 
-        player_speed = (WIDTH // 640) * 2 * 10
-        dash_duration = pygame.time.get_ticks() + 250
+        player_speed = player_speed * 10
+        dash_duration = pygame.time.get_ticks() + 200
         dashing = True
-
-        print("Dash")
     
     #-----Gives player a "Dash Boost" for approximately a quarter of a second
-    if dashing == True:
+    if dashing:
         player_x += player_speed
-        print("dashing")
         if (pygame.time.get_ticks() >= dash_duration) and (dash_duration != 0):
-            player_speed = (WIDTH // 640) * 2
+            player_speed = player_speed / 10
             dashing = False
             dash_duration = 0
-            print("Dash Over")
 
-    
     #-----Respawns Dash power-up after 5 seconds
-    if  (dash_respawn_time > 0 ) and (pygame.time.get_ticks() >= dash_respawn_time):
+    if (dash_respawn_time > 0 ) and (pygame.time.get_ticks() >= dash_respawn_time):
         level_map[SURFACE-2][113] = 9
         dash_respawn_time = 0
-        print("Dash Respawn")
-    # print(f"Dash Respawn Time: {dash_respawn_time}, Current Time: {pygame.time.get_ticks()}")
-
 
     # Handle events
     keys = pygame.key.get_pressed()
@@ -343,9 +320,7 @@ while running:
         moving = True
         direction = 1
     if keys[pygame.K_a]: # If player presses A
-        player_x -= player_speed
-
-        
+        player_x -= player_speed        
         moving = True
         direction = -1
     if keys[pygame.K_SPACE] and on_ground: # If player presses Spacebar
@@ -390,8 +365,6 @@ while running:
                     player_vel_y = jump_power  # Double jump
                     doubleJumped = True  # Mark double jump as used
         
-
-
     # Apply gravity
     player_vel_y += gravity
     player_y += player_vel_y
@@ -443,8 +416,7 @@ while running:
                 if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                     player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                     level_map[row_index][col_index] = 0  # Remove the boots from screen
-                    player_speed = (WIDTH // 640) * 6.4 # Up the player speed
-        
+                    player_speed = player_speed * 1.25 # Up the player speed
 
     if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
         running = False
