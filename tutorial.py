@@ -118,7 +118,7 @@ level_map.append([1] * level_width)
 for row_index in range(SURFACE - 4, GROUND): #Raised Ground
     level_map[row_index][35:40] = [1] * 5
 
-level_map[SURFACE - 5][53:58] = [2] * 5   # Platform containing speed boots
+level_map[SURFACE - 4][53:58] = [2] * 5   # Platform containing speed boots
 level_map[SURFACE - 1][74:76] = [2] * 2   # Platform
 
 for row_index in range(SURFACE - 1, GROUND): #Raised Ground
@@ -144,7 +144,7 @@ for row_index, row in enumerate(level_map):
 # Dictionary containing which tile corresponds to what
 tiles = {1: ground_tile, 2: platform_tile, 3: boots, 4: flipped_npc, 5: house, 6: thorn, 7: flag, 8: super_speed_powerup, 9: dash_powerup, 10: fence, 11: sign, 12: npc} 
 
-level_map[SURFACE][28], level_map[SURFACE-6][55] = 3, 3 # Boots
+level_map[SURFACE][28], level_map[SURFACE-5][55] = 3, 3 # Boots
 level_map[SURFACE][60] = 4 # NPC 
 level_map[SURFACE-2][62] = 5 # House
 
@@ -170,8 +170,8 @@ player_y = HEIGHT - 200
 player_speed = (WIDTH // 640) * 2 # Adjust player speed according to their resolution
 
 player_vel_y = 0 # Vertical velocity for jumping
-gravity = 1 # Gravity effect (Greater number means stronger gravity)
-jump_power = -16 # Jump strength (Bigger negative number means higher jump)
+gravity = 1.5 # Gravity effect (Greater number means stronger gravity)
+jump_power = -20 # Jump strength (Bigger negative number means higher jump)
 on_ground = False # Track if player is on the ground
 
 # Converts the x coordinates to the column on the map
@@ -322,7 +322,7 @@ while running:
                     player_vel_y = 0  # Stop upward motion
         
 
-    if player_x >= level_width * TILE_SIZE:  # If player reaches the end of the level
+    if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
         running = False
 
     if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
