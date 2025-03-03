@@ -99,28 +99,24 @@ def Screen_SaveSlot():
         for event in events:
             if event.type == pygame.QUIT:
                 running = False
-                sys.exit()
             
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if buttons[0].is_clicked(event.pos):  # Use buttons[0] for the Save Slot 1 button (New instance)
                     print("Save Slot 1 Clicked. Going to character customization...")
                     running = False
                     character_customization.customization_screen()  # Go to character customization
-                    sys.exit()
             
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if buttons[1].is_clicked(event.pos):  # Use buttons[1] for the Save Slot 2 button (New instance) 
                     print("Save Slot 2 Clicked. Going to character customization...")
                     running = False
-                    character_customization.customization_screen()  # Go to character customization
-                    sys.exit()
+                    main_menu.run_main_menu()  # Go to character customization
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if buttons[2].is_clicked(event.pos):  # Use buttons[2] for the Save Slot 3 button (Forwards to level/map selector - TO DO: saved state functionality)
                     print("Save Slot 3 Clicked. Going to map/level selector...")
                     running = False
-                    world_select.World_Selector()  # Go to level/map selector
-                    sys.exit()
+                    main_menu.run_main_menu()  # Go to character customization
 
             # Handle clicks on Back button using the fourth button in the array (index 3)
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -128,7 +124,6 @@ def Screen_SaveSlot():
                     print("Back clicked. Going to main menu...")
                     running = False
                     main_menu.run_main_menu()  # Go back to main menu
-                    sys.exit()
 
         mouse_position = pygame.mouse.get_pos()
         for button in buttons:
