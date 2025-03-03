@@ -139,6 +139,7 @@ tiles = {1: ground_tile, 2: platform_tile, 3: boots, 4: flipped_npc, 5: house, 6
 
 level_map[SURFACE][28], level_map[SURFACE - 6][55] = 3, 3  # Boots
 level_map[SURFACE][60] = 4  # NPC
+level_map[SURFACE][81] = 4  # NPC
 level_map[SURFACE - 2][62] = 5  # House
 
 level_map[SURFACE][98:104], level_map[SURFACE][113:115] = [6] * 6, [6] * 2  # Thorns
