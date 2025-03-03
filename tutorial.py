@@ -1,25 +1,22 @@
-# tutorial.py
-
-import pygame
+import pygame # type: ignore
 import random
 import sys
 import time
-import sys
-import subprocess
 from tutorial_npc_dialogue import handle_npc_dialogue  # Import the NPC dialogue functionality
+from tutorial_npc_2_dialogue import handle_npc_2_dialogue  # Import the NPC dialogue functionality
+from tutorial_npc_3_dialogue import handle_npc_3_dialogue  # Import the NPC dialogue functionality
 
 # Initialize PyGame
 pygame.init()
 
-# Initialize font for level name
-pygame.font.init()
-level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
+# Screen settings
 
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
 
 info = pygame.display.Info()
-WIDTH, HEIGHT = info.current_w, info.current_h  # Will only work with resolutions 1920 x 1080 or better
+WIDTH, HEIGHT = info.current_w, info.current_h # Will only work with resolutions 1920 x 1080 or better
+# print(str(WIDTH) + " " + str(HEIGHT))
 TILE_SIZE = 40  # Adjusted for better layout
 
 scale_factor = HEIGHT / BASE_HEIGHT
@@ -64,9 +61,17 @@ boots = pygame.transform.scale(boots, (TILE_SIZE, TILE_SIZE))
 speed_boots = pygame.image.load("./images/speed_boots.png")
 speed_boots = pygame.transform.scale(speed_boots, (TILE_SIZE, TILE_SIZE))
 
-npc = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_black pants.png")
-npc = pygame.transform.scale(npc, (TILE_SIZE, TILE_SIZE))
-flipped_npc = pygame.transform.flip(npc, True, False)  # Flip horizontally (True), no vertical flip (False)
+npc_1 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_black pants.png")
+npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
+flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  # Flip horizontally (True), no vertical flip (False)
+
+npc_2 = pygame.image.load("./Character Combinations/brown hair_white_blue shirt_blue pants.png")
+npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
+flipped_npc_2 = pygame.transform.flip(npc_2, True, False)  # Flip horizontally (True), no vertical flip (False)
+
+npc_3 = pygame.image.load("./Character Combinations/ginger hair_white_blue shirt_black pants.png")
+npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
+flipped_npc_3 = pygame.transform.flip(npc_3, True, False)  # Flip horizontally (True), no vertical flip (False)
 
 house = pygame.image.load("./images/house.png")
 house = pygame.transform.scale(house, (TILE_SIZE * 5, TILE_SIZE * 3))
@@ -104,15 +109,15 @@ level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's re
 
 level_map = [[0] * level_width for _ in range(level_height)]  # Start with air
 
-GROUND = level_height - 4  # Constant for the ground level
-SURFACE = GROUND - 1  # Constant for the surface level
+GROUND = level_height - 4 #Constant for the ground level
+SURFACE = GROUND - 1 #Constant for the surface level
 
 # This is for the snowflake animations
 WHITE = (255, 255, 255)
 NUM_SNOWFLAKES = 100
 snowflakes = []
 
-# This for loop is also for snowflakes
+#This for loop is also for snowflakes
 for _ in range(NUM_SNOWFLAKES):
     x = random.randint(0, WIDTH)
     y = random.randint(0, HEIGHT)
@@ -135,20 +140,20 @@ for row_index in range(GROUND, level_height):  # Only draw ground from row 23 do
 # Add solid ground at the very bottom
 level_map.append([1] * level_width)
 
-for row_index in range(SURFACE - 4, GROUND):  # Raised Ground
+for row_index in range(SURFACE - 4, GROUND): #Raised Ground
     level_map[row_index][35:40] = [1] * 5
 
-level_map[SURFACE - 4][53:58] = [2] * 5  # Platform containing speed boots
-level_map[SURFACE - 1][74:76] = [2] * 2  # Platform
+level_map[SURFACE - 4][53:58] = [2] * 5   # Platform containing speed boots
+level_map[SURFACE - 1][74:76] = [2] * 2   # Platform
 
-for row_index in range(SURFACE - 1, GROUND):  # Raised Ground
+for row_index in range(SURFACE - 1, GROUND): #Raised Ground
     level_map[row_index][123:126] = [1] * 3
-for row_index in range(SURFACE - 2, GROUND):  # Raised Ground
+for row_index in range(SURFACE - 2, GROUND): #Raised Ground
     level_map[row_index][126:128] = [1] * 2
-for row_index in range(SURFACE - 6, GROUND):  # Raised Ground
+for row_index in range(SURFACE - 6, GROUND): #Raised Ground
     level_map[row_index][128:140] = [1] * 12
 
-level_map[SURFACE - 5][122:124] = [2] * 2  # Platform
+level_map[SURFACE - 5][122:124] = [2] * 2 # Platform
 
 # Make terrain before this line. The next code block calculates the ground levels
 
@@ -162,27 +167,30 @@ for row_index, row in enumerate(level_map):
 # All code after this line should be for props, npcs, gadgets, and powerups. Terrain should not be made here.
 
 # Dictionary containing which tile corresponds to what
-tiles = {1: ground_tile, 2: platform_tile, 3: boots, 4: flipped_npc, 5: house, 6: thorn, 7: flag, 8: super_speed_powerup, 9: dash_powerup, 10: fence, 11: sign, 12: npc, 13: speed_boots, 14: coin}
+tiles = {1: ground_tile, 2: platform_tile, 3: boots, 4: flipped_npc_1, 5: house, 6: thorn, 7: flag, 8: super_speed_powerup, 9: dash_powerup, 
+        10: fence, 11: sign, 12: npc_1, 13: speed_boots, 14: coin, 15: npc_2, 16: npc_3, 17: flipped_npc_2, 18: flipped_npc_3}
 
 level_map[SURFACE][28] = 3 # Jump Boots
 level_map[SURFACE-5][55] = 13 # Speed Boots
-level_map[SURFACE][60] = 4 # NPC 
+level_map[SURFACE][60] = 4 # NPC 1
+level_map[SURFACE][27] = 17 # NPC 2
+level_map[SURFACE][86] = 18 # NPC 3
 level_map[SURFACE-2][62] = 5 # House
 
 level_map[SURFACE][98:104] , level_map[SURFACE][113:115]= [6] * 6, [6] * 2 # Thorns
 level_map[SURFACE-5][37], level_map[SURFACE][87] = 7,7 # Flag
 
-level_map[SURFACE][95] = 8  # Super speed powerup
-level_map[SURFACE - 2][113] = 9  # Dash powerup
+level_map[SURFACE][95] = 8 # Super speed powerup
+level_map[SURFACE-2][113] = 9 # Dash powerup
 
-level_map[SURFACE - 6][122:124] = [10] * 2  # Fence
-level_map[SURFACE - 7][135:140] = [10] * 5  # Fence
+level_map[SURFACE-6][122:124] = [10] * 2 # Fence
+level_map[SURFACE-7][135:140] = [10] * 5 # Fence
 
-level_map[SURFACE - 7][130] = 11  # Sign
+level_map[SURFACE-7][130] = 11 # Sign
 
-rocks = {14, 33, 45, 68, 108, 124}  # Column numbers for all the rocks
-trees = {10, 30, 50, 90}  # Column numbers for all the trees
-background_trees = {16, 42, 55, 93, 133}  # Column numbers for all the background trees
+rocks = {14, 33, 45, 68, 108, 124} # Column numbers for all the rocks
+trees = {10, 30, 50, 90} # Column numbers for all the trees
+background_trees = {16, 42, 55, 93, 133} # Column numbers for all the background trees
 
 # Camera position
 camera_x = 0
@@ -214,81 +222,9 @@ def calculate_row(y):
 def calculate_y_coordinate(row):
     return int(row * TILE_SIZE)
 
-animation_index = 0  # Alternates between 0 and 1
-animation_timer = 0  # Tracks when to switch frames
-animation_speed = 4  # Adjust this to control animation speed
-direction = 1  # 1 for right, -1 for left
-
-#-----Declared variables for speed boost to avoid undefined variable error
-super_speed_bool = False
-super_speed_respawn_time = 0
-super_speed_pickup_time = 0
-super_speed_effect_off_time = 0
-
-#-----Declared variables for Dash power-up to avoid undefined variable error
-dash_respawn_time = 0 
-dash_pickup_time = 0
-dash_duration = 0
-dashing = False
-
-checkpoints = [(200, HEIGHT-200), (1480, HEIGHT-400), (3480, HEIGHT-200)]
-checkpoint_bool = [True, False, False]
-checkpoint_idx = 0
-dying = False
-death_count = 0
-
-coin_count = 0
-
 def show_level_completed_screen():
     # Display the background image
     screen.blit(background, (0, 0))
-
-    # Draw level using tile images
-    for row_index, row in enumerate(level_map):
-        for col_index, tile in enumerate(row):
-            x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
-            if tile == 0:
-                continue
-            if tile == 10:
-                screen.blit(tiles.get(tile), (x, y + TILE_SIZE // 2))
-            else:
-                screen.blit(tiles.get(tile), (x, y))
-            if calculate_column(player_x) >= 60:
-                level_map[SURFACE][60] = 12
-            else:
-                level_map[SURFACE][60] = 4
-
-    # Draw dirt below ground
-    for col_index, ground_y in enumerate(ground_levels):
-        for row_index in range(ground_y + 1, len(level_map) + 10):
-            x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
-            screen.blit(dirt_tile, (x, y))
-
-    for i in trees:
-        x = i * TILE_SIZE - camera_x
-        y = (ground_levels[i] - 3) * TILE_SIZE
-        screen.blit(tree, (x, y))
-
-    for i in background_trees:
-        x = i * TILE_SIZE - camera_x
-        y = (ground_levels[i] - 2) * TILE_SIZE
-        screen.blit(background_tree, (x, y))
-
-    for i in rocks:
-        x = i * TILE_SIZE - camera_x
-        y = (ground_levels[i] - 1) * TILE_SIZE
-        screen.blit(rock, (x, y + TILE_SIZE // 2))
-
-    for i, snowflake in enumerate(snowflakes):
-        x, y, size, speed, x_speed = snowflake
-        y += speed
-        x += x_speed
-        if y > HEIGHT:
-            y = 0
-            x = random.randint(0, WIDTH)
-        if x < 0 or x > WIDTH:
-            x = random.randint(0, WIDTH)
-        snowflakes[i] = [x, y, size, speed, x_speed]
 
     # Set fonts for the text
     title_font = pygame.font.Font('PixelifySans.ttf', 100)
@@ -326,12 +262,41 @@ def show_level_completed_screen():
                     pygame.quit()
                     sys.exit()  # Quit the game if the button is clicked
 
+animation_index = 0  # Alternates between 0 and 1
+animation_timer = 0  # Tracks when to switch frames
+animation_speed = 4  # Adjust this to control animation speed
+direction = 1  # 1 for right, -1 for left
+
+#-----Declared variables for speed boost to avoid undefined variable error
+super_speed_bool = False
+super_speed_respawn_time = 0
+super_speed_pickup_time = 0
+super_speed_effect_off_time = 0
+
+#-----Declared variables for Dash power-up to avoid undefined variable error
+dash_respawn_time = 0 
+dash_pickup_time = 0
+dash_duration = 0
+dashing = False
+
+checkpoints = [(200, HEIGHT-200), (1480, HEIGHT-400), (3480, HEIGHT-200)]
+checkpoint_bool = [True, False, False]
+checkpoint_idx = 0
+dying = False
+death_count = 0
+
+coin_count = 0
+
 # Main loop
 running = True
 while running:
     screen.blit(background, (0, 0))
 
+    #-----Get the current time of the game in milliseconds (for power-up resetting)
+    Game_time = pygame.time.get_ticks()
+    
     # Draw level name in the top-left corner
+    level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
     level_name_text = level_name_font.render("Tutorial", True, (255, 255, 255))  # White text
     screen.blit(level_name_text, (20, 20))  # Position at (20, 20)
 
@@ -339,16 +304,16 @@ while running:
     for row_index, row in enumerate(level_map):
         for col_index, tile in enumerate(row):
             x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
-            if tile == 0:  # Continue if the tile is an air block
+            if tile == 0: # Continue if the tile is an air block
                 continue
-            if tile == 10:  # Draw the fence at half size
+            if tile == 10: #Draw the fence at half size
                 screen.blit(tiles.get(tile), (x, y + TILE_SIZE // 2))
-            else:  # Draw according to the dictionary
+            else: # Draw according to the dictionary
                 screen.blit(tiles.get(tile), (x, y))
             if calculate_column(player_x) >= 60:
-                level_map[SURFACE][60] = 12  # Draw the normal npc
+                level_map[SURFACE][60] = 12 # Draw the normal npc
             else:
-                level_map[SURFACE][60] = 4  # Draw the flipped npc
+                level_map[SURFACE][60] = 4 # Draw the flipped npc
 
     # Draw dirt below ground
     for col_index, ground_y in enumerate(ground_levels):
@@ -373,11 +338,11 @@ while running:
 
     for i, snowflake in enumerate(snowflakes):
         x, y, size, speed, x_speed = snowflake  # Unpack snowflake data
-
+        
         # Move snowflake downward and drift sideways
-        y += speed
+        y += speed  
         x += x_speed  # Drift slightly left/right
-
+        
         # Reset snowflake when it reaches the bottom or moves too far left/right
         if y > HEIGHT:
             y = 0
@@ -392,7 +357,7 @@ while running:
         pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
 
     # Check if player is near the NPC
-    npc_x = 60 * TILE_SIZE  # NPC's x position
+    npc_x = calculate_x_coordinate(60)  # NPC's x position
     npc_y = (SURFACE) * TILE_SIZE  # NPC's y position
     player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
     npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
@@ -402,17 +367,29 @@ while running:
     current_time = pygame.time.get_ticks()  # Get current time in milliseconds
     handle_npc_dialogue(screen, player_rect, npc_rect, keys, current_time)
 
-    # Check if player reaches the end of the level
-    if player_x >= (level_width - 1) * TILE_SIZE:
-        show_level_completed_screen()
-        pygame.quit()
+    # Check if player is near the NPC 2
+    npc_x = calculate_x_coordinate(27)  # NPC 2's x position
+    npc_y = (SURFACE) * TILE_SIZE  # NPC 2's y position
+    player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+    npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+    # Handle NPC 2 dialogue
+    keys = pygame.key.get_pressed()
+    current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+    handle_npc_2_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+    # Check if player is near the NPC 3
+    npc_x = calculate_x_coordinate(86)  # NPC 3's x position
+    npc_y = (SURFACE) * TILE_SIZE  # NPC 3's y position
+    player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+    npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+    # Handle NPC 3 dialogue
+    keys = pygame.key.get_pressed()
+    current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+    handle_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
 
     # Handle events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-    # Handle movement
     keys = pygame.key.get_pressed()
     moving = False
     if keys[pygame.K_d]: # If player presses D
@@ -476,9 +453,9 @@ while running:
                 tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
 
                 # This code block prevents the player from falling through solid ground
-                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and
-                        player_y + TILE_SIZE <= tile_y + player_vel_y and  # Only land if falling down
-                        player_y + TILE_SIZE > tile_y):  # Ensures overlap
+                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
+                player_y + TILE_SIZE <= tile_y + player_vel_y and  # Only land if falling down
+                player_y + TILE_SIZE > tile_y):  # Ensures overlap
                     player_y = tile_y - TILE_SIZE
                     player_vel_y = 0
                     on_ground = True  # Player lands
@@ -486,17 +463,17 @@ while running:
 
                 # This code block prevents collision with solid blocks from the left and right
                 if (player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):  # If the player is at the same height as the block
-                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and player_x + TILE_SIZE - player_speed <= tile_x):
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and player_x + TILE_SIZE - player_speed <= tile_x):  
                         # Moving right into a block
-                        player_x = tile_x - TILE_SIZE
+                        player_x = tile_x - TILE_SIZE  
 
-                    elif (player_x < tile_x + TILE_SIZE and player_x + TILE_SIZE > tile_x and player_x + player_speed >= tile_x + TILE_SIZE):
+                    elif (player_x < tile_x + TILE_SIZE and player_x + TILE_SIZE > tile_x and player_x + player_speed >= tile_x + TILE_SIZE):  
                         # Moving left into a block
                         player_x = tile_x + TILE_SIZE
 
                 # This code block prevents collision with solid blocks above their head
-                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and
-                        player_y < tile_y + TILE_SIZE and player_y - player_vel_y >= tile_y + TILE_SIZE):
+                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
+                    player_y < tile_y + TILE_SIZE and player_y - player_vel_y >= tile_y + TILE_SIZE):
 
                     player_y = tile_y + TILE_SIZE  # Align player below the ceiling
                     player_vel_y = 0  # Stop upward motion
@@ -584,7 +561,8 @@ while running:
         dash_respawn_time = 0
 
     if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
-        running = False
+        show_level_completed_screen()  # Show level completed screen
+        running = False  # Exit the game loop
 
     if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
         player_x = 0
@@ -616,6 +594,10 @@ while running:
 
     # Camera follows player
     camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
 
     pygame.display.flip()  # Update display
 
