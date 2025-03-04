@@ -168,7 +168,7 @@ def World_Selector():
                         current_level = (current_level - 1) % num_levels
                     elif right_rect.collidepoint(mouse_pos):
                         current_level = (current_level + 1) % num_levels
-                    # [MODIFIED] Check mini squares click
+                    # Check mini squares click
                     for idx, square in enumerate(mini_squares[current_level]):
                         rect = square["image"].get_rect(topleft=square["pos"])
                         if rect.collidepoint(event.pos):

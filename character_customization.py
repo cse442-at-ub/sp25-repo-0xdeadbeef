@@ -4,6 +4,7 @@ from pygame.locals import *
 
 import save_slots
 import world_select
+from saves_handler import *
 
 pygame.init()  # Initialize Pygame
 
@@ -88,7 +89,7 @@ class TransparentButton:
 def create_screen(display, bg):
     display.blit(bg, (0, 0))
 
-def customization_screen(): 
+def customization_screen(slot: int): 
     pygame.display.set_caption("Character Customization Screen")
 
     # Load background
@@ -133,8 +134,8 @@ def customization_screen():
     skin_right_button_class = Button(skin_right_img, 1040, 380)
 
     # Transparent "Back" button using our TransparentButton class
-    back_button = TransparentButton("Back", "Assets/character_customization/PixelifySans.ttf", 600, 550)
-    back_button = TransparentButton("Back", "Assets/character_customization/PixelifySans.ttf", WIDTH // 3, HEIGHT // 1.7)
+    back_button = TransparentButton("Back", "Assets/Save Slot Menu/PixelifySans.ttf", 600, 550)
+    back_button = TransparentButton("Back", "Assets/Save Slot Menu/PixelifySans.ttf", WIDTH // 3, HEIGHT // 1.7)
 
 
     # Place labels
@@ -219,6 +220,7 @@ def customization_screen():
                 # Confirm button -> go to world selector
                 if confirm_button_rect.collidepoint(mouse_pos):
                     print("Confirm button clicked. Going to map/level selector...")
+                    update_save(slot, {"shirt": f"Assets\character_customization\shirt_color\shirt_{shirt_index}.png", "hair": f"Assets\character_customization\hair_color\hair_{hair_index}.png", "pants": f"Assets\character_customization\pants_color\pants_{pants_index}.png", "skin": f"Assets\character_customization\skin_color\skin_{skin_index}.png"})
                     running = False
                     world_select.World_Selector()
                     sys.exit()
