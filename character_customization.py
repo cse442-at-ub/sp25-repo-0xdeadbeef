@@ -2,9 +2,9 @@ import pygame
 import sys
 from pygame.locals import *
 
-#import save_slots
-#import world_select
-#from saves_handler import *
+import save_slots
+import world_select
+from saves_handler import *
 
 pygame.init()  # Initialize Pygame
 
@@ -135,8 +135,8 @@ def customization_screen(slot: int):
     skin_right_button_class = Button(skin_right_img, (WIDTH*.8125), (HEIGHT*.52777))
 
     # Transparent "Back" button using our TransparentButton class
-    back_button = TransparentButton("Back", "Assets/Save Slot Menu/PixelifySans.ttf", 600, 550)
-    back_button = TransparentButton("Back", "Assets/Save Slot Menu/PixelifySans.ttf", WIDTH // 3, HEIGHT // 1.7)
+    back_button = TransparentButton("Back", "Assets/Save Slot Menu/PixelifySans.ttf", 150, 3)
+    back_button = TransparentButton("Back", "Assets/Save Slot Menu/PixelifySans.ttf", WIDTH // 2.2, HEIGHT // 1.1)
 
 
     # Place labels
