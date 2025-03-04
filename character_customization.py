@@ -2,9 +2,9 @@ import pygame
 import sys
 from pygame.locals import *
 
-import save_slots
-import world_select
-from saves_handler import *
+#import save_slots
+#import world_select
+#from saves_handler import *
 
 pygame.init()  # Initialize Pygame
 
@@ -14,6 +14,9 @@ WIDTH = info.current_w
 HEIGHT = info.current_h
 DISPLAY = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Character Customization Screen")
+
+print(f"Width: {WIDTH}")
+print(f"Height: {HEIGHT}")
 
 FPS = pygame.time.Clock()
 FONT = pygame.font.SysFont("comicsans", 60)
@@ -92,46 +95,44 @@ def create_screen(display, bg):
 def customization_screen(slot: int): 
     pygame.display.set_caption("Character Customization Screen")
 
-    # Load background
-    BG = pygame.image.load("Assets/character_customization/customization-screen.png").convert()
 
     # Load confirm button as an image only once
     confirm_button_img = pygame.image.load("Assets/character_customization/confirm-button.png")
     confirm_button_img = pygame.transform.scale(confirm_button_img, (150, 30))
-    confirm_button_rect = confirm_button_img.get_rect(center=(1150, 645))
+    confirm_button_rect = confirm_button_img.get_rect(center=(WIDTH-130, HEIGHT-75))
 
 
     hair_left_img = pygame.image.load("Assets/character_customization/left-arrow.png")
     hair_left_img = pygame.transform.scale(hair_left_img, (80, 80))
-    hair_left_button_class = Button(hair_left_img, 760, 90)
+    hair_left_button_class = Button(hair_left_img, WIDTH - (WIDTH*.41), (HEIGHT*.125))
 
     hair_right_img = pygame.image.load("Assets/character_customization/right-arrow.png")
     hair_right_img = pygame.transform.scale(hair_right_img, (80, 80))
-    hair_right_button_class = Button(hair_right_img, 1040, 95)
+    hair_right_button_class = Button(hair_right_img, WIDTH - (WIDTH*.1875), (HEIGHT*.13194))
 
     shirt_left_img = pygame.image.load("Assets/character_customization/left-arrow.png")
     shirt_left_img = pygame.transform.scale(shirt_left_img, (80,80))
-    shirt_left_button_class = Button(shirt_left_img, 760, 195)
+    shirt_left_button_class = Button(shirt_left_img, (WIDTH*.59375), (HEIGHT*.27083))
 
     shirt_right_img = pygame.image.load("Assets/character_customization/right-arrow.png")
     shirt_right_img = pygame.transform.scale(shirt_right_img, (80,80))
-    shirt_right_button_class = Button(shirt_right_img, 1040, 200)
+    shirt_right_button_class = Button(shirt_right_img, (WIDTH*.8125), (HEIGHT*.27))
 
     pants_left_img = pygame.image.load("Assets/character_customization/left-arrow.png")
     pants_left_img = pygame.transform.scale(pants_left_img, (80,80))
-    pants_left_button_class = Button(pants_left_img, 760, 285)
+    pants_left_button_class = Button(pants_left_img, (WIDTH*.59375), (HEIGHT*.39583))
 
     pants_right_img = pygame.image.load("Assets/character_customization/right-arrow.png")
     pants_right_img = pygame.transform.scale(pants_right_img, (80,80))
-    pants_right_button_class = Button(pants_right_img, 1040, 290)
+    pants_right_button_class = Button(pants_right_img, (WIDTH*.8125), (HEIGHT*.40277))
 
     skin_left_img = pygame.image.load("Assets/character_customization/left-arrow.png")
     skin_left_img = pygame.transform.scale(skin_left_img, (80,80))
-    skin_left_button_class = Button(skin_left_img, 760, 375)
+    skin_left_button_class = Button(skin_left_img, (WIDTH*.59375), (HEIGHT*.52083))
 
     skin_right_img = pygame.image.load("Assets/character_customization/right-arrow.png")
     skin_right_img = pygame.transform.scale(skin_right_img, (80,80))
-    skin_right_button_class = Button(skin_right_img, 1040, 380)
+    skin_right_button_class = Button(skin_right_img, (WIDTH*.8125), (HEIGHT*.52777))
 
     # Transparent "Back" button using our TransparentButton class
     back_button = TransparentButton("Back", "Assets/Save Slot Menu/PixelifySans.ttf", 600, 550)
@@ -169,16 +170,16 @@ def customization_screen(slot: int):
     running = True
     while running:
         # Draw background each frame
-        create_screen(DISPLAY, BG)
+        DISPLAY.fill("blue")
 
         # Blit text labels
-        DISPLAY.blit(hair_text, (800, 50))
-        DISPLAY.blit(shirt_text, (800, 150))
-        DISPLAY.blit(pants_text, (810, 250))
-        DISPLAY.blit(skin_text, (800, 330))
+        DISPLAY.blit(hair_text, (WIDTH*.625, HEIGHT*.0694))
+        DISPLAY.blit(shirt_text, (WIDTH*.625, HEIGHT*.2083))
+        DISPLAY.blit(pants_text, (WIDTH*.6328125, HEIGHT*.3472))
+        DISPLAY.blit(skin_text, (WIDTH*.625, HEIGHT*.4583))
 
         # Blit shoe
-        DISPLAY.blit(shoe_image, (300, 250))
+        DISPLAY.blit(shoe_image, (WIDTH*.234375, HEIGHT*.3472))
 
         # Update arrow buttons
         hair_left_button_class.update()
@@ -256,10 +257,10 @@ def customization_screen(slot: int):
         skin_size = pygame.transform.scale(skin_images[skin_index], (250,250))
 
         # Draw them in correct layering order
-        DISPLAY.blit(hair_size, (300, 266))
-        DISPLAY.blit(skin_size, (300, 260))
-        DISPLAY.blit(shirt_size, (300, 250))
-        DISPLAY.blit(pants_size, (300, 250))
+        DISPLAY.blit(hair_size, (WIDTH*.234375, HEIGHT*.3694))
+        DISPLAY.blit(skin_size, (WIDTH*.234375, HEIGHT*.361))
+        DISPLAY.blit(shirt_size, (WIDTH*.234375, HEIGHT*.3472))
+        DISPLAY.blit(pants_size, (WIDTH*.234375, HEIGHT*.3472))
 
         pygame.display.flip()
         FPS.tick(60)
