@@ -2,9 +2,11 @@ import pygame # type: ignore
 import random
 import sys
 import time
-from tutorial_npc_dialogue import handle_npc_dialogue  # Import the NPC dialogue functionality
-from tutorial_npc_2_dialogue import handle_npc_2_dialogue  # Import the NPC dialogue functionality
-from tutorial_npc_3_dialogue import handle_npc_3_dialogue  # Import the NPC dialogue functionality
+from tutorial_npc_dialogue import handle_npc_dialogue  # Import the first NPC dialogue functionality
+from tutorial_npc_2_dialogue import handle_npc_2_dialogue  # Import the second NPC dialogue functionality
+from tutorial_npc_3_dialogue import handle_npc_3_dialogue  # Import the third NPC dialogue functionality
+from tutorial_npc_4_dialogue import handle_npc_4_dialogue  # Import the fourth NPC dialogue functionality
+
 
 # Initialize PyGame
 pygame.init()
@@ -72,6 +74,10 @@ flipped_npc_2 = pygame.transform.flip(npc_2, True, False)  # Flip horizontally (
 npc_3 = pygame.image.load("./Character Combinations/ginger hair_white_blue shirt_black pants.png")
 npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
 flipped_npc_3 = pygame.transform.flip(npc_3, True, False)  # Flip horizontally (True), no vertical flip (False)
+
+npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_brown pants.png")
+npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
+flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  # Flip horizontally (True), no vertical flip (False)
 
 house = pygame.image.load("./images/house.png")
 house = pygame.transform.scale(house, (TILE_SIZE * 5, TILE_SIZE * 3))
@@ -168,13 +174,14 @@ for row_index, row in enumerate(level_map):
 
 # Dictionary containing which tile corresponds to what
 tiles = {1: ground_tile, 2: platform_tile, 3: boots, 4: flipped_npc_1, 5: house, 6: thorn, 7: flag, 8: super_speed_powerup, 9: dash_powerup, 
-        10: fence, 11: sign, 12: npc_1, 13: speed_boots, 14: coin, 15: npc_2, 16: npc_3, 17: flipped_npc_2, 18: flipped_npc_3}
+        10: fence, 11: sign, 12: npc_1, 13: speed_boots, 14: coin, 15: npc_2, 16: npc_3, 17: flipped_npc_2, 18: flipped_npc_3, 19: npc_4, 20: flipped_npc_4}
 
 level_map[SURFACE][28] = 3 # Jump Boots
 level_map[SURFACE-5][55] = 13 # Speed Boots
 level_map[SURFACE][60] = 4 # NPC 1
 level_map[SURFACE][27] = 17 # NPC 2
 level_map[SURFACE][86] = 18 # NPC 3
+level_map[SURFACE][8] = 20 # NPC 4
 level_map[SURFACE-2][62] = 5 # House
 
 level_map[SURFACE][98:104] , level_map[SURFACE][113:115]= [6] * 6, [6] * 2 # Thorns
@@ -388,6 +395,17 @@ while running:
     keys = pygame.key.get_pressed()
     current_time = pygame.time.get_ticks()  # Get current time in milliseconds
     handle_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the NPC 3
+    npc_x = calculate_x_coordinate(8)  # NPC 3's x position
+    npc_y = (SURFACE) * TILE_SIZE  # NPC 3's y position
+    player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+    npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+    # Handle NPC 3 dialogue
+    keys = pygame.key.get_pressed()
+    current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+    handle_npc_4_dialogue(screen, player_rect, npc_rect, keys, current_time)
 
     # Handle events
     keys = pygame.key.get_pressed()
