@@ -201,10 +201,9 @@ background_trees = {16, 42, 55, 93, 133} # Column numbers for all the background
 
 # Camera position
 camera_x = 0
-player_x = 3600  # Start position, change this number to spawn in a different place
+player_x = 200  # Start position, change this number to spawn in a different place
 player_y = HEIGHT - 200
 player_speed = 6 * scale_factor # Adjust player speed according to their resolution
-player_speed = player_speed*3
 
 player_vel_y = 0 # Vertical velocity for jumping
 gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
