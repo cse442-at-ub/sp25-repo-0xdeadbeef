@@ -6,6 +6,7 @@ from tutorial_npc_dialogue import handle_npc_dialogue  # Import the first NPC di
 from tutorial_npc_2_dialogue import handle_npc_2_dialogue  # Import the second NPC dialogue functionality
 from tutorial_npc_3_dialogue import handle_npc_3_dialogue  # Import the third NPC dialogue functionality
 from tutorial_npc_4_dialogue import handle_npc_4_dialogue  # Import the fourth NPC dialogue functionality
+from level_completed_screen import show_level_completed_screen
 import world_select
 
 # Initialize PyGame

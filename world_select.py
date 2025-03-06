@@ -1,6 +1,6 @@
 import pygame  # type: ignore
 import sys
-from pygame.locals import *
+from pygame.locals import * # type: ignore
 
 # import tutorial
 # import save_slots

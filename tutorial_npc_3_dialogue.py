@@ -1,6 +1,4 @@
-# npc_dialogue.py
-
-import pygame
+import pygame # type: ignore
 
 # Initialize font for dialogue
 pygame.font.init()
