@@ -29,6 +29,34 @@ show_dialogue = False
 cooldown_time = 400  # Cooldown between key presses in milliseconds
 last_key_press_time = 0  # Tracks the last time "E" was pressed
 
+def draw_thought_bubble(screen, npc_rect):
+    """
+    Draws a thought bubble (cloud-like shape) slightly to the right above the NPC's head.
+    """
+
+    # Shifted to the right
+    offset_x = 20  # Shift amount
+    bubble_x = npc_rect.x + npc_rect.width // 2 + offset_x
+    bubble_y = npc_rect.y - 40  # Positioned higher
+
+    # Main cloud bubble
+    pygame.draw.ellipse(screen, (255, 255, 255), (bubble_x - 25, bubble_y - 20, 50, 30))  # Main bubble
+    pygame.draw.ellipse(screen, (0, 0, 0), (bubble_x - 25, bubble_y - 20, 50, 30), 2)  # Outline
+
+    # Thought trail (smaller bubbles leading down to the NPC)
+    pygame.draw.circle(screen, (255, 255, 255), (bubble_x - 5, bubble_y + 10), 6)  # Medium circle
+    pygame.draw.circle(screen, (0, 0, 0), (bubble_x - 5, bubble_y + 10), 6, 2)  # Outline
+
+    pygame.draw.circle(screen, (255, 255, 255), (bubble_x - 10, bubble_y + 25), 4)  # Small circle
+    pygame.draw.circle(screen, (0, 0, 0), (bubble_x - 10, bubble_y + 25), 4, 2)  # Outline
+
+    # Add 'E' inside the main bubble
+    font = pygame.font.Font(None, 28)
+    text_surface = font.render('E', True, (0, 0, 0))
+    text_rect = text_surface.get_rect(center=(bubble_x, bubble_y - 5))
+    screen.blit(text_surface, text_rect)
+
+
 # Function to draw the dialogue box
 # Function to draw the dialogue box
 def draw_dialogue_box(screen, text, font, x, y, max_width=400):
@@ -92,9 +120,9 @@ def handle_npc_4_dialogue(screen, player_rect, npc_rect, keys, current_time):
     global current_dialogue_index, show_dialogue, last_key_press_time
 
     if player_rect.colliderect(npc_rect):
-        # # Show prompt to press 'E'
-        # prompt_text = font.render("Press 'E' to talk", True, (255, 255, 255))
-        # screen.blit(prompt_text, (player_rect.x - 70, player_rect.y - 50))
+    # Show thought bubble when the player is near the NPC but not in dialogue
+        if not show_dialogue:
+            draw_thought_bubble(screen, npc_rect)
 
         # Check if 'E' is pressed with cooldown
         if keys[pygame.K_e] and current_time - last_key_press_time > cooldown_time:
