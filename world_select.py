@@ -2,10 +2,10 @@ import pygame  # type: ignore
 import sys
 from pygame.locals import *
 
-import tutorial
-import save_slots
-import world_select
-import main_menu  
+# import tutorial
+# import save_slots
+# import world_select
+# import main_menu  
 
 pygame.init()  # Initialize Pygame
 
@@ -160,7 +160,7 @@ def World_Selector():
                 if back_button.is_clicked(event.pos):  # TransparentButton for back button
                     print("Back clicked. Going to save slot menu...")
                     running = False
-                    save_slots.Screen_SaveSlot()
+                    # save_slots.Screen_SaveSlot()
                     sys.exit()
                 elif event.button == 1:
                     mouse_pos = pygame.mouse.get_pos()
@@ -175,7 +175,7 @@ def World_Selector():
                             if current_level == 0 and idx == 1:
                                 print("Current snow level button clicked. Going to tutorial snow level...")
                                 running = False
-                                tutorial.tutorial_level()
+                                # tutorial.tutorial_level()
                                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
