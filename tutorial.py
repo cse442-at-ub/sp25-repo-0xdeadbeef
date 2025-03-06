@@ -6,7 +6,7 @@ from tutorial_npc_dialogue import handle_npc_dialogue  # Import the first NPC di
 from tutorial_npc_2_dialogue import handle_npc_2_dialogue  # Import the second NPC dialogue functionality
 from tutorial_npc_3_dialogue import handle_npc_3_dialogue  # Import the third NPC dialogue functionality
 from tutorial_npc_4_dialogue import handle_npc_4_dialogue  # Import the fourth NPC dialogue functionality
-
+import world_select
 
 # Initialize PyGame
 pygame.init()
@@ -201,9 +201,10 @@ background_trees = {16, 42, 55, 93, 133} # Column numbers for all the background
 
 # Camera position
 camera_x = 0
-player_x = 200  # Start position, change this number to spawn in a different place
+player_x = 3600  # Start position, change this number to spawn in a different place
 player_y = HEIGHT - 200
 player_speed = 6 * scale_factor # Adjust player speed according to their resolution
+player_speed = player_speed*3
 
 player_vel_y = 0 # Vertical velocity for jumping
 gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
@@ -245,6 +246,11 @@ def show_level_completed_screen():
     level_completed_rect = level_completed_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
     select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
 
+    # Create box around the text
+    box_padding = 20
+    level_end_screen_box = pygame.Rect(level_completed_rect.left - box_padding, level_completed_rect.top - box_padding, level_completed_rect.width + box_padding*2, level_completed_rect.height + (box_padding*2) + 80)
+    pygame.draw.rect(screen, (255, 0, 0), level_end_screen_box, 10)
+    
     # Draw the texts
     screen.blit(level_completed_text, level_completed_rect)
     screen.blit(select_level_text, select_level_rect)
@@ -266,8 +272,9 @@ def show_level_completed_screen():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
-                    pygame.quit()
-                    sys.exit()  # Quit the game if the button is clicked
+                    # pygame.quit()
+                    world_select.World_Selector()
+                    sys.exit()  # Go back to level select
 
 animation_index = 0  # Alternates between 0 and 1
 animation_timer = 0  # Tracks when to switch frames
