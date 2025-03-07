@@ -1,12 +1,5 @@
 import pygame # type: ignore
 import random
-import sys
-import time
-from tutorial_npc_dialogue import handle_npc_dialogue  # Import the first NPC dialogue functionality
-from tutorial_npc_2_dialogue import handle_npc_2_dialogue  # Import the second NPC dialogue functionality
-from tutorial_npc_3_dialogue import handle_npc_3_dialogue  # Import the third NPC dialogue functionality
-from tutorial_npc_4_dialogue import handle_npc_4_dialogue  # Import the fourth NPC dialogue functionality
-import world_select
 import json
 
 # Initialize PyGame
@@ -48,21 +41,9 @@ boots = pygame.transform.scale(boots, (TILE_SIZE, TILE_SIZE))
 speed_boots = pygame.image.load("./images/speed_boots.png")
 speed_boots = pygame.transform.scale(speed_boots, (TILE_SIZE, TILE_SIZE))
 
-npc_1 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_black pants.png")
-npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
-flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  # Flip horizontally (True), no vertical flip (False)
-
-npc_2 = pygame.image.load("./Character Combinations/brown hair_white_blue shirt_blue pants.png")
-npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
-flipped_npc_2 = pygame.transform.flip(npc_2, True, False)  # Flip horizontally (True), no vertical flip (False)
-
-npc_3 = pygame.image.load("./Character Combinations/ginger hair_white_blue shirt_black pants.png")
-npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
-flipped_npc_3 = pygame.transform.flip(npc_3, True, False)  # Flip horizontally (True), no vertical flip (False)
-
-npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_brown pants.png")
-npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
-flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  # Flip horizontally (True), no vertical flip (False)
+npc = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_black pants.png")
+npc = pygame.transform.scale(npc, (TILE_SIZE, TILE_SIZE))
+flipped_npc = pygame.transform.flip(npc, True, False)  # Flip horizontally (True), no vertical flip (False)
 
 house = pygame.image.load("./images/house.png")
 house = pygame.transform.scale(house, (TILE_SIZE * 5, TILE_SIZE * 3))
@@ -158,15 +139,11 @@ for row_index, row in enumerate(level_map):
 # All code after this line should be for props, npcs, gadgets, and powerups. Terrain should not be made here.
 
 # Dictionary containing which tile corresponds to what
-tiles = {1: ground_tile, 2: platform_tile, 3: boots, 4: flipped_npc_1, 5: house, 6: thorn, 7: flag, 8: super_speed_powerup, 9: dash_powerup, 
-        10: fence, 11: sign, 12: npc_1, 13: speed_boots, 14: coin, 15: npc_2, 16: npc_3, 17: flipped_npc_2, 18: flipped_npc_3, 19: npc_4, 20: flipped_npc_4}
+tiles = {1: ground_tile, 2: platform_tile, 3: boots, 4: flipped_npc, 5: house, 6: thorn, 7: flag, 8: super_speed_powerup, 9: dash_powerup, 10: fence, 11: sign, 12: npc, 13: speed_boots, 14: coin}
 
 level_map[SURFACE][28] = 3 # Jump Boots
 level_map[SURFACE-5][55] = 13 # Speed Boots
-level_map[SURFACE][60] = 4 # NPC 1
-level_map[SURFACE][27] = 17 # NPC 2
-level_map[SURFACE][86] = 18 # NPC 3
-level_map[SURFACE][8] = 20 # NPC 4
+level_map[SURFACE][60] = 4 # NPC 
 level_map[SURFACE-2][62] = 5 # House
 
 level_map[SURFACE][98:104] , level_map[SURFACE][113:115]= [6] * 6, [6] * 2 # Thorns
@@ -199,6 +176,7 @@ def calculate_row(y):
 # Converts the row number to the y-coordinate
 def calculate_y_coordinate(row):
     return int(row * TILE_SIZE)
+
 
 def show_level_completed_screen(slot: int):
     # Display the background image
@@ -249,7 +227,6 @@ def show_level_completed_screen(slot: int):
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
-
 
 
 def read_data(slot: int):

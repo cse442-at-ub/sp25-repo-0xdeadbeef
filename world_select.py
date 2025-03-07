@@ -175,7 +175,6 @@ def World_Selector(slot: int):
                             if current_level == 0 and idx == 1:
                                 print("Current snow level button clicked. Going to tutorial snow level...")
                                 running = False
-                                # tutorial.tutorial_level()
                                 tutorial.tutorial_level(slot)
                                 sys.exit()
             elif event.type == pygame.KEYDOWN:
