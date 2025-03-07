@@ -134,8 +134,7 @@ def run_main_menu():
 
         # Update the window
         pygame.display.flip()
-
-        
+      
 # Start the main menu
 if __name__ == "__main__":
     run_main_menu()

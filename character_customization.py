@@ -92,6 +92,15 @@ class TransparentButton:
 def create_screen(display, bg):
     display.blit(bg, (0, 0))
 
+def createSpriteString(hairIndex, skinIndex, shirtIndex, pantsIndex):
+    hair_types = ["brown hair", "black hair", "ginger hair"]
+    skin_types = ["white", "dark"]
+    shirt_types = ["red shirt", "blue shirt", "yellow shirt"]
+    pant_types = ["black pants", "blue pants", "brown pants"]
+    spritePath = hair_types[hairIndex] + "_" + skin_types[skinIndex] + "_" + shirt_types[shirtIndex] + "_" + pant_types[pantsIndex] + ".png"
+
+    return spritePath
+
 def customization_screen(slot: int): 
     pygame.display.set_caption("Character Customization Screen")
 
@@ -221,9 +230,10 @@ def customization_screen(slot: int):
                 # Confirm button -> go to world selector
                 if confirm_button_rect.collidepoint(mouse_pos):
                     print("Confirm button clicked. Going to map/level selector...")
+                    update_save(slot, {"character": createSpriteString(hair_index, skin_index, shirt_index, pants_index)})
                     update_save(slot, {"shirt": f"Assets\character_customization\shirt_color\shirt_{shirt_index}.png", "hair": f"Assets\character_customization\hair_color\hair_{hair_index}.png", "pants": f"Assets\character_customization\pants_color\pants_{pants_index}.png", "skin": f"Assets\character_customization\skin_color\skin_{skin_index}.png"})
                     running = False
-                    world_select.World_Selector()
+                    world_select.World_Selector(slot)
                     sys.exit()
 
                 # Hair arrows
