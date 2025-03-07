@@ -1,3 +1,5 @@
 # Ignore all compiled Python files
 __pycache__/
 *.pyc
+
+*.json
