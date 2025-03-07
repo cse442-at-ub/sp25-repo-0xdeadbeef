@@ -223,7 +223,6 @@ def customization_screen(slot: int):
                 # Back button -> go to save slots
                 if back_button.is_clicked(mouse_pos):
                     print("Back button clicked. Going to save slot menu...")
-                    delete_save(slot)
                     running = False
                     save_slots.Screen_SaveSlot()
                     sys.exit()
