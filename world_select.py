@@ -2,10 +2,10 @@ import pygame  # type: ignore
 import sys
 from pygame.locals import *
 
-# import tutorial
-# import save_slots
-# import world_select
-# import main_menu  
+import tutorial
+import save_slots
+import world_select
+import main_menu  
 
 pygame.init()  # Initialize Pygame
 
@@ -141,7 +141,7 @@ mini_squares = [
     # Add more mini square configurations for additional levels here
 ]
 
-def World_Selector():
+def World_Selector(slot: int):
     current_level = 0
     num_levels = len(background_images)
     running = True
@@ -160,7 +160,7 @@ def World_Selector():
                 if back_button.is_clicked(event.pos):  # TransparentButton for back button
                     print("Back clicked. Going to save slot menu...")
                     running = False
-                    # save_slots.Screen_SaveSlot()
+                    save_slots.Screen_SaveSlot()
                     sys.exit()
                 elif event.button == 1:
                     mouse_pos = pygame.mouse.get_pos()
@@ -168,14 +168,14 @@ def World_Selector():
                         current_level = (current_level - 1) % num_levels
                     elif right_rect.collidepoint(mouse_pos):
                         current_level = (current_level + 1) % num_levels
-                    # [MODIFIED] Check mini squares click
+                    # Check mini squares click
                     for idx, square in enumerate(mini_squares[current_level]):
                         rect = square["image"].get_rect(topleft=square["pos"])
                         if rect.collidepoint(event.pos):
                             if current_level == 0 and idx == 1:
                                 print("Current snow level button clicked. Going to tutorial snow level...")
                                 running = False
-                                # tutorial.tutorial_level()
+                                tutorial.tutorial_level(slot)
                                 sys.exit()
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
