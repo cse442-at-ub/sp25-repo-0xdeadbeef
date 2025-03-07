@@ -51,3 +51,8 @@ def update_save(slot, new_data):
         json.dump(save_data, file, indent=4)
     
     print(f"Save Slot {slot} updated successfully!")
+
+def delete_save(slot):
+    file_path = os.path.join(SAVE_DIR, f"save{slot}.json")
+    if os.path.exists(file_path):
+        os.remove(file_path)
