@@ -1,3 +1,6 @@
 # Ignore all compiled Python files
 __pycache__/
 *.pyc
+
+# Ignore all .json files in the User Saves directory
+User Saves/*.json
