@@ -1,7 +1,6 @@
 import pygame # type: ignore
 import random
-import sys
-import time
+import json
 
 # Initialize PyGame
 pygame.init()
@@ -13,29 +12,13 @@ BASE_HEIGHT = 1080
 
 info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h # Will only work with resolutions 1920 x 1080 or better
-# print(str(WIDTH) + " " + str(HEIGHT))
+
 TILE_SIZE = 40  # Adjusted for better layout
 
 scale_factor = HEIGHT / BASE_HEIGHT
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Tutorial Level")
-
-# Load all the images into their respective variables
-player = pygame.image.load("./animations/right-stand.png")
-player = pygame.transform.scale(player, (TILE_SIZE, TILE_SIZE))
-flipped_player = pygame.transform.flip(player, True, False)
-
-run = pygame.image.load("./animations/right-run.png")
-run = pygame.transform.scale(run, (TILE_SIZE, TILE_SIZE))
-flipped_run = pygame.transform.flip(run, True, False)
-
-run_frames = [
-    pygame.image.load("./animations/right-walk.png"),
-    pygame.image.load("./animations/right-run.png")
-]
-
-run_frames = [pygame.transform.scale(frame, (TILE_SIZE, TILE_SIZE)) for frame in run_frames]
 
 ground_tile = pygame.image.load("./images/ground.png")
 ground_tile = pygame.transform.scale(ground_tile, (TILE_SIZE, TILE_SIZE))
@@ -178,7 +161,7 @@ rocks = {14, 33, 45, 68, 108, 124} # Column numbers for all the rocks
 trees = {10, 30, 50, 90} # Column numbers for all the trees
 background_trees = {16, 42, 55, 93, 133} # Column numbers for all the background trees
 
-# Converts the x coordinate to the column on the map
+# Converts the x coordinates to the column on the map
 def calculate_column(x): 
     return int(x // TILE_SIZE)
 
@@ -194,8 +177,32 @@ def calculate_row(y):
 def calculate_y_coordinate(row):
     return int(row * TILE_SIZE)
 
+def read_data(slot: int):
+    with open(f"./User Saves/save{str(slot)}.json", "r") as file:
+        data = json.load(file)
+    return data.get("character")
+
 # Function to run the tutorial level
-def tutorial_level():
+def tutorial_level(slot: int):
+    # Grab the sprite that was customized
+    sprite = read_data(slot)
+
+    # Load all the images into their respective variables
+    player = pygame.image.load(f"./Assets/Character Sprites/standing/{sprite}")
+    player = pygame.transform.scale(player, (TILE_SIZE, TILE_SIZE))
+    flipped_player = pygame.transform.flip(player, True, False)
+
+    run = pygame.image.load(f"./Assets/Character Sprites/running/{sprite}")
+    run = pygame.transform.scale(run, (TILE_SIZE, TILE_SIZE))
+    flipped_run = pygame.transform.flip(run, True, False)
+
+    run_frames = [
+        pygame.image.load(f"./Assets/Character Sprites/walking/{sprite}"),
+        pygame.image.load(f"./Assets/Character Sprites/running/{sprite}")
+    ]
+
+    run_frames = [pygame.transform.scale(frame, (TILE_SIZE, TILE_SIZE)) for frame in run_frames]
+
     # Camera position
     camera_x = 0
     player_x = 200  # Start position, change this number to spawn in a different place
@@ -238,9 +245,6 @@ def tutorial_level():
     running = True
     while running:
         screen.blit(background, (0, 0))
-
-        #-----Get the current time of the game in milliseconds (for power-up resetting)
-        Game_time = pygame.time.get_ticks()
 
         # Draw level using tile images
         for row_index, row in enumerate(level_map):
@@ -386,6 +390,7 @@ def tutorial_level():
 
                         player_y = tile_y + TILE_SIZE  # Align player below the ceiling
                         player_vel_y = 0  # Stop upward motion
+                
                 
                 # This code picks up the double jump boots
                 if tile == 3:

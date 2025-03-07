@@ -118,7 +118,7 @@ def Screen_SaveSlot():
                         create_new_save(1)
                         character_customization.customization_screen(1)
                     else:
-                        world_select.World_Selector()
+                        world_select.World_Selector(1)
                     sys.exit()
             
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -129,7 +129,7 @@ def Screen_SaveSlot():
                         create_new_save(2)
                         character_customization.customization_screen(2)
                     else:
-                        world_select.World_Selector()
+                        world_select.World_Selector(2)
                     sys.exit()
 
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -140,7 +140,7 @@ def Screen_SaveSlot():
                         create_new_save(3)
                         character_customization.customization_screen(3)
                     else:
-                        world_select.World_Selector()
+                        world_select.World_Selector(3)
                     sys.exit()
 
             # Handle clicks on Back button using the fourth button in the array (index 3)
