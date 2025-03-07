@@ -200,10 +200,14 @@ def calculate_row(y):
 def calculate_y_coordinate(row):
     return int(row * TILE_SIZE)
 
-
-def show_level_completed_screen():
+def show_level_completed_screen(slot: int):
     # Display the background image
     screen.blit(background, (0, 0))
+
+    level_map[SURFACE][28] = 3 # Respawn double jump boots
+    level_map[SURFACE-5][55] = 13 # Respawn speed boots
+    level_map[SURFACE-1][68] = 0  # Despawn coin
+    level_map[SURFACE-2][79:81] = [0] * 2 # Despawn platforms after getting coin
 
     # Set fonts for the text
     title_font = pygame.font.Font('PixelifySans.ttf', 100)
@@ -220,7 +224,7 @@ def show_level_completed_screen():
     # Create box around the text
     box_padding = 20
     level_end_screen_box = pygame.Rect(level_completed_rect.left - box_padding, level_completed_rect.top - box_padding, level_completed_rect.width + box_padding*2, level_completed_rect.height + (box_padding*2) + 80)
-    pygame.draw.rect(screen, (255, 0, 0), level_end_screen_box, 10)
+    pygame.draw.rect(screen, (0, 0, 255), level_end_screen_box, 10)
     
     # Draw the texts
     screen.blit(level_completed_text, level_completed_rect)
@@ -243,8 +247,7 @@ def show_level_completed_screen():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
-                    pygame.quit()
-                    world_select.World_Selector()
+                    world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
 
 
@@ -319,9 +322,6 @@ def tutorial_level(slot: int):
     running = True
     while running:
         screen.blit(background, (0, 0))
-
-        #-----Get the current time of the game in milliseconds (for power-up resetting)
-        Game_time = pygame.time.get_ticks()
     
         # Draw level name in the top-left corner
         level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
@@ -417,7 +417,7 @@ def tutorial_level(slot: int):
         current_time = pygame.time.get_ticks()  # Get current time in milliseconds
         handle_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
 
-            # Check if player is near the NPC 3
+        # Check if player is near the NPC 3
         npc_x = calculate_x_coordinate(8)  # NPC 3's x position
         npc_y = (SURFACE) * TILE_SIZE  # NPC 3's y position
         player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
@@ -573,57 +573,13 @@ def tutorial_level(slot: int):
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
 
                         coin_count += 1
+                        print(coin_count)
                         level_map[SURFACE-1][68] = 0
                         level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
 
         # Apply super-speed powerup
         if (super_speed_bool == True) and (pygame.time.get_ticks() >= super_speed_effect_off_time):
             player_speed = player_speed / 2
-            dashing = False
-            dash_duration = 0
-
-    #-----Respawns Dash power-up after 5 seconds
-    if (dash_respawn_time > 0 ) and (pygame.time.get_ticks() >= dash_respawn_time):
-        level_map[SURFACE-2][113] = 9
-        dash_respawn_time = 0
-
-    if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
-        show_level_completed_screen()  # Show level completed screen
-        running = False  # Exit the game loop
-
-    if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
-        player_x = 0
-
-    if player_y + TILE_SIZE >= level_height * TILE_SIZE:
-        dying = True
-
-    if dying:
-        player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
-        death_count += 1
-        dying = False
-        if checkpoint_idx == 0 and doubleJumpBoots:
-            doubleJumpBoots = False
-            level_map[SURFACE][28] = 3
-        elif checkpoint_idx == 1 and speedBoots:
-            level_map[SURFACE-5][55] = 13
-            speedBoots = False
-            player_speed = player_speed / 1.25
-
-    for k, checkpoint in enumerate(checkpoints):
-        x, y = checkpoint
-        if player_x >= x and not checkpoint_bool[k]:
-            checkpoint_idx += 1
-            checkpoint_bool[k] = True
-            if checkpoint_idx == 2:
-                doubleJumpBoots = False # Remove their double jump boots
-                player_speed = player_speed / 1.25 # Revert their speed back to normal
-                level_map[SURFACE-1][68] = 14  #Spawn coin after reaching 2nd checkpoint
-
-    # Camera follows player
-    camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
             super_speed_bool = False
             super_speed_pickup_time = 0
 
@@ -646,7 +602,8 @@ def tutorial_level(slot: int):
             dash_respawn_time = 0
 
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
-            running = False
+            show_level_completed_screen(slot)  # Show level completed screen
+            running = False  # Exit the game loop
 
         if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
             player_x = 0
@@ -684,7 +641,3 @@ def tutorial_level(slot: int):
                 running = False
 
         pygame.display.flip()  # Update display
-
-if __name__ == "__main__":
-    tutorial_level()
-    pygame.quit()

@@ -14,7 +14,7 @@ dialogue_lines = [
     "Move around by using 'A' and 'D' keys.",
     "'A' is to move left and 'D' is to move right.",
     "If you wanna take a leap of faith, use the 'SPACEBAR' key.",
-    "If you see any obstacle that migit end your life, just jump over it",
+    "If you see any obstacle that might end your life, just jump over it",
     "Of course, keep moving right though.",
     "You'll meet more people and more places to explore.",
     "This place is definitely not recommended to stay for long, but hey,",

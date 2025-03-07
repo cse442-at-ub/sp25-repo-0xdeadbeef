@@ -11,7 +11,7 @@ dialogue_lines = [
     "You plan to cross this ledge?",
     "I have some spare boots here!",
     "Take it and use SPACEBAR twice to jump",
-    "You'll meet more people accross the ledge.",
+    "You'll meet more people across the ledge.",
     "Good luck!"
 ]
 
