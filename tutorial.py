@@ -7,6 +7,7 @@ from tutorial_npc_2_dialogue import handle_npc_2_dialogue  # Import the second N
 from tutorial_npc_3_dialogue import handle_npc_3_dialogue  # Import the third NPC dialogue functionality
 from tutorial_npc_4_dialogue import handle_npc_4_dialogue  # Import the fourth NPC dialogue functionality
 import world_select
+import json
 
 # Initialize PyGame
 pygame.init()
@@ -18,29 +19,13 @@ BASE_HEIGHT = 1080
 
 info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h # Will only work with resolutions 1920 x 1080 or better
-# print(str(WIDTH) + " " + str(HEIGHT))
+
 TILE_SIZE = 40  # Adjusted for better layout
 
 scale_factor = HEIGHT / BASE_HEIGHT
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Tutorial Level")
-
-# Load all the images into their respective variables
-player = pygame.image.load("./animations/right-stand.png")
-player = pygame.transform.scale(player, (TILE_SIZE, TILE_SIZE))
-flipped_player = pygame.transform.flip(player, True, False)
-
-run = pygame.image.load("./animations/right-run.png")
-run = pygame.transform.scale(run, (TILE_SIZE, TILE_SIZE))
-flipped_run = pygame.transform.flip(run, True, False)
-
-run_frames = [
-    pygame.image.load("./animations/right-walk.png"),
-    pygame.image.load("./animations/right-run.png")
-]
-
-run_frames = [pygame.transform.scale(frame, (TILE_SIZE, TILE_SIZE)) for frame in run_frames]
 
 ground_tile = pygame.image.load("./images/ground.png")
 ground_tile = pygame.transform.scale(ground_tile, (TILE_SIZE, TILE_SIZE))
@@ -199,21 +184,7 @@ rocks = {14, 33, 45, 68, 108, 124} # Column numbers for all the rocks
 trees = {10, 30, 50, 90} # Column numbers for all the trees
 background_trees = {16, 42, 55, 93, 133} # Column numbers for all the background trees
 
-# Camera position
-camera_x = 0
-player_x = 200  # Start position, change this number to spawn in a different place
-player_y = HEIGHT - 200
-player_speed = 6 * scale_factor # Adjust player speed according to their resolution
-
-player_vel_y = 0 # Vertical velocity for jumping
-gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
-jump_power = -21 / scale_factor # Jump strength (Bigger negative number means higher jump)
-on_ground = False # Track if player is on the ground
-doubleJumpBoots = False # Track if player has double jump boots
-doubleJumped = False # Track if player double jumped already
-speedBoots = False
-
-# Converts the x coordinate to the column on the map
+# Converts the x coordinates to the column on the map
 def calculate_column(x): 
     return int(x // TILE_SIZE)
 
@@ -501,80 +472,282 @@ while running:
 
                     player_y = tile_y + TILE_SIZE  # Align player below the ceiling
                     player_vel_y = 0  # Stop upward motion
+                    
+def read_data(slot: int):
+    with open(f"./User Saves/save{str(slot)}.json", "r") as file:
+        data = json.load(file)
+    return data.get("character")
+
+# Function to run the tutorial level
+def tutorial_level(slot: int):
+    # Grab the sprite that was customized
+    sprite = read_data(slot)
+
+    # Load all the images into their respective variables
+    player = pygame.image.load(f"./Assets/Character Sprites/standing/{sprite}")
+    player = pygame.transform.scale(player, (TILE_SIZE, TILE_SIZE))
+    flipped_player = pygame.transform.flip(player, True, False)
+
+    run = pygame.image.load(f"./Assets/Character Sprites/running/{sprite}")
+    run = pygame.transform.scale(run, (TILE_SIZE, TILE_SIZE))
+    flipped_run = pygame.transform.flip(run, True, False)
+
+    run_frames = [
+        pygame.image.load(f"./Assets/Character Sprites/walking/{sprite}"),
+        pygame.image.load(f"./Assets/Character Sprites/running/{sprite}")
+    ]
+
+    run_frames = [pygame.transform.scale(frame, (TILE_SIZE, TILE_SIZE)) for frame in run_frames]
+
+    # Camera position
+    camera_x = 0
+    player_x = 200  # Start position, change this number to spawn in a different place
+    player_y = HEIGHT - 200
+    player_speed = 6 * scale_factor # Adjust player speed according to their resolution
+
+    player_vel_y = 0 # Vertical velocity for jumping
+    gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
+    jump_power = -21 / scale_factor # Jump strength (Bigger negative number means higher jump)
+    on_ground = False # Track if player is on the ground
+    doubleJumpBoots = False # Track if player has double jump boots
+    doubleJumped = False # Track if player double jumped already
+    speedBoots = False
+
+    animation_index = 0  # Alternates between 0 and 1
+    animation_timer = 0  # Tracks when to switch frames
+    animation_speed = 4  # Adjust this to control animation speed
+    direction = 1  # 1 for right, -1 for left
+
+    #-----Declared variables for speed boost to avoid undefined variable error
+    super_speed_bool = False
+    super_speed_respawn_time = 0
+    super_speed_pickup_time = 0
+    super_speed_effect_off_time = 0
+
+    #-----Declared variables for Dash power-up to avoid undefined variable error
+    dash_respawn_time = 0 
+    dash_pickup_time = 0
+    dash_duration = 0
+    dashing = False
+
+    checkpoints = [(200, HEIGHT-200), (1480, HEIGHT-400), (3480, HEIGHT-200)]
+    checkpoint_bool = [True, False, False]
+    checkpoint_idx = 0
+    dying = False
+    death_count = 0
+
+    coin_count = 0
+
+    running = True
+    while running:
+        screen.blit(background, (0, 0))
+
+        # Draw level using tile images
+        for row_index, row in enumerate(level_map):
+            for col_index, tile in enumerate(row):
+                x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
+                if tile == 0: # Continue if the tile is an air block
+                    continue
+                if tile == 10: #Draw the fence at half size
+                    screen.blit(tiles.get(tile), (x, y + TILE_SIZE // 2))
+                else: # Draw according to the dictionary
+                    screen.blit(tiles.get(tile), (x, y))
+                if calculate_column(player_x) >= 60:
+                    level_map[SURFACE][60] = 12 # Draw the normal npc
+                else:
+                    level_map[SURFACE][60] = 4 # Draw the flipped npc
+
+        # Draw dirt below ground
+        for col_index, ground_y in enumerate(ground_levels):
+            for row_index in range(ground_y + 1, len(level_map) + 10):  # Extra depth
+                x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
+                screen.blit(dirt_tile, (x, y))  # Draw dirt using image
+
+        for i in trees:  # Adding trees
+            x = i * TILE_SIZE - camera_x
+            y = (ground_levels[i] - 3) * TILE_SIZE  # Place tree 3 tiles above the ground
+            screen.blit(tree, (x, y))
+
+        for i in background_trees:  # Adding background trees
+            x = i * TILE_SIZE - camera_x
+            y = (ground_levels[i] - 2) * TILE_SIZE  # Place background trees 2 tiles above the ground
+            screen.blit(background_tree, (x, y))
+
+        for i in rocks:  # Adding rocks
+            x = i * TILE_SIZE - camera_x
+            y = (ground_levels[i] - 1) * TILE_SIZE  # Place rocks 1 tile above the ground
+            screen.blit(rock, (x, y + TILE_SIZE // 2))
+
+        for i, snowflake in enumerate(snowflakes):
+            x, y, size, speed, x_speed = snowflake  # Unpack snowflake data
             
-            # This code picks up the double jump boots
-            if tile == 3:
-                tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
-                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
-                    player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                    level_map[row_index][col_index] = 0  # Remove the boots from screen
-                    doubleJumpBoots = True
-                    doubleJumped = False
+            # Move snowflake downward and drift sideways
+            y += speed  
+            x += x_speed  # Drift slightly left/right
+            
+            # Reset snowflake when it reaches the bottom or moves too far left/right
+            if y > HEIGHT:
+                y = 0
+                x = random.randint(0, WIDTH)  # Respawn at a new x position
+            if x < 0 or x > WIDTH:  # Keep it within screen bounds
+                x = random.randint(0, WIDTH)
 
-            # This code picks up the speed boots
-            if tile == 13:
-                tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
-                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
-                    player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                    level_map[row_index][col_index] = 0  # Remove the boots from screen
-                    player_speed = player_speed * 1.25 # Up the player speed
-                    speedBoots = True
+            # Update snowflake position in the list
+            snowflakes[i] = [x, y, size, speed, x_speed]
 
-            if tile == 6:
-                tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
-                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
-                    player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+            # Draw snowflake
+            pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
 
-                    dying = True
+        # Handle events
+        keys = pygame.key.get_pressed()
+        moving = False
+        if keys[pygame.K_d]: # If player presses D
+            player_x += player_speed
+            moving = True
+            direction = 1
+        if keys[pygame.K_a]: # If player presses A
+            player_x -= player_speed        
+            moving = True
+            direction = -1
+        if keys[pygame.K_SPACE] and on_ground: # If player presses Spacebar
+            player_vel_y = jump_power # Apply jump force
+            on_ground = False # Player is now airborne
+        if moving:
+            animation_timer += 1
+            if animation_timer >= animation_speed:  
+                animation_timer = 0
+                animation_index = 1 - animation_index  # Alternate between 0 and 1
 
-            if tile == 8:
-                tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
-                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
-                    player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+        current_frame = run_frames[animation_index]
 
-                    super_speed_pickup_time = pygame.time.get_ticks()
-                    super_speed_effect_off_time = super_speed_pickup_time + 2000
-                    super_speed_bool = True
-                    level_map[SURFACE][95] = 0
-                    super_speed_respawn_time = super_speed_pickup_time + 5000
-                    player_speed = player_speed * 2
+        if direction == -1:  # Flip when moving left
+            current_frame = pygame.transform.flip(current_frame, True, False)
 
-            if tile == 9:
-                tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
-                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
-                    player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+        if moving: # Animate the player running if they are moving
+            if not on_ground and direction == 1: # If they are airborne and moving right
+                screen.blit(run, (player_x - camera_x, player_y))
+            elif not on_ground and direction == -1: # If they are airborne and moving left
+                screen.blit(flipped_run, (player_x - camera_x, player_y))
+            else: # On ground
+                screen.blit(current_frame, (player_x - camera_x, player_y))
+        else: # Draw the player in an idle position
+            if direction == 1: # Right
+                screen.blit(player, (player_x - camera_x, player_y))
+            else: # Left
+                screen.blit(flipped_player, (player_x - camera_x, player_y))
 
-                    dash_pickup_time = pygame.time.get_ticks()
-                    dash_respawn_time = dash_pickup_time + 5000
-                    level_map[SURFACE-2][113] = 0 
-                    player_speed = player_speed * 2
-                    dash_duration = pygame.time.get_ticks() + 200
-                    dashing = True
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            
+            # Jumping Logic (Space Pressed)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    if on_ground:
+                        player_vel_y = jump_power  # Normal jump
+                        on_ground = False
+                        doubleJumped = False  # Reset double jump when landing
+                    elif doubleJumpBoots and not doubleJumped:
+                        player_vel_y = jump_power  # Double jump
+                        doubleJumped = True  # Mark double jump as used
+            
+        # Apply gravity
+        player_vel_y += gravity
+        player_y += player_vel_y
 
-            if tile == 14:
-                tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
-                if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
-                    player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+        on_ground = False
+        for row_index, row in enumerate(level_map):
+            for col_index, tile in enumerate(row):
+                if tile in {1, 2}:  # Ground or platform tiles
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
 
-                    coin_count += 1
-                    level_map[SURFACE-1][68] = 0
-                    level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
+                    # This code block prevents the player from falling through solid ground
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
+                    player_y + TILE_SIZE <= tile_y + player_vel_y and  # Only land if falling down
+                    player_y + TILE_SIZE > tile_y):  # Ensures overlap
+                        player_y = tile_y - TILE_SIZE
+                        player_vel_y = 0
+                        on_ground = True  # Player lands
+                        doubleJumped = False # Reset double jump
 
-    # Apply super-speed powerup
-    if (super_speed_bool == True) and (pygame.time.get_ticks() >= super_speed_effect_off_time):
-        player_speed = player_speed / 2
-        super_speed_bool = False
-        super_speed_pickup_time = 0
+                    # This code block prevents collision with solid blocks from the left and right
+                    if (player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):  # If the player is at the same height as the block
+                        if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and player_x + TILE_SIZE - player_speed <= tile_x):  
+                            # Moving right into a block
+                            player_x = tile_x - TILE_SIZE  
 
-    #-----Respawns super-speed power-up after 5 seconds
-    if (super_speed_respawn_time > 0) and (pygame.time.get_ticks() >= super_speed_respawn_time): 
-        level_map[SURFACE][95] = 8
-        super_speed_respawn_time = 0
+                        elif (player_x < tile_x + TILE_SIZE and player_x + TILE_SIZE > tile_x and player_x + player_speed >= tile_x + TILE_SIZE):  
+                            # Moving left into a block
+                            player_x = tile_x + TILE_SIZE
 
-    # Apply dash powerup
-    if dashing:
-        player_x += player_speed
-        if (pygame.time.get_ticks() >= dash_duration) and (dash_duration != 0):
+                    # This code block prevents collision with solid blocks above their head
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
+                        player_y < tile_y + TILE_SIZE and player_y - player_vel_y >= tile_y + TILE_SIZE):
+
+                        player_y = tile_y + TILE_SIZE  # Align player below the ceiling
+                        player_vel_y = 0  # Stop upward motion
+                
+                
+                # This code picks up the double jump boots
+                if tile == 3:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        doubleJumpBoots = True
+                        doubleJumped = False
+
+                # This code picks up the speed boots
+                if tile == 13:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        player_speed = player_speed * 1.25 # Up the player speed
+                        speedBoots = True
+
+                if tile == 6:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+
+                        dying = True
+
+                if tile == 8:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+
+                        super_speed_pickup_time = pygame.time.get_ticks()
+                        super_speed_effect_off_time = super_speed_pickup_time + 2000
+                        super_speed_bool = True
+                        level_map[SURFACE][95] = 0
+                        super_speed_respawn_time = super_speed_pickup_time + 5000
+                        player_speed = player_speed * 2
+
+                if tile == 9:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+
+                        dash_pickup_time = pygame.time.get_ticks()
+                        dash_respawn_time = dash_pickup_time + 5000
+                        level_map[SURFACE-2][113] = 0 
+                        player_speed = player_speed * 2
+                        dash_duration = pygame.time.get_ticks() + 200
+                        dashing = True
+
+                if tile == 14:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+
+                        coin_count += 1
+                        level_map[SURFACE-1][68] = 0
+                        level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
+
+        # Apply super-speed powerup
+        if (super_speed_bool == True) and (pygame.time.get_ticks() >= super_speed_effect_off_time):
             player_speed = player_speed / 2
             dashing = False
             dash_duration = 0
@@ -621,8 +794,67 @@ while running:
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
+            super_speed_bool = False
+            super_speed_pickup_time = 0
+
+        #-----Respawns super-speed power-up after 5 seconds
+        if (super_speed_respawn_time > 0) and (pygame.time.get_ticks() >= super_speed_respawn_time): 
+            level_map[SURFACE][95] = 8
+            super_speed_respawn_time = 0
+
+        # Apply dash powerup
+        if dashing:
+            player_x += player_speed
+            if (pygame.time.get_ticks() >= dash_duration) and (dash_duration != 0):
+                player_speed = player_speed / 2
+                dashing = False
+                dash_duration = 0
+
+        #-----Respawns Dash power-up after 5 seconds
+        if (dash_respawn_time > 0 ) and (pygame.time.get_ticks() >= dash_respawn_time):
+            level_map[SURFACE-2][113] = 9
+            dash_respawn_time = 0
+
+        if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
             running = False
 
-    pygame.display.flip()  # Update display
+        if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
+            player_x = 0
 
-pygame.quit()
+        if player_y + TILE_SIZE >= level_height * TILE_SIZE:
+            dying = True
+
+        if dying:
+            player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
+            death_count += 1
+            dying = False
+            if checkpoint_idx == 0 and doubleJumpBoots:
+                doubleJumpBoots = False
+                level_map[SURFACE][28] = 3
+            elif checkpoint_idx == 1 and speedBoots:
+                level_map[SURFACE-5][55] = 13
+                speedBoots = False
+                player_speed = player_speed / 1.25
+
+        for k, checkpoint in enumerate(checkpoints):
+            x, y = checkpoint
+            if player_x >= x and not checkpoint_bool[k]:
+                checkpoint_idx += 1
+                checkpoint_bool[k] = True
+                if checkpoint_idx == 2:
+                    doubleJumpBoots = False # Remove their double jump boots
+                    player_speed = player_speed / 1.25 # Revert their speed back to normal
+                    level_map[SURFACE-1][68] = 14  #Spawn coin after reaching 2nd checkpoint
+
+        # Camera follows player
+        camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        pygame.display.flip()  # Update display
+
+if __name__ == "__main__":
+    tutorial_level()
+    pygame.quit()

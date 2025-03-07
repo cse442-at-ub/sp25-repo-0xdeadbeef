@@ -1,8 +1,8 @@
 {
     "slot": 1,
-    "character": "directory",
-    "shirt": "Assets\\character_customization\\shirt_color\\shirt_1.png",
+    "character": "brown hair_white_red shirt_black pants.png",
+    "shirt": "Assets\\character_customization\\shirt_color\\shirt_0.png",
     "hair": "Assets\\character_customization\\hair_color\\hair_0.png",
-    "pants": "Assets\\character_customization\\pants_color\\pants_1.png",
-    "skin": "Assets\\character_customization\\skin_color\\skin_1.png"
+    "pants": "Assets\\character_customization\\pants_color\\pants_0.png",
+    "skin": "Assets\\character_customization\\skin_color\\skin_0.png"
 }
