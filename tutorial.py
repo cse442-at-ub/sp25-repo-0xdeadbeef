@@ -321,6 +321,10 @@ def tutorial_level(slot: int):
     while running:
         screen.blit(background, (0, 0))
 
+        level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
+        level_name_text = level_name_font.render("Tutorial", True, (255, 255, 255))  # White text
+
+        screen.blit(level_name_text, (20, 20))  # Position at (20, 20)
         # Draw level using tile images
         for row_index, row in enumerate(level_map):
             for col_index, tile in enumerate(row):
@@ -376,6 +380,50 @@ def tutorial_level(slot: int):
 
             # Draw snowflake
             pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
+        
+        # Check if player is near the NPC
+        npc_x = calculate_x_coordinate(60)  # NPC's x position
+        npc_y = (SURFACE) * TILE_SIZE  # NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_npc_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the NPC 2
+        npc_x = calculate_x_coordinate(27)  # NPC 2's x position
+        npc_y = (SURFACE) * TILE_SIZE  # NPC 2's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle NPC 2 dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_npc_2_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the NPC 3
+        npc_x = calculate_x_coordinate(86)  # NPC 3's x position
+        npc_y = (SURFACE) * TILE_SIZE  # NPC 3's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle NPC 3 dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the NPC 3
+        npc_x = calculate_x_coordinate(8)  # NPC 3's x position
+        npc_y = (SURFACE) * TILE_SIZE  # NPC 3's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle NPC 3 dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_npc_4_dialogue(screen, player_rect, npc_rect, keys, current_time)
 
         # Handle events
         keys = pygame.key.get_pressed()
@@ -550,7 +598,9 @@ def tutorial_level(slot: int):
             dash_respawn_time = 0
 
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
+            show_level_completed_screen(slot)
             running = False
+        
 
         if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
             player_x = 0
