@@ -24,7 +24,7 @@ TILE_SIZE = 40  # Adjusted for better layout
 scale_factor = HEIGHT / BASE_HEIGHT
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Tutorial Level")
+pygame.display.set_caption("Level 1")
 
 ground_tile = pygame.image.load("./images/ground.png")
 ground_tile = pygame.transform.scale(ground_tile, (TILE_SIZE, TILE_SIZE))

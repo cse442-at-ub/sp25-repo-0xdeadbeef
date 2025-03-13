@@ -24,7 +24,7 @@ TILE_SIZE = 40  # Adjusted for better layout
 scale_factor = HEIGHT / BASE_HEIGHT
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Tutorial Level")
+pygame.display.set_caption("Level 2")
 
 ground_tile = pygame.image.load("./images/ground.png")
 ground_tile = pygame.transform.scale(ground_tile, (TILE_SIZE, TILE_SIZE))
@@ -251,7 +251,7 @@ def read_data(slot: int):
         data = json.load(file)
     return data.get("character")
 
-# Function to run level 1
+# Function to run level 2
 def start_level_2(slot: int):
     # Grab the sprite that was customized
     sprite = read_data(slot)
@@ -316,7 +316,7 @@ def start_level_2(slot: int):
         screen.blit(background, (0, 0))
 
         level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
-        level_name_text = level_name_font.render("Level 1", True, (255, 255, 255))  # White text
+        level_name_text = level_name_font.render("Level 2", True, (255, 255, 255))  # White text
 
         screen.blit(level_name_text, (20, 20))  # Position at (20, 20)
         # Draw level using tile images

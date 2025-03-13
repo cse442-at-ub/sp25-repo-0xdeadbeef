@@ -180,7 +180,7 @@ def World_Selector(slot: int):
                                 level_1.start_level_1(slot)  # Call the Level 1 function
                                 sys.exit()
                             elif current_level == 0 and idx == 0:  # Level 2 button in Map 1
-                                print("Level 1 button clicked. Going to Level 2...")
+                                print("Level 2 button clicked. Going to Level 2...")
                                 running = False
                                 level_2.start_level_2(slot)  # Call the Level 2 function
                                 sys.exit()
