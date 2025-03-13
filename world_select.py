@@ -4,6 +4,7 @@ from pygame.locals import * # type: ignore
 
 import tutorial
 import level_1
+import level_2
 import save_slots
 import world_select
 import main_menu  
@@ -126,8 +127,8 @@ locked_level_image = pygame.transform.scale(locked_level_image, (40, 40))
 
 mini_squares = [
     [  # Map 1
-        {"pos": (WIDTH // 2 - 150, HEIGHT // 2 - 80), "image": unlocked_level_image},
-        {"pos": (WIDTH // 2 + 10, HEIGHT // 2 - 20), "image": current_level_images[0]},  # current_snow_level_button.png
+        {"pos": (WIDTH // 2 - 150, HEIGHT // 2 - 80), "image": current_level_images[0]}, # Current level 2
+        {"pos": (WIDTH // 2 + 10, HEIGHT // 2 - 20), "image": current_level_images[0]},  # Current tutorial level
         {"pos": (WIDTH // 2 - 140, HEIGHT // 2 + 70), "image": current_level_images[0]}, # Current level 1
         {"pos": (WIDTH // 2 + 157, HEIGHT // 2 - 35), "image": unlocked_level_image},
         {"pos": (WIDTH // 2 + 110, HEIGHT // 2 + 150), "image": locked_level_image},
@@ -177,6 +178,11 @@ def World_Selector(slot: int):
                                 print("Level 1 button clicked. Going to Level 1...")
                                 running = False
                                 level_1.start_level_1(slot)  # Call the Level 1 function
+                                sys.exit()
+                            elif current_level == 0 and idx == 0:  # Level 2 button in Map 1
+                                print("Level 1 button clicked. Going to Level 2...")
+                                running = False
+                                level_2.start_level_2(slot)  # Call the Level 2 function
                                 sys.exit()
                             elif current_level == 0 and idx == 1:  # Current snow level button
                                 print("Current snow level button clicked. Going to tutorial snow level...")

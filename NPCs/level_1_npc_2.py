@@ -7,11 +7,12 @@ font = pygame.font.Font(None, 36)  # Font for dialogue
 # List of dialogue lines
 dialogue_lines = [
     "",  # Empty line to avoid skipping the first dialogue
-    "",
-    "",
-    "",
-    "",
-    "",
+    "Weeee! I'm Winterman!",
+    "With my incredible frosty powers, and my trusty capes I shall save my village from the snowstorm!",
+    "I may not have my powers, but my cape can cross the highest mountains in the world.",
+    "Hey mister! You wanna try it?",
+    "Just use it while in midair and you'll be able to dash even higher!",
+    "Like Super...I mean...Winterman!",
 ]
 
 # Variables to track dialogue state

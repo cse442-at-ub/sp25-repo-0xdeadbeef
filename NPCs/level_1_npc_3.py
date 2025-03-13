@@ -7,11 +7,17 @@ font = pygame.font.Font(None, 36)  # Font for dialogue
 # List of dialogue lines
 dialogue_lines = [
     "",  # Empty line to avoid skipping the first dialogue
-    "",
-    "",
-    "",
-    "",
-    "",
+    "Ah, can you feel the breeze on your face?",
+    "The wind is almost so refreshing...",
+    "Perfect day for ice skating.",
+    "I loved ice skating when I was a kid.",
+    "We would always wait for the lake to freeze over.",
+    "Then we would skate for hours.",
+    "It's risky, but so much fun.",
+    "You should try it sometime.",
+    "The ice can be slippery, so be careful.",
+    "If you want to cross the field you can take these boots."
+    "They are a bit worn out, but they should do the trick.",
 ]
 
 # Variables to track dialogue state

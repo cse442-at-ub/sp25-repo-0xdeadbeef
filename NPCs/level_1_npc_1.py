@@ -7,11 +7,12 @@ font = pygame.font.Font(None, 36)  # Font for dialogue
 # List of dialogue lines
 dialogue_lines = [
     "",  # Empty line to avoid skipping the first dialogue
-    "",
-    "",
-    "",
-    "",
-    "",
+    "Your shoes looks worn off",
+    "You don't happen to overuse them, do you?",
+    "Anyway, take this tool.",
+    "It should help you with reparing your shoes.",
+    "Although, I wouldn't count on it too much.",
+    "It can only be used once, so make sure you know where to jump before wasting those shoes again."
 ]
 
 # Variables to track dialogue state

@@ -7,11 +7,8 @@ font = pygame.font.Font(None, 36)  # Font for dialogue
 # List of dialogue lines
 dialogue_lines = [
     "",  # Empty line to avoid skipping the first dialogue
-    "",
-    "",
-    "",
-    "",
-    "",
+    "Be careful of the ice here!",
+    "One wrong slippery step and you'll fall into the abyss",
 ]
 
 # Variables to track dialogue state
