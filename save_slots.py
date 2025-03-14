@@ -155,16 +155,16 @@ def Screen_SaveSlot():
             # Handle delete slot 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if buttons[3].is_clicked(event.pos) or buttons[4].is_clicked(event.pos) or buttons[5].is_clicked(event.pos):
-                    print("Delete Save 1")
-                    if check_save(1): 
+                    print("Delete Save #")
+                    if check_save(1) and buttons[3].is_clicked(event.pos): 
                         delete_save(1)
                         buttons[0].updateText("Save 1 {New}")
                         buttons[0].update_surface()
-                    elif check_save(2):
+                    elif check_save(2) and buttons[4].is_clicked(event.pos):
                         delete_save(2)
                         buttons[1].updateText("Save 2 {New}")
                         buttons[1].update_surface()
-                    elif check_save(3):
+                    elif check_save(3) and buttons[5].is_clicked(event.pos):
                         delete_save(3)
                         buttons[2].updateText("Save 3 {New}")
                         buttons[2].update_surface()
