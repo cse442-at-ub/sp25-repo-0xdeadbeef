@@ -62,6 +62,9 @@ super_speed_powerup = pygame.transform.scale(super_speed_powerup, (TILE_SIZE, TI
 dash_powerup = pygame.image.load("./images/dash_powerup.png")
 dash_powerup = pygame.transform.scale(dash_powerup, (TILE_SIZE, TILE_SIZE))
 
+up_dash = pygame.transform.rotate(dash_powerup, 90)
+left_dash = pygame.transform.flip(dash_powerup, True, False)
+
 coin = pygame.image.load("./images/coin.png")
 coin = pygame.transform.scale(coin, (TILE_SIZE, TILE_SIZE))
 
@@ -84,8 +87,21 @@ walkway = pygame.image.load("./images/walkway.png")
 walkway = pygame.transform.scale(walkway, (TILE_SIZE * 4, TILE_SIZE * 2))
 flipped_walkway = pygame.transform.flip(walkway, True, False)  # Flip horizontally (True), no vertical flip (False)
 
+ice_tile = pygame.image.load("./images/ice.png")
+ice_tile = pygame.transform.scale(ice_tile, (TILE_SIZE, TILE_SIZE))
+flipped_ice = pygame.transform.flip(ice_tile, False, True)
+
+windmill = pygame.image.load("./images/windmill.png")
+windmill = pygame.transform.scale(windmill, (TILE_SIZE * 3, TILE_SIZE * 4))
+
+jump_reset = pygame.image.load("./images/bubble.png")
+jump_reset = pygame.transform.scale(jump_reset, (TILE_SIZE, TILE_SIZE))
+
+spring = pygame.image.load("./images/spring.png")
+spring= pygame.transform.scale(spring, (TILE_SIZE, TILE_SIZE))
+
 # Set up the level with a width of 200 and a height of 27 rows
-level_width = 200
+level_width = 280
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
 
 level_map = [[0] * level_width for _ in range(level_height)]  # Start with air
@@ -103,8 +119,8 @@ for _ in range(NUM_SNOWFLAKES):
     x = random.randint(0, WIDTH)
     y = random.randint(0, HEIGHT)
     size = random.randint(2, 6)  # Random size
-    speed = random.uniform(3, 8)  # Falling speed
-    x_speed = random.uniform(-0.5, 0.5)  # Small horizontal drift
+    speed = random.uniform(10, 12)  # Falling speed
+    x_speed = random.uniform(-2, 2)  # Small horizontal drift
     snowflakes.append([x, y, size, speed, x_speed])
 
 for row_index in range(GROUND, level_height):  # Only draw ground from row 23 down
@@ -117,6 +133,24 @@ for row_index in range(GROUND, level_height):  # Only draw ground from row 23 do
         for col_index in range(66, 86):
             row[col_index] = 0
         for col_index in range(96, 101):
+            row[col_index] = 0
+        for col_index in range(115, 120):
+            row[col_index] = 0
+        for col_index in range(125, 135):
+            row[col_index] = 0
+        for col_index in range(135, 140):
+            row[col_index] = 0
+        for col_index in range(145, 166):
+            row[col_index] = 0
+        for col_index in range(167, 176):
+            row[col_index] = 0
+        for col_index in range(186, 190):
+            row[col_index] = 0
+        for col_index in range(191, 195):
+            row[col_index] = 0
+        for col_index in range(196, 200):
+            row[col_index] = 0
+        for col_index in range(210, 260):
             row[col_index] = 0
     level_map[row_index] = row  # Add row to level map
 
@@ -139,6 +173,39 @@ for row_index in range(SURFACE - 13, GROUND): #Raised Ground
     level_map[row_index][65] = 1
 for row_index in range(SURFACE - 13, GROUND): #Raised Ground
     level_map[row_index][86:96] = [1] * 10
+for row_index in range(SURFACE - 8, GROUND): #Raised Ground
+    level_map[row_index][120:125] = [1] * 5
+for row_index in range(0, SURFACE - 4):
+    level_map[row_index][101:115] = [14] * 14
+for row_index in range(GROUND, level_height-1):
+    level_map[row_index][125:135] = [16] * 10
+    level_map[row_index][140:145] = [16] * 5
+for row_index in range(GROUND+1, level_height):
+    level_map[row_index][125:135] = [17] * 10
+    level_map[row_index][140:145] = [17] * 5
+for row_index in range(SURFACE - 4, GROUND): #Raised Ground
+    level_map[row_index][176:186] = [1] * 10
+for row_index in range(SURFACE - 5, GROUND): #Raised Ground
+    level_map[row_index][190] = 1
+for row_index in range(SURFACE - 5, GROUND): #Raised Ground
+    level_map[row_index][195] = 1
+for row_index in range(SURFACE - 10, GROUND): #Raised Ground
+    level_map[row_index][200:210] = [1] * 10
+for row_index in range(SURFACE - 5, SURFACE - 4):
+    level_map[row_index][215:220] = [16] * 5
+for row_index in range(SURFACE - 4, SURFACE - 3):
+    level_map[row_index][215:220] = [17] * 5
+for row_index in range(SURFACE - 6, SURFACE - 5):
+    level_map[row_index][225:227] = [16] * 2
+for row_index in range(SURFACE - 5, SURFACE - 4):
+    level_map[row_index][225:227] = [17] * 2
+for row_index in range(SURFACE - 8, SURFACE - 7):
+    level_map[row_index][232:234] = [16] * 2
+for row_index in range(SURFACE - 7, SURFACE - 6):
+    level_map[row_index][232:234] = [17] * 2
+for row_index in range(SURFACE - 10, GROUND): #Raised Ground
+    level_map[row_index][260:280] = [1] * 20
+
 
 # Make terrain before this line. The next code block calculates the ground levels
 
@@ -156,6 +223,8 @@ level_map[SURFACE-15][15] = 2 # Platform
 level_map[SURFACE-17][5:10] = [6] * 5 # Thorn
 level_map[SURFACE-18][1] = 12 # Coin
 
+level_map[SURFACE-2][13] = 20 # Jump Reset
+
 level_map[SURFACE-5][23] = 13 # Super Speed Powerup
 level_map[SURFACE-2][39] = 13 # Super Speed Powerup
 
@@ -164,7 +233,7 @@ level_map[SURFACE-8][62] = 3 # Double Jump Boots
 level_map[SURFACE-13][30:65] = [5] * 35 # Floating Ground
 level_map[SURFACE-7][30] = 6 # Thorn
 
-level_map[SURFACE-14][55] = 7 # Flag
+level_map[SURFACE-14][55], level_map[SURFACE-9][122], level_map[SURFACE-11][206] = 7, 7, 7 # Flag
 level_map[SURFACE-14][63] = 11 # Speed Boots
 
 level_map[SURFACE-14][66] = 8 # Walkway
@@ -172,12 +241,51 @@ level_map[SURFACE-13][66:70] = [10] * 4
 level_map[SURFACE-14][82] = 9 # Flipped Walkway
 level_map[SURFACE-13][82:86] = [10] * 4
 
+level_map[SURFACE-14][91:96] = [6] * 5 # Thorn
+level_map[SURFACE][101:104] = [6] * 3 # Thorn
+
 level_map[level_height-1][66:86] = [4] * 20 # Water
 level_map[level_height-1][96:101] = [4] * 5 # Water
 
+level_map[SURFACE-3][118] = 21 # Upwards Dash Powerup
+level_map[6][145] = 22 #Left Dash Powerup
+level_map[10][135] = 12 # Coin
+
+level_map[SURFACE-2][149] = 2 # Platform
+level_map[SURFACE-4][150] = 16 # Ice tile
+level_map[SURFACE-3][150] = 17 # Flipped ice tile
+
+level_map[SURFACE-7][153] = 2 # Platform
+level_map[SURFACE-9][154] = 16 # Ice tile
+level_map[SURFACE-8][154] = 17 # Flipped ice tile
+
+level_map[SURFACE-12][150] = 2 # Platform
+level_map[SURFACE-14][149] = 16 # Ice tile
+level_map[SURFACE-13][149] = 17 # Flipped ice tile
+
+level_map[SURFACE-17][153] = 2 # Platform
+level_map[SURFACE-19][154] = 16 # Ice tile
+level_map[SURFACE-18][154] = 17 # Flipped ice tile
+
+level_map[SURFACE][166] = 23 # Spring
+
+level_map[SURFACE-5][178] = 3 # Double Jump Boots
+level_map[SURFACE-11][208] = 11 # Double Jump Boots
+
+level_map[SURFACE-6][190], level_map[SURFACE-6][195] = 6, 6 # Thorns
+
+level_map[SURFACE-5][197] = 20 # Jump Reset
+level_map[SURFACE-10][242] = 20 # Jump Reset
+level_map[SURFACE-10][252] = 20 # Jump Reset
+
+level_map[SURFACE-13][262] = 18 # House
+level_map[SURFACE-14][270] = 19 # Windmill
+
+
 # Dictionary containing which tile corresponds to what
 tiles = {1: ground_tile, 2: platform_tile, 3: double_jump_boots, 4: water, 5: floating_ground, 6: thorn, 7: flag, 8: walkway, 9: flipped_walkway, 10: invisible_platform,
-         11: speed_boots, 12: coin, 13: super_speed_powerup}
+         11: speed_boots, 12: coin, 13: super_speed_powerup, 14: dirt_tile, 15: dash_powerup, 16: ice_tile, 17: flipped_ice, 18: house, 19: windmill, 20: jump_reset,
+         21: up_dash, 22: left_dash, 23: spring}
 
 rocks = {} # Column numbers for all the rocks
 trees = {} # Column numbers for all the trees
@@ -273,8 +381,8 @@ def level_2(slot: int):
 
     # Camera position
     camera_x = 0
-    player_x = calculate_x_coordinate(36)  # Start position, change this number to spawn in a different place
-    player_y = calculate_y_coordinate(SURFACE-15)
+    player_x = calculate_x_coordinate(206)  # Start position, change this number to spawn in a different place
+    player_y = calculate_y_coordinate(SURFACE-11)
     player_speed = 6 * scale_factor # Adjust player speed according to their resolution
 
     player_vel_y = 0 # Vertical velocity for jumping
@@ -302,12 +410,14 @@ def level_2(slot: int):
     dash_duration = 0
     dashing = False
 
-    checkpoints = [(player_x, player_y), (calculate_x_coordinate(55), calculate_y_coordinate(SURFACE-14))]
+    checkpoints = [(player_x, player_y), (calculate_x_coordinate(55), calculate_y_coordinate(SURFACE-14)), (calculate_x_coordinate(122), calculate_y_coordinate(SURFACE-9)),
+                   (calculate_x_coordinate(206), calculate_y_coordinate(SURFACE-11))]
     checkpoint_bool = [False] * len(checkpoints)
     checkpoint_bool[0] = True
     checkpoint_idx = 0
     dying = False
     death_count = 0
+    collidable_tiles = {1, 2, 5, 10, 14, 16, 17, 23}
 
     coin_count = 0
 
@@ -429,7 +539,7 @@ def level_2(slot: int):
         on_ground = False
         for row_index, row in enumerate(level_map):
             for col_index, tile in enumerate(row):
-                if tile in {1, 2, 5, 10}:  # Ground, platform, floating ground, invisible platform tiles
+                if tile in collidable_tiles:  # Ground, platform, floating ground, invisible platform tiles, Dirt
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
 
                     # This code block prevents the player from falling through solid ground
@@ -497,18 +607,6 @@ def level_2(slot: int):
                         super_speed_respawn_time = super_speed_pickup_time + 5000
                         player_speed = player_speed * 2
 
-                # if tile == 9:
-                #     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
-                #     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
-                #         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
-                #         dash_pickup_time = pygame.time.get_ticks()
-                #         dash_respawn_time = dash_pickup_time + 5000
-                #         level_map[SURFACE-2][113] = 0 
-                #         player_speed = player_speed * 2
-                #         dash_duration = pygame.time.get_ticks() + 200
-                #         dashing = True
-
                 if tile == 12:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
@@ -516,6 +614,18 @@ def level_2(slot: int):
 
                         coin_count += 1
                         level_map[row_index][col_index] = 0
+
+                if tile == 15:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+
+                        dash_pickup_time = pygame.time.get_ticks()
+                        dash_respawn_time = dash_pickup_time + 5000
+                        level_map[row_index][col_index] = 0 
+                        player_speed = player_speed * 2
+                        dash_duration = pygame.time.get_ticks() + 200
+                        dashing = True
 
         # Apply super-speed powerup
         if (super_speed_bool == True) and (pygame.time.get_ticks() >= super_speed_effect_off_time):
