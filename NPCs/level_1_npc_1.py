@@ -1,6 +1,4 @@
-# npc_dialogue.py
-
-import pygame
+import pygame #type: ignore
 
 # Initialize font for dialogue
 pygame.font.init()
@@ -9,20 +7,12 @@ font = pygame.font.Font(None, 36)  # Font for dialogue
 # List of dialogue lines
 dialogue_lines = [
     "",  # Empty line to avoid skipping the first dialogue
-    "Phew! Rough mountain, eh?",
-    "I almost injured myself backthere.",
-    "I was lucky enough to find this SAVE spot here.",
-    "Really useful for planning out your next course of action.",
-    "If you feel like you're about to fall or lost a life, you can just automatically respawn back here.",
-    "It's convenient, right?",
-    "You can also use it to save your progress.",
-    "I'll be waiting here for a while, so feel free to use it.",
-    "Oh, and if you find a pit or a ledge that is too far away to jump through,",
-    "There should be a dash item like a lightning bolt or a forward arrow somewhere around here.",
-    "They can both take you across obstacles.",
-    "Just make sure to use them wisely.",
-    "They lose their ability if you don't use them for a while.",
-    "Good luck!"
+    "Your shoes looks worn off",
+    "You don't happen to overuse them, do you?",
+    "Anyway, take this tool.",
+    "It should help you with reparing your shoes.",
+    "Although, I wouldn't count on it too much.",
+    "It can only be used once, so make sure you know where to jump before wasting those shoes again."
 ]
 
 # Variables to track dialogue state
@@ -33,7 +23,6 @@ show_dialogue = False
 cooldown_time = 400  # Cooldown between key presses in milliseconds
 last_key_press_time = 0  # Tracks the last time "E" was pressed
 
-# Function to draw the dialogue box
 # Function to draw the dialogue box
 def draw_dialogue_box(screen, text, font, x, y, max_width=400):
     """
@@ -88,8 +77,8 @@ def draw_dialogue_box(screen, text, font, x, y, max_width=400):
         text_y = box_y + padding + i * line_height
         text_rect = text_surface.get_rect(midtop=(x, text_y))
         screen.blit(text_surface, text_rect)
-        
-def handle_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time):
+
+def handle_level_1_npc_1_dialogue(screen, player_rect, npc_rect, keys, current_time):
     """
     Handles NPC dialogue logic, including showing prompts, advancing dialogue, and drawing the dialogue box.
     """
@@ -110,7 +99,7 @@ def handle_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time):
 
         # Draw dialogue box if active
         if show_dialogue:
-            draw_dialogue_box(screen, dialogue_lines[current_dialogue_index], font, npc_rect.x + npc_rect.width // 2, npc_rect.y)
+            draw_dialogue_box(screen, dialogue_lines[current_dialogue_index], font, npc_rect.x + npc_rect.width // 2, npc_rect.y, max_width=400)
     else:
         # Hide dialogue box and reset dialogue when player moves out of range
         show_dialogue = False
