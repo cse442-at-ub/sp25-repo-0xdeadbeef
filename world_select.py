@@ -1,8 +1,10 @@
 import pygame  # type: ignore
 import sys
-from pygame.locals import *
+from pygame.locals import * # type: ignore
 
 import tutorial
+import level_1
+import level_2
 import save_slots
 import world_select
 import main_menu  
@@ -124,14 +126,14 @@ current_level_images = [pygame.transform.scale(img, (40, 40)) for img in current
 locked_level_image = pygame.transform.scale(locked_level_image, (40, 40))
 
 mini_squares = [
-    [  # Level 1
-        {"pos": (WIDTH // 2 - 150, HEIGHT // 2 - 80), "image": unlocked_level_image},
-        {"pos": (WIDTH // 2 + 10, HEIGHT // 2 - 20), "image": current_level_images[0]},  # current_snow_level_button.png
-        {"pos": (WIDTH // 2 - 140, HEIGHT // 2 + 70), "image": unlocked_level_image},
+    [  # Map 1
+        {"pos": (WIDTH // 2 - 150, HEIGHT // 2 - 80), "image": current_level_images[0]}, # Current level 2
+        {"pos": (WIDTH // 2 + 10, HEIGHT // 2 - 20), "image": current_level_images[0]},  # Current tutorial level
+        {"pos": (WIDTH // 2 - 140, HEIGHT // 2 + 70), "image": current_level_images[0]}, # Current level 1
         {"pos": (WIDTH // 2 + 157, HEIGHT // 2 - 35), "image": unlocked_level_image},
         {"pos": (WIDTH // 2 + 110, HEIGHT // 2 + 150), "image": locked_level_image},
     ],
-    [  # Level 2
+    [  # Map 2
         {"pos": (WIDTH // 2 - 200, HEIGHT // 2 - 180), "image": unlocked_level_image},
         {"pos": (WIDTH // 2 - 250, HEIGHT // 2 - 20), "image": current_level_images[1]},
         {"pos": (WIDTH // 2 - 30, HEIGHT // 2 - 40), "image": unlocked_level_image},
@@ -172,7 +174,17 @@ def World_Selector(slot: int):
                     for idx, square in enumerate(mini_squares[current_level]):
                         rect = square["image"].get_rect(topleft=square["pos"])
                         if rect.collidepoint(event.pos):
-                            if current_level == 0 and idx == 1:
+                            if current_level == 0 and idx == 2:  # Level 1 button in Map 1
+                                print("Level 1 button clicked. Going to Level 1...")
+                                running = False
+                                level_1.start_level_1(slot)  # Call the Level 1 function
+                                sys.exit()
+                            elif current_level == 0 and idx == 0:  # Level 2 button in Map 1
+                                print("Level 2 button clicked. Going to Level 2...")
+                                running = False
+                                level_2.start_level_2(slot)  # Call the Level 2 function
+                                sys.exit()
+                            elif current_level == 0 and idx == 1:  # Current snow level button
                                 print("Current snow level button clicked. Going to tutorial snow level...")
                                 running = False
                                 tutorial.tutorial_level(slot)
