@@ -492,7 +492,7 @@ def read_data(slot: int):
 # -----------------------------------
 # Level One Game Loop
 # -----------------------------------
-def level_one(slot: int):
+def level_1(slot: int):
     # Grab the sprite that was customized
     sprite = read_data(slot)
 
@@ -823,11 +823,9 @@ def level_one(slot: int):
                 running = False
 
         pygame.display.flip()  
-    
-    pygame.quit()
-
 
 
 
 if __name__ == "__main__":
-    level_one(1)
+    level_1()
+    pygame.quit()
