@@ -640,5 +640,5 @@ def tutorial_level(slot: int):
         pygame.display.flip()  # Update display
 
 if __name__ == "__main__":
-    tutorial_level(2)
+    tutorial_level()
     pygame.quit()

@@ -694,5 +694,5 @@ def level_2(slot: int):
         pygame.display.flip()  # Update display
 
 if __name__ == "__main__":
-    level_2(1)
+    level_2()
     pygame.quit()
