@@ -18,12 +18,12 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Main Menu with Hover Effect")
 
 # BLIZZARD SETUP
-num_snowflakes = random.randint(50, 200) # randomly set the number of snowflakes to something between 50 and 2000
+num_snowflakes = random.randint(50, 200) # randomly set the number of snowflakes to something between 50 and 200
 snowflakes = []
 
 def create_blizzard():
     # Create initial snowflakes at random positions, with random speeds.
-    for i in range(num_snowflakes):
+    for _ in range(num_snowflakes):
         x = random.randint(0, WIDTH)
         y = random.randint(-HEIGHT, 0)  # start above the screen
         speed_x = random.uniform(-1, 1) # wind: flakes drift left/right
