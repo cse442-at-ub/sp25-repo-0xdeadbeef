@@ -10,7 +10,7 @@ dialogue_lines = [
     "There should be a passage that can get you out of here accross the bridge.",
     "Just jump and keep moving forward.",
     "Don't worry about me!",
-    "I know this area for a while now."
+    "I know this area for a while now.",
     "I can find a shelter and wait for the storm to pass.",
     "You should get going!"
 ]
