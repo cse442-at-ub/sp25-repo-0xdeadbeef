@@ -7,10 +7,12 @@ font = pygame.font.Font(None, 36)  # Font for dialogue
 # List of dialogue lines
 dialogue_lines = [
     "",  # Empty line to avoid skipping the first dialogue
-    "You're lost are you?",
-    "You can use my house here as a Save spot",
-    "Even though the storm wouldn't let you go anywhere",
-    "But still, it's a great place to plan where you'll go next right?"
+    "There should be a passage that can get you out of here accross the bridge.",
+    "Just jump and keep moving forward.",
+    "Don't worry about me!",
+    "I know this area for a while now."
+    "I can find a shelter and wait for the storm to pass.",
+    "You should get going!"
 ]
 
 # Variables to track dialogue state
