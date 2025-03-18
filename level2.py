@@ -111,6 +111,7 @@ SURFACE = GROUND - 1 #Constant for the surface level
 
 # This is for the snowflake animations
 WHITE = (255, 255, 255)
+RED = (255, 0, 0) # For timer
 NUM_SNOWFLAKES = 200
 snowflakes = []
 
@@ -352,6 +353,8 @@ def show_level_completed_screen(slot: int):
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
 
+def show_game_over_screen(slot: int):
+    pass
 
 def read_data(slot: int):
     with open(f"./User Saves/save{str(slot)}.json", "r") as file:
@@ -419,6 +422,10 @@ def level_2(slot: int):
 
     coin_count = 0
 
+    start_time = 180  # Timer starts at 180 seconds
+    timer = start_time
+    clock = pygame.time.Clock()
+
     running = True
     while running:
         screen.blit(background, (0, 0))
@@ -427,6 +434,13 @@ def level_2(slot: int):
         level_name_text = level_name_font.render("Level 2", True, (255, 255, 255))  # White text
 
         screen.blit(level_name_text, (20, 20))  # Position at (20, 20)
+
+        dt = clock.tick(60) / 1000  # Time elapsed per frame in seconds
+        timer -= dt  # Decrease timer
+
+        timer_text = level_name_font.render(f"Time: {int(timer)}", True, RED if timer <= 30 else WHITE)
+        screen.blit(timer_text, (WIDTH // 2 - 50, 20))
+
         # Draw level using tile images
         for row_index, row in enumerate(level_map):
             for col_index, tile in enumerate(row):
@@ -663,6 +677,10 @@ def level_2(slot: int):
             show_level_completed_screen(slot)
             running = False
         
+        if timer <= 0:
+            timer = 0  # Prevent negative values
+            show_game_over_screen(slot)
+            running = False
 
         if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
             player_x = 0
@@ -694,5 +712,5 @@ def level_2(slot: int):
         pygame.display.flip()  # Update display
 
 if __name__ == "__main__":
-    level_2()
+    level_2(1)
     pygame.quit()
