@@ -6,18 +6,13 @@ font = pygame.font.Font(None, 36)  # Font for dialogue
 
 # List of dialogue lines
 dialogue_lines = [
-    "",  # Empty line to avoid skipping the first dialogue
-    "Ah, can you feel the breeze on your face?",
-    "The wind is almost so refreshing...",
-    "Perfect day for ice skating.",
-    "I loved ice skating when I was a kid.",
-    "We would always wait for the lake to freeze over.",
-    "Then we would skate for hours.",
-    "It's risky, but so much fun.",
-    "You should try it sometime.",
-    "The ice can be slippery, so be careful.",
-    "If you want to cross the field you can take these boots."
-    "They are a bit worn out, but they should do the trick.",
+    "",  # Empty line to avoid skipping the first dialogu
+    "Weeee! I'm Winterman!",
+    "With my incredible frosty powers, and my bouncy shoes I shall save my village from the snowstorm!",
+    "I may not have my powers, but my shoes can jump across the highest mountains in the world.",
+    "Hey mister! You wanna try it?",
+    "Just use it while in midair and you'll be able to jump even higher!",
+    "Like Super...I mean...Winterman!",
 ]
 
 # Variables to track dialogue state

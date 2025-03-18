@@ -4,6 +4,9 @@ import sys
 import time
 import world_select
 import json
+from NPCs.level_1_npc_1 import handle_level_1_npc_1_dialogue  # Import the functionality of the first NPC from level 1
+from NPCs.level_1_npc_2 import handle_level_1_npc_2_dialogue  # Import the functionality of the second NPC from level 1
+from NPCs.level_1_npc_3 import handle_level_1_npc_3_dialogue  # Import the functionality of the third NPC from level 1
 
 pygame.init()
 
@@ -423,7 +426,10 @@ level_map[SURFACE - 12][110] = 2 # Platform
 level_map[SURFACE - 8][110] = 2 # Platform
 level_map[SURFACE - 9][110] = 6 # Thorn on platform
 
-
+# NPCs Placement
+level_map[SURFACE - 9][12] = 12 # First NPC
+level_map[SURFACE - 9][18] = 15 # Second NPC
+level_map[SURFACE - 3][58] = 16 # Third NPC
 
 rocks = {}           
 trees = {}                     
@@ -607,6 +613,38 @@ def level_1(slot: int):
             # Draw snowflake
             pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
         
+        # Check if player is near the first NPC
+        npc_x = calculate_x_coordinate(12)  # First NPC's x position
+        npc_y = (SURFACE - 9) * TILE_SIZE  # First NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle first NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_1_npc_1_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the second NPC
+        npc_x = calculate_x_coordinate(18)  # Second NPC's x position
+        npc_y = (SURFACE - 9) * TILE_SIZE  # Second NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle second NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_1_npc_2_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the third NPC
+        npc_x = calculate_x_coordinate(58)  # Third NPC's x position
+        npc_y = (SURFACE - 3) * TILE_SIZE  # Third NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle NPC 3 dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_1_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
 
         # Handle events
         keys = pygame.key.get_pressed()

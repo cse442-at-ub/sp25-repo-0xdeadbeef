@@ -3,6 +3,10 @@ import random
 import sys
 import world_select
 import json
+from NPCs.level_2_npc_1 import handle_level_2_npc_1_dialogue  # Import the functionality of the first NPC from level 2
+from NPCs.level_2_npc_2 import handle_level_2_npc_2_dialogue  # Import the functionality of the second NPC from level 2
+from NPCs.level_2_npc_3 import handle_level_2_npc_3_dialogue  # Import the functionality of the third NPC from level 2
+from NPCs.level_2_npc_4 import handle_level_2_npc_4_dialogue  # Import the functionality of the fourth NPC from level 2
 
 # Initialize PyGame
 pygame.init()
@@ -99,6 +103,22 @@ jump_reset = pygame.transform.scale(jump_reset, (TILE_SIZE, TILE_SIZE))
 
 spring = pygame.image.load("./images/spring.png")
 spring= pygame.transform.scale(spring, (TILE_SIZE, TILE_SIZE))
+
+npc_1 = pygame.image.load("./Character Combinations/black hair_dark_yellow shirt_black pants.png")
+npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
+flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  # Flip horizontally (True), no vertical flip (False)
+
+npc_2 = pygame.image.load("./Character Combinations/brown hair_white_red shirt_brown pants.png")
+npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
+flipped_npc_2 = pygame.transform.flip(npc_2, True, False)  # Flip horizontally (True), no vertical flip (False)
+
+npc_3 = pygame.image.load("./Character Combinations/ginger hair_white_yellow shirt_brown pants.png")
+npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
+flipped_npc_3 = pygame.transform.flip(npc_3, True, False)  # Flip horizontally (True), no vertical flip (False)
+
+npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_brown pants.png")
+npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
+flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  
 
 # Set up the level with a width of 200 and a height of 27 rows
 level_width = 280
@@ -281,11 +301,16 @@ level_map[SURFACE-10][252] = 20 # Jump Reset
 level_map[SURFACE-13][262] = 18 # House
 level_map[SURFACE-14][270] = 19 # Windmill
 
+# NPCs placements
+level_map[SURFACE-6][58] = 24 # First NPC
+level_map[SURFACE-14][60] = 25 # Second NPC
+level_map[SURFACE-9][124] = 26 # Third NPC
+level_map[SURFACE-11][268] = 27 # Fourth NPC
 
 # Dictionary containing which tile corresponds to what
 tiles = {1: ground_tile, 2: platform_tile, 3: double_jump_boots, 4: water, 5: floating_ground, 6: thorn, 7: flag, 8: walkway, 9: flipped_walkway, 10: invisible_platform,
          11: speed_boots, 12: coin, 13: super_speed_powerup, 14: dirt_tile, 15: dash_powerup, 16: ice_tile, 17: flipped_ice, 18: house, 19: windmill, 20: jump_reset,
-         21: up_dash, 22: left_dash, 23: spring}
+         21: up_dash, 22: left_dash, 23: spring, 24: npc_1, 25: npc_2, 26: npc_3, 27: npc_4}
 
 rocks = {43, 55, 107} # Column numbers for all the rocks
 trees = {20, 51, 201, 276} # Column numbers for all the trees
@@ -476,6 +501,50 @@ def level_2(slot: int):
 
             # Draw snowflake
             pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
+
+        # Check if player is near the first NPC
+        npc_x = calculate_x_coordinate(58)  # First NPC's x position
+        npc_y = (SURFACE - 6) * TILE_SIZE  # First NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle first NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_2_npc_1_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the second NPC
+        npc_x = calculate_x_coordinate(60)  # Second NPC's x position
+        npc_y = (SURFACE - 14) * TILE_SIZE  # Second NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle second NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_2_npc_2_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the third NPC
+        npc_x = calculate_x_coordinate(124)  # Third NPC's x position
+        npc_y = (SURFACE - 9) * TILE_SIZE  # Third NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle third NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_2_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the fourth NPC
+        npc_x = calculate_x_coordinate(268)  # Fourth NPC's x position
+        npc_y = (SURFACE - 11) * TILE_SIZE  # Fourth NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle fourth NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_2_npc_4_dialogue(screen, player_rect, npc_rect, keys, current_time)   
 
         # Handle events
         keys = pygame.key.get_pressed()

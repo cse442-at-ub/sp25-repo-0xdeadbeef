@@ -7,10 +7,11 @@ font = pygame.font.Font(None, 36)  # Font for dialogue
 # List of dialogue lines
 dialogue_lines = [
     "",  # Empty line to avoid skipping the first dialogue
-    "I wouldn't recommend staying in the wind too long",
-    "The snow here is very deep",
-    "Sooner or later, you'll get stuck in the avalanche",
-    "If you don't want to stay here, I suggest you should keep on moving",
+    "I wouldn't recommend staying outside for too long.",
+    "The snowstorm is getting worse by the minute.",
+    "You should either find a shelter or keep moving.",
+    "The snow here is very deep.",
+    "Sooner or later, you'll get stuck in the avalanche.",
 ]
 
 # Variables to track dialogue state
