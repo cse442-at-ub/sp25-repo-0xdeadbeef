@@ -407,13 +407,13 @@ def level_2(slot: int):
     # Camera position
     camera_x = 0
     # (5, SURFACE) should be the starting point
-    player_x = calculate_x_coordinate(5)  # Start position, change this number to spawn in a different place
+    player_x = calculate_x_coordinate(110)  # Start position, change this number to spawn in a different place
     player_y = calculate_y_coordinate(SURFACE)
     player_speed = 6.5 * scale_factor # Adjust player speed according to their resolution
 
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
-    jump_power = -21 / scale_factor # Jump strength (Bigger negative number means higher jump)
+    jump_power = -22 / scale_factor # Jump strength (Bigger negative number means higher jump)
     on_ground = False # Track if player is on the ground
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
@@ -432,6 +432,10 @@ def level_2(slot: int):
     dash_pickup_time = 0
     dash_duration = 0
     dashing = False
+
+    # State Variables for Gadgets
+    bubbleJump = False
+    bubbleJump_respawns = {}
 
     checkpoints = [(player_x, player_y), (calculate_x_coordinate(55), calculate_y_coordinate(SURFACE-14)), (calculate_x_coordinate(122), calculate_y_coordinate(SURFACE-9)),
                    (calculate_x_coordinate(206), calculate_y_coordinate(SURFACE-11))]
@@ -591,6 +595,7 @@ def level_2(slot: int):
             # Jumping Logic (Space Pressed)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE:
+                    print(bubbleJump)
                     if on_ground:
                         player_vel_y = jump_power  # Normal jump
                         on_ground = False
@@ -598,6 +603,10 @@ def level_2(slot: int):
                     elif doubleJumpBoots and not doubleJumped:
                         player_vel_y = jump_power  # Double jump
                         doubleJumped = True  # Mark double jump as used
+                    elif bubbleJump:
+                        player_vel_y = jump_power  # jump again
+                        bubbleJump = False
+                        print("should run")
             
         # Apply gravity
         player_vel_y += gravity
@@ -682,8 +691,8 @@ def level_2(slot: int):
                         coin_count += 1
                         level_map[row_index][col_index] = 0
 
-                # Dash (Modify so that it's all dashes regardless of direction)
-                if tile == 15:
+                # Left Dash
+                if tile == 22:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
@@ -691,9 +700,32 @@ def level_2(slot: int):
                         dash_pickup_time = pygame.time.get_ticks()
                         dash_respawn_time = dash_pickup_time + 5000
                         level_map[row_index][col_index] = 0 
-                        player_speed = player_speed * 2
+                        player_speed = player_speed * 6
                         dash_duration = pygame.time.get_ticks() + 200
                         dashing = True
+
+                # Up Dash
+                if tile == 21:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+
+                        dash_pickup_time = pygame.time.get_ticks()
+                        dash_respawn_time = dash_pickup_time + 5000
+                        level_map[row_index][col_index] = 0 
+                        player_vel_y = -25
+                        dash_duration = pygame.time.get_ticks() + 200
+                        dashing = True
+
+                # This code handles jump reset
+                if tile == 20:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the jump reset from screen
+                        bubbleJump = True
+                        doubleJumped = False
+                        bubbleJump_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
 
         # Inside the game loop
         current_time = pygame.time.get_ticks()
@@ -711,22 +743,29 @@ def level_2(slot: int):
                 level_map[pos[0]][pos[1]] = 13  # Respawn power-up
                 to_remove.append(pos)  # Mark for removal
 
+        # Respawn power-ups after 5 seconds
+        bubble_removes = []
+        for pos, respawn_time in bubbleJump_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 20  # Respawn power-up
+                bubble_removes.append(pos)  # Mark for removal
+
         # Remove respawned power-ups from tracking
         for pos in to_remove:
             del super_speed_respawns[pos]
 
-        # # Apply dash powerup
-        # if dashing:
-        #     player_x += player_speed
-        #     if (pygame.time.get_ticks() >= dash_duration) and (dash_duration != 0):
-        #         player_speed = player_speed / 2
-        #         dashing = False
-        #         dash_duration = 0
+        # Apply dash powerup
+        if dashing:
+            player_x += player_speed
+            if (pygame.time.get_ticks() >= dash_duration) and (dash_duration != 0):
+                player_speed = player_speed / 2
+                dashing = False
+                dash_duration = 0
 
-        # #-----Respawns Dash power-up after 5 seconds
-        # if (dash_respawn_time > 0 ) and (pygame.time.get_ticks() >= dash_respawn_time):
-        #     level_map[SURFACE-2][113] = 9
-        #     dash_respawn_time = 0
+        #-----Respawns Dash power-up after 5 seconds
+        if (dash_respawn_time > 0 ) and (pygame.time.get_ticks() >= dash_respawn_time):
+            level_map[SURFACE-2][113] = 9
+            dash_respawn_time = 0
 
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
             show_level_completed_screen(slot)
@@ -763,5 +802,5 @@ def level_2(slot: int):
         pygame.display.flip()  # Update display
 
 if __name__ == "__main__":
-    level_2()
+    level_2(1)
     pygame.quit()
