@@ -160,9 +160,9 @@ for row_index in range(GROUND, level_height):  # Only draw ground from row 23 do
             row[col_index] = 0
         for col_index in range(135, 140):
             row[col_index] = 0
-        for col_index in range(145, 166):
+        for col_index in range(145, 165):
             row[col_index] = 0
-        for col_index in range(167, 176):
+        for col_index in range(166, 176):
             row[col_index] = 0
         for col_index in range(186, 190):
             row[col_index] = 0
@@ -287,7 +287,7 @@ level_map[SURFACE-17][153] = 2 # Platform
 level_map[SURFACE-19][154] = 16 # Ice tile
 level_map[SURFACE-18][154] = 17 # Flipped ice tile
 
-level_map[SURFACE][166] = 23 # Spring
+level_map[SURFACE][165] = 23 # Spring
 
 level_map[SURFACE-5][178] = 3 # Double Jump Boots
 level_map[SURFACE-11][208] = 11 # Super Speed Boots
@@ -407,9 +407,9 @@ def level_2(slot: int):
     # Camera position
     camera_x = 0
     # (5, SURFACE) should be the starting point
-    player_x = calculate_x_coordinate(110)  # Start position, change this number to spawn in a different place
+    player_x = calculate_x_coordinate(5)  # Start position, change this number to spawn in a different place
     player_y = calculate_y_coordinate(SURFACE)
-    player_speed = 6.5 * scale_factor # Adjust player speed according to their resolution
+    player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
 
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
@@ -691,6 +691,13 @@ def level_2(slot: int):
                         coin_count += 1
                         level_map[row_index][col_index] = 0
 
+                # Spring
+                if tile == 23:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
+                        player_vel_y = -45
+
                 # Left Dash
                 if tile == 22:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
@@ -702,7 +709,7 @@ def level_2(slot: int):
                         dash_duration = dash_pickup_time + 400
                         dashing = True
                         level_map[row_index][col_index] = 0 
-                        player_speed = player_speed * 6
+                        player_speed = player_speed * 5
                         direction = -1
                         if player_speed < 0:
                             player_speed *= -1
@@ -732,7 +739,7 @@ def level_2(slot: int):
         current_time = pygame.time.get_ticks()
         if dashing:
             if (current_time >= dash_duration) and (dash_duration != 0):
-                player_speed = 6.5 / scale_factor
+                player_speed = 8.5 * scale_factor
                 dashing = False
                 dash_duration = 0
 
@@ -740,7 +747,7 @@ def level_2(slot: int):
         left_dash_remove = []
         for pos, respawn_time in left_dash_respawns.items():
             if current_time >= respawn_time:
-                level_map[pos[0]][pos[1]] = 13  # Respawn power-up
+                level_map[pos[0]][pos[1]] = 22  # Respawn power-up
                 left_dash_remove.append(pos)  # Mark for removal
 
         # Apply speed effects from multiple power-ups
