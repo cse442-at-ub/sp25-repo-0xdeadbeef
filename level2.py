@@ -1,13 +1,12 @@
 import pygame # type: ignore
 import random
 import sys
-import time
-from NPCs.tutorial_npc_dialogue import handle_npc_dialogue  # Import the first NPC dialogue functionality
-from NPCs.tutorial_npc_2_dialogue import handle_npc_2_dialogue  # Import the second NPC dialogue functionality
-from NPCs.tutorial_npc_3_dialogue import handle_npc_3_dialogue  # Import the third NPC dialogue functionality
-from NPCs.tutorial_npc_4_dialogue import handle_npc_4_dialogue  # Import the fourth NPC dialogue functionality
 import world_select
 import json
+from NPCs.level_2_npc_1 import handle_level_2_npc_1_dialogue  # Import the functionality of the first NPC from level 2
+from NPCs.level_2_npc_2 import handle_level_2_npc_2_dialogue  # Import the functionality of the second NPC from level 2
+from NPCs.level_2_npc_3 import handle_level_2_npc_3_dialogue  # Import the functionality of the third NPC from level 2
+from NPCs.level_2_npc_4 import handle_level_2_npc_4_dialogue  # Import the functionality of the fourth NPC from level 2
 
 # Initialize PyGame
 pygame.init()
@@ -25,10 +24,12 @@ TILE_SIZE = 40  # Adjusted for better layout
 scale_factor = HEIGHT / BASE_HEIGHT
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Tutorial Level")
+pygame.display.set_caption("Level 2")
 
 ground_tile = pygame.image.load("./images/ground.png")
 ground_tile = pygame.transform.scale(ground_tile, (TILE_SIZE, TILE_SIZE))
+
+floating_ground = ground_tile
 
 platform_tile = pygame.image.load("./images/platform.png")
 platform_tile = pygame.transform.scale(platform_tile, (TILE_SIZE, TILE_SIZE))
@@ -39,30 +40,16 @@ dirt_tile = pygame.transform.scale(dirt_tile, (TILE_SIZE, TILE_SIZE))
 background = pygame.image.load("./images/background.png")
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))  # Scale to screen size
 
+invisible_platform = None
+
 tree = pygame.image.load("./images/tree.png")
 tree = pygame.transform.scale(tree, (TILE_SIZE * 2, TILE_SIZE * 3))  # Resize tree to fit properly
 
-boots = pygame.image.load("./images/boots.png")
-boots = pygame.transform.scale(boots, (TILE_SIZE, TILE_SIZE))
+double_jump_boots = pygame.image.load("./images/boots.png")
+double_jump_boots = pygame.transform.scale(double_jump_boots, (TILE_SIZE, TILE_SIZE))
 
 speed_boots = pygame.image.load("./images/speed_boots.png")
 speed_boots = pygame.transform.scale(speed_boots, (TILE_SIZE, TILE_SIZE))
-
-npc_1 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_black pants.png")
-npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
-flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  # Flip horizontally (True), no vertical flip (False)
-
-npc_2 = pygame.image.load("./Character Combinations/brown hair_white_blue shirt_blue pants.png")
-npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
-flipped_npc_2 = pygame.transform.flip(npc_2, True, False)  # Flip horizontally (True), no vertical flip (False)
-
-npc_3 = pygame.image.load("./Character Combinations/ginger hair_white_blue shirt_black pants.png")
-npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
-flipped_npc_3 = pygame.transform.flip(npc_3, True, False)  # Flip horizontally (True), no vertical flip (False)
-
-npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_brown pants.png")
-npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
-flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  # Flip horizontally (True), no vertical flip (False)
 
 house = pygame.image.load("./images/house.png")
 house = pygame.transform.scale(house, (TILE_SIZE * 5, TILE_SIZE * 3))
@@ -79,6 +66,9 @@ super_speed_powerup = pygame.transform.scale(super_speed_powerup, (TILE_SIZE, TI
 dash_powerup = pygame.image.load("./images/dash_powerup.png")
 dash_powerup = pygame.transform.scale(dash_powerup, (TILE_SIZE, TILE_SIZE))
 
+up_dash = pygame.transform.rotate(dash_powerup, 90)
+left_dash = pygame.transform.flip(dash_powerup, True, False)
+
 coin = pygame.image.load("./images/coin.png")
 coin = pygame.transform.scale(coin, (TILE_SIZE, TILE_SIZE))
 
@@ -94,42 +84,54 @@ rock = pygame.transform.scale(rock, (TILE_SIZE, TILE_SIZE // 2))
 background_tree = pygame.image.load("./images/background_tree.png")
 background_tree = pygame.transform.scale(background_tree, (TILE_SIZE * 1.5, TILE_SIZE * 2))
 
+water = pygame.image.load("./images/water.png")
+water = pygame.transform.scale(water, (TILE_SIZE, TILE_SIZE))
 
-#-----Gadget inventory images and dictionary
+walkway = pygame.image.load("./images/walkway.png")
+walkway = pygame.transform.scale(walkway, (TILE_SIZE * 4, TILE_SIZE * 2))
+flipped_walkway = pygame.transform.flip(walkway, True, False)  # Flip horizontally (True), no vertical flip (False)
 
-inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
-inventory = pygame.transform.scale(inventory, (250, 70))
-inventory_x = (WIDTH - 250) // 2
-inventory_y = HEIGHT - 100
+ice_tile = pygame.image.load("./images/ice.png")
+ice_tile = pygame.transform.scale(ice_tile, (TILE_SIZE, TILE_SIZE))
+flipped_ice = pygame.transform.flip(ice_tile, False, True)
 
-inventory_jump_boots = pygame.image.load("./images/boots.png")
-inventory_jump_boots = pygame.transform.scale(inventory_jump_boots, (42, 50))
+windmill = pygame.image.load("./images/windmill.png")
+windmill = pygame.transform.scale(windmill, (TILE_SIZE * 3, TILE_SIZE * 4))
 
-inventory_speed_boots = pygame.image.load("./images/speed_boots.png")
-inventory_speed_boots = pygame.transform.scale(inventory_speed_boots, (42, 50))
+jump_reset = pygame.image.load("./images/bubble.png")
+jump_reset = pygame.transform.scale(jump_reset, (TILE_SIZE, TILE_SIZE))
 
-INV_SLOT_WIDTH = 42
-INV_SLOT_HEIGHT = 45
+spring = pygame.image.load("./images/spring.png")
+spring= pygame.transform.scale(spring, (TILE_SIZE, TILE_SIZE))
 
-first_slot = (inventory_x + 5, inventory_y + 10)
-second_slot = (inventory_x + INV_SLOT_WIDTH + 10, inventory_y + 10)
+npc_1 = pygame.image.load("./Character Combinations/black hair_dark_yellow shirt_black pants.png")
+npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
+flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  # Flip horizontally (True), no vertical flip (False)
 
-# The inventory will initially be empty
-# inventory_slots = {0: inventory_jump_boots, 1: inventory_speed_boots, 2: None, 3: None, 4: None}
-# inventory_conditions = {0: double, 1: False, 2: False, 3: False, 4: False}
+npc_2 = pygame.image.load("./Character Combinations/brown hair_white_red shirt_brown pants.png")
+npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
+flipped_npc_2 = pygame.transform.flip(npc_2, True, False)  # Flip horizontally (True), no vertical flip (False)
 
-# Set up the level with a width of 140 and a height of 40 rows
-level_width = 140
+npc_3 = pygame.image.load("./Character Combinations/ginger hair_white_yellow shirt_brown pants.png")
+npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
+flipped_npc_3 = pygame.transform.flip(npc_3, True, False)  # Flip horizontally (True), no vertical flip (False)
+
+npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_brown pants.png")
+npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
+flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  
+
+# Set up the level with a width of 200 and a height of 27 rows
+level_width = 280
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
 
 level_map = [[0] * level_width for _ in range(level_height)]  # Start with air
 
-GROUND = level_height - 4 #Constant for the ground level
+GROUND = level_height - 2 #Constant for the ground level
 SURFACE = GROUND - 1 #Constant for the surface level
 
 # This is for the snowflake animations
 WHITE = (255, 255, 255)
-NUM_SNOWFLAKES = 100
+NUM_SNOWFLAKES = 200
 snowflakes = []
 
 #This for loop is also for snowflakes
@@ -137,38 +139,93 @@ for _ in range(NUM_SNOWFLAKES):
     x = random.randint(0, WIDTH)
     y = random.randint(0, HEIGHT)
     size = random.randint(2, 6)  # Random size
-    speed = random.uniform(1, 6)  # Falling speed
-    x_speed = random.uniform(-0.5, 0.5)  # Small horizontal drift
+    speed = random.uniform(10, 12)  # Falling speed
+    x_speed = random.uniform(-2, 2)  # Small horizontal drift
     snowflakes.append([x, y, size, speed, x_speed])
 
 for row_index in range(GROUND, level_height):  # Only draw ground from row 23 down
     row = [1] * level_width  # Default to full ground row
-    if row_index >= 10:  # At row 10 and below, create a pit
-        for col_index in range(20, 25):  # Remove ground in columns 20-25
+    if row_index >= 12:  # At row 10 and below, create a pit
+        for col_index in range(8, 18):  # Remove ground in columns 8-18
             row[col_index] = 0  # Set to air (pit)
-        for col_index in range(70, 85):
-            row[col_index] = 0  # Set to air (pit)
+        for col_index in range(25, 36):
+            row[col_index] = 0
+        for col_index in range(66, 86):
+            row[col_index] = 0
+        for col_index in range(96, 101):
+            row[col_index] = 0
         for col_index in range(115, 120):
-            row[col_index] = 0  # Set to air (pit)
+            row[col_index] = 0
+        for col_index in range(125, 135):
+            row[col_index] = 0
+        for col_index in range(135, 140):
+            row[col_index] = 0
+        for col_index in range(145, 165):
+            row[col_index] = 0
+        for col_index in range(166, 176):
+            row[col_index] = 0
+        for col_index in range(186, 190):
+            row[col_index] = 0
+        for col_index in range(191, 195):
+            row[col_index] = 0
+        for col_index in range(196, 200):
+            row[col_index] = 0
+        for col_index in range(210, 260):
+            row[col_index] = 0
     level_map[row_index] = row  # Add row to level map
 
 # Add solid ground at the very bottom
 level_map.append([1] * level_width)
 
-for row_index in range(SURFACE - 4, GROUND): #Raised Ground
-    level_map[row_index][35:40] = [1] * 5
-
-level_map[SURFACE - 4][53:58] = [2] * 5   # Platform containing speed boots
-level_map[SURFACE - 1][74:76] = [2] * 2   # Platform
-
-for row_index in range(SURFACE - 1, GROUND): #Raised Ground
-    level_map[row_index][123:126] = [1] * 3
-for row_index in range(SURFACE - 2, GROUND): #Raised Ground
-    level_map[row_index][126:128] = [1] * 2
 for row_index in range(SURFACE - 6, GROUND): #Raised Ground
-    level_map[row_index][128:140] = [1] * 12
+    level_map[row_index][30] = 1
+for row_index in range(SURFACE - 4, GROUND): #Raised Ground
+    level_map[row_index][18:25] = [1] * 7
+for row_index in range(SURFACE - 1, GROUND): #Raised Ground
+    level_map[row_index][36:45] = [1] * 9
+for row_index in range(SURFACE - 3, GROUND): #Raised Ground
+    level_map[row_index][45:50] = [1] * 5
+for row_index in range(SURFACE - 5, GROUND): #Raised Ground
+    level_map[row_index][50:60] = [1] * 10
+for row_index in range(SURFACE - 7, GROUND): #Raised Ground
+    level_map[row_index][60:65] = [1] * 5
+for row_index in range(SURFACE - 13, GROUND): #Raised Ground
+    level_map[row_index][65] = 1
+for row_index in range(SURFACE - 13, GROUND): #Raised Ground
+    level_map[row_index][86:96] = [1] * 10
+for row_index in range(SURFACE - 8, GROUND): #Raised Ground
+    level_map[row_index][120:125] = [1] * 5
+for row_index in range(0, SURFACE - 4):
+    level_map[row_index][101:115] = [14] * 14
+for row_index in range(GROUND, level_height-1):
+    level_map[row_index][125:135] = [16] * 10
+    level_map[row_index][140:145] = [16] * 5
+for row_index in range(GROUND+1, level_height):
+    level_map[row_index][125:135] = [17] * 10
+    level_map[row_index][140:145] = [17] * 5
+for row_index in range(SURFACE - 4, GROUND): #Raised Ground
+    level_map[row_index][176:186] = [1] * 10
+for row_index in range(SURFACE - 5, GROUND): #Raised Ground
+    level_map[row_index][190] = 1
+for row_index in range(SURFACE - 5, GROUND): #Raised Ground
+    level_map[row_index][195] = 1
+for row_index in range(SURFACE - 10, GROUND): #Raised Ground
+    level_map[row_index][200:210] = [1] * 10
+for row_index in range(SURFACE - 5, SURFACE - 4):
+    level_map[row_index][215:220] = [16] * 5
+for row_index in range(SURFACE - 4, SURFACE - 3):
+    level_map[row_index][215:220] = [17] * 5
+for row_index in range(SURFACE - 6, SURFACE - 5):
+    level_map[row_index][225:227] = [16] * 2
+for row_index in range(SURFACE - 5, SURFACE - 4):
+    level_map[row_index][225:227] = [17] * 2
+for row_index in range(SURFACE - 8, SURFACE - 7):
+    level_map[row_index][232:234] = [16] * 2
+for row_index in range(SURFACE - 7, SURFACE - 6):
+    level_map[row_index][232:234] = [17] * 2
+for row_index in range(SURFACE - 10, GROUND): #Raised Ground
+    level_map[row_index][260:280] = [1] * 20
 
-level_map[SURFACE - 5][122:124] = [2] * 2 # Platform
 
 # Make terrain before this line. The next code block calculates the ground levels
 
@@ -181,32 +238,83 @@ for row_index, row in enumerate(level_map):
 
 # All code after this line should be for props, npcs, gadgets, and powerups. Terrain should not be made here.
 
+level_map[SURFACE-16][0:10] = [2] * 10 # Platform
+level_map[SURFACE-15][15] = 2 # Platform
+level_map[SURFACE-17][5:10] = [6] * 5 # Thorn
+level_map[SURFACE-18][1] = 12 # Coin
+
+level_map[SURFACE-2][12] = 20 # Jump Reset
+
+level_map[SURFACE-5][23] = 13 # Super Speed Powerup
+level_map[SURFACE-2][39] = 13 # Super Speed Powerup
+
+level_map[SURFACE-10][21:23] = [2] * 2 # Platform
+level_map[SURFACE-8][62] = 3 # Double Jump Boots
+level_map[SURFACE-13][30:65] = [5] * 35 # Floating Ground
+level_map[SURFACE-7][30] = 6 # Thorn
+
+level_map[SURFACE-14][55], level_map[SURFACE-9][122], level_map[SURFACE-11][206] = 7, 7, 7 # Flag
+level_map[SURFACE-14][63] = 11 # Speed Boots
+
+level_map[SURFACE-14][66] = 8 # Walkway
+level_map[SURFACE-13][66:70] = [10] * 4
+level_map[SURFACE-14][82] = 9 # Flipped Walkway
+level_map[SURFACE-13][82:86] = [10] * 4
+
+level_map[SURFACE-14][92:96] = [6] * 4 # Thorn
+level_map[SURFACE][101:104] = [6] * 3 # Thorn
+
+level_map[level_height-1][66:86] = [4] * 20 # Water
+level_map[level_height-1][96:101] = [4] * 5 # Water
+
+level_map[SURFACE-3][118] = 21 # Upwards Dash Powerup
+level_map[6][145] = 22 #Left Dash Powerup
+level_map[10][135] = 12 # Coin
+
+level_map[SURFACE-2][149] = 2 # Platform
+level_map[SURFACE-4][150] = 16 # Ice tile
+level_map[SURFACE-3][150] = 17 # Flipped ice tile
+
+level_map[SURFACE-7][153] = 2 # Platform
+level_map[SURFACE-9][154] = 16 # Ice tile
+level_map[SURFACE-8][154] = 17 # Flipped ice tile
+
+level_map[SURFACE-12][150] = 2 # Platform
+level_map[SURFACE-14][149] = 16 # Ice tile
+level_map[SURFACE-13][149] = 17 # Flipped ice tile
+
+level_map[SURFACE-17][153] = 2 # Platform
+level_map[SURFACE-19][154] = 16 # Ice tile
+level_map[SURFACE-18][154] = 17 # Flipped ice tile
+
+level_map[SURFACE][165] = 23 # Spring
+
+level_map[SURFACE-5][178] = 3 # Double Jump Boots
+level_map[SURFACE-11][208] = 11 # Super Speed Boots
+
+level_map[SURFACE-6][190], level_map[SURFACE-6][195] = 6, 6 # Thorns
+
+level_map[SURFACE-5][197] = 20 # Jump Reset
+level_map[SURFACE-10][242] = 20 # Jump Reset
+level_map[SURFACE-10][252] = 20 # Jump Reset
+
+level_map[SURFACE-13][262] = 18 # House
+level_map[SURFACE-14][270] = 19 # Windmill
+
+# NPCs placements
+level_map[SURFACE-6][58] = 24 # First NPC
+level_map[SURFACE-14][60] = 25 # Second NPC
+level_map[SURFACE-9][124] = 26 # Third NPC
+level_map[SURFACE-11][268] = 27 # Fourth NPC
+
 # Dictionary containing which tile corresponds to what
-tiles = {1: ground_tile, 2: platform_tile, 3: boots, 4: flipped_npc_1, 5: house, 6: thorn, 7: flag, 8: super_speed_powerup, 9: dash_powerup, 
-        10: fence, 11: sign, 12: npc_1, 13: speed_boots, 14: coin, 15: npc_2, 16: npc_3, 17: flipped_npc_2, 18: flipped_npc_3, 19: npc_4, 20: flipped_npc_4}
+tiles = {1: ground_tile, 2: platform_tile, 3: double_jump_boots, 4: water, 5: floating_ground, 6: thorn, 7: flag, 8: walkway, 9: flipped_walkway, 10: invisible_platform,
+         11: speed_boots, 12: coin, 13: super_speed_powerup, 14: dirt_tile, 15: dash_powerup, 16: ice_tile, 17: flipped_ice, 18: house, 19: windmill, 20: jump_reset,
+         21: up_dash, 22: left_dash, 23: spring, 24: npc_1, 25: npc_2, 26: npc_3, 27: npc_4}
 
-level_map[SURFACE][28] = 3 # Jump Boots
-level_map[SURFACE-5][55] = 13 # Speed Boots
-level_map[SURFACE][60] = 4 # NPC 1
-level_map[SURFACE][27] = 17 # NPC 2
-level_map[SURFACE][86] = 18 # NPC 3
-level_map[SURFACE][8] = 20 # NPC 4
-level_map[SURFACE-2][62] = 5 # House
-
-level_map[SURFACE][98:104] , level_map[SURFACE][113:115]= [6] * 6, [6] * 2 # Thorns
-level_map[SURFACE-5][37], level_map[SURFACE][87] = 7,7 # Flag
-
-level_map[SURFACE][95] = 8 # Super speed powerup
-level_map[SURFACE-2][113] = 9 # Dash powerup
-
-level_map[SURFACE-6][122:124] = [10] * 2 # Fence
-level_map[SURFACE-7][135:140] = [10] * 5 # Fence
-
-level_map[SURFACE-7][130] = 11 # Sign
-
-rocks = {14, 33, 45, 68, 108, 124} # Column numbers for all the rocks
-trees = {10, 30, 50, 90} # Column numbers for all the trees
-background_trees = {16, 42, 55, 93, 133} # Column numbers for all the background trees
+rocks = {43, 55, 107} # Column numbers for all the rocks
+trees = {20, 51, 201, 276} # Column numbers for all the trees
+background_trees = {46, 88, 180, 274} # Column numbers for all the background trees
 
 # Converts the x coordinates to the column on the map
 def calculate_column(x): 
@@ -224,15 +332,9 @@ def calculate_row(y):
 def calculate_y_coordinate(row):
     return int(row * TILE_SIZE)
 
-
 def show_level_completed_screen(slot: int):
     # Display the background image
     screen.blit(background, (0, 0))
-
-    level_map[SURFACE][28] = 3 # Respawn double jump boots
-    level_map[SURFACE-5][55] = 13 # Respawn speed boots
-    level_map[SURFACE-1][68] = 0  # Despawn coin
-    level_map[SURFACE-2][79:81] = [0] * 2 # Despawn platforms after getting coin
 
     # Set fonts for the text
     title_font = pygame.font.Font('PixelifySans.ttf', 100)
@@ -282,7 +384,7 @@ def read_data(slot: int):
     return data.get("character")
 
 # Function to run the tutorial level
-def tutorial_level(slot: int):
+def level_2(slot: int):
     # Grab the sprite that was customized
     sprite = read_data(slot)
 
@@ -304,13 +406,14 @@ def tutorial_level(slot: int):
 
     # Camera position
     camera_x = 0
-    player_x = 200  # Start position, change this number to spawn in a different place
-    player_y = HEIGHT - 200
-    player_speed = 6 * scale_factor # Adjust player speed according to their resolution
+    # (5, SURFACE) should be the starting point
+    player_x = calculate_x_coordinate(5)  # Start position, change this number to spawn in a different place
+    player_y = calculate_y_coordinate(SURFACE)
+    player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
 
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
-    jump_power = -21 / scale_factor # Jump strength (Bigger negative number means higher jump)
+    jump_power = -22 / scale_factor # Jump strength (Bigger negative number means higher jump)
     on_ground = False # Track if player is on the ground
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
@@ -321,11 +424,8 @@ def tutorial_level(slot: int):
     animation_speed = 4  # Adjust this to control animation speed
     direction = 1  # 1 for right, -1 for left
 
-    #-----Declared variables for speed boost to avoid undefined variable error
-    super_speed_bool = False
-    super_speed_respawn_time = 0
-    super_speed_pickup_time = 0
-    super_speed_effect_off_time = 0
+    super_speed_effects = []
+    super_speed_respawns = {}
 
     #-----Declared variables for Dash power-up to avoid undefined variable error
     dash_respawn_time = 0 
@@ -333,14 +433,20 @@ def tutorial_level(slot: int):
     dash_duration = 0
     dashing = False
 
-    #-----Variable to check which gadget was picked up first
-    double_first = False
+    # State Variables for Gadgets
+    bubbleJump = False
+    bubbleJump_respawns = {}
+    up_dash_respawns = {}
+    left_dash_respawns = {}
 
-    checkpoints = [(200, HEIGHT-200), (1480, HEIGHT-400), (3480, HEIGHT-200)]
-    checkpoint_bool = [True, False, False]
+    checkpoints = [(player_x, player_y), (calculate_x_coordinate(55), calculate_y_coordinate(SURFACE-14)), (calculate_x_coordinate(122), calculate_y_coordinate(SURFACE-9)),
+                   (calculate_x_coordinate(206), calculate_y_coordinate(SURFACE-11))]
+    checkpoint_bool = [False] * len(checkpoints)
+    checkpoint_bool[0] = True
     checkpoint_idx = 0
     dying = False
     death_count = 0
+    collidable_tiles = {1, 2, 5, 10, 14, 16, 17, 23}
 
     coin_count = 0
 
@@ -349,23 +455,17 @@ def tutorial_level(slot: int):
         screen.blit(background, (0, 0))
 
         level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
-        level_name_text = level_name_font.render("Tutorial", True, (255, 255, 255))  # White text
+        level_name_text = level_name_font.render("Level 2", True, (255, 255, 255))  # White text
 
         screen.blit(level_name_text, (20, 20))  # Position at (20, 20)
         # Draw level using tile images
         for row_index, row in enumerate(level_map):
             for col_index, tile in enumerate(row):
                 x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
-                if tile == 0: # Continue if the tile is an air block
+                if tile == 0 or tile == 10: # Continue if the tile is an air block or invisible platform
                     continue
-                if tile == 10: #Draw the fence at half size
-                    screen.blit(tiles.get(tile), (x, y + TILE_SIZE // 2))
                 else: # Draw according to the dictionary
                     screen.blit(tiles.get(tile), (x, y))
-                if calculate_column(player_x) >= 60:
-                    level_map[SURFACE][60] = 12 # Draw the normal npc
-                else:
-                    level_map[SURFACE][60] = 4 # Draw the flipped npc
 
         # Draw dirt below ground
         for col_index, ground_y in enumerate(ground_levels):
@@ -408,52 +508,49 @@ def tutorial_level(slot: int):
             # Draw snowflake
             pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
 
-        # screen.blit(inventory, (inventory_x, inventory_y))
-
-        
-        # Check if player is near the NPC
-        npc_x = calculate_x_coordinate(60)  # NPC's x position
-        npc_y = (SURFACE) * TILE_SIZE  # NPC's y position
+        # Check if player is near the first NPC
+        npc_x = calculate_x_coordinate(58)  # First NPC's x position
+        npc_y = (SURFACE - 6) * TILE_SIZE  # First NPC's y position
         player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
         npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
 
-        # Handle NPC dialogue
+        # Handle first NPC dialogue
         keys = pygame.key.get_pressed()
         current_time = pygame.time.get_ticks()  # Get current time in milliseconds
-        handle_npc_dialogue(screen, player_rect, npc_rect, keys, current_time)
+        handle_level_2_npc_1_dialogue(screen, player_rect, npc_rect, keys, current_time)
 
-        # Check if player is near the NPC 2
-        npc_x = calculate_x_coordinate(27)  # NPC 2's x position
-        npc_y = (SURFACE) * TILE_SIZE  # NPC 2's y position
+        # Check if player is near the second NPC
+        npc_x = calculate_x_coordinate(60)  # Second NPC's x position
+        npc_y = (SURFACE - 14) * TILE_SIZE  # Second NPC's y position
         player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
         npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
 
-        # Handle NPC 2 dialogue
+        # Handle second NPC dialogue
         keys = pygame.key.get_pressed()
         current_time = pygame.time.get_ticks()  # Get current time in milliseconds
-        handle_npc_2_dialogue(screen, player_rect, npc_rect, keys, current_time)
+        handle_level_2_npc_2_dialogue(screen, player_rect, npc_rect, keys, current_time)
 
-        # Check if player is near the NPC 3
-        npc_x = calculate_x_coordinate(86)  # NPC 3's x position
-        npc_y = (SURFACE) * TILE_SIZE  # NPC 3's y position
+        # Check if player is near the third NPC
+        npc_x = calculate_x_coordinate(124)  # Third NPC's x position
+        npc_y = (SURFACE - 9) * TILE_SIZE  # Third NPC's y position
         player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
         npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
 
-        # Handle NPC 3 dialogue
+        # Handle third NPC dialogue
         keys = pygame.key.get_pressed()
         current_time = pygame.time.get_ticks()  # Get current time in milliseconds
-        handle_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
+        handle_level_2_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
 
-        # Check if player is near the NPC 3
-        npc_x = calculate_x_coordinate(8)  # NPC 3's x position
-        npc_y = (SURFACE) * TILE_SIZE  # NPC 3's y position
+        # Check if player is near the fourth NPC
+        npc_x = calculate_x_coordinate(268)  # Fourth NPC's x position
+        npc_y = (SURFACE - 11) * TILE_SIZE  # Fourth NPC's y position
         player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
         npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
 
-        # Handle NPC 3 dialogue
+        # Handle fourth NPC dialogue
         keys = pygame.key.get_pressed()
         current_time = pygame.time.get_ticks()  # Get current time in milliseconds
-        handle_npc_4_dialogue(screen, player_rect, npc_rect, keys, current_time)
+        handle_level_2_npc_4_dialogue(screen, player_rect, npc_rect, keys, current_time)   
 
         # Handle events
         keys = pygame.key.get_pressed()
@@ -493,9 +590,6 @@ def tutorial_level(slot: int):
             else: # Left
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
 
-        screen.blit(inventory, (inventory_x, inventory_y))
-
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -510,6 +604,9 @@ def tutorial_level(slot: int):
                     elif doubleJumpBoots and not doubleJumped:
                         player_vel_y = jump_power  # Double jump
                         doubleJumped = True  # Mark double jump as used
+                    elif bubbleJump:
+                        player_vel_y = jump_power  # jump again
+                        bubbleJump = False
             
         # Apply gravity
         player_vel_y += gravity
@@ -518,7 +615,7 @@ def tutorial_level(slot: int):
         on_ground = False
         for row_index, row in enumerate(level_map):
             for col_index, tile in enumerate(row):
-                if tile in {1, 2}:  # Ground or platform tiles
+                if tile in collidable_tiles:  # Ground, platform, floating ground, invisible platform tiles, Dirt
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
 
                     # This code block prevents the player from falling through solid ground
@@ -557,8 +654,16 @@ def tutorial_level(slot: int):
                         doubleJumpBoots = True
                         doubleJumped = False
 
+                # If player touches water
+                if tile == 4 or tile == 6:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        
+                        dying = True
+
                 # This code picks up the speed boots
-                if tile == 13:
+                if tile == 11:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
@@ -566,69 +671,114 @@ def tutorial_level(slot: int):
                         player_speed = player_speed * 1.25 # Up the player speed
                         speedBoots = True
 
-                if tile == 6:
+                # Super Speed Powerup
+                if tile == 13: 
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
 
-                        dying = True
+                        level_map[row_index][col_index] = 0
+                        player_speed *= 2  # Double the speed
+                        super_speed_effects.append({"end_time": pygame.time.get_ticks() + 2000})  # 2 sec effect
+                        super_speed_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000  # 5 sec respawn
 
-                if tile == 8:
-                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
-                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
-                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
-                        super_speed_pickup_time = pygame.time.get_ticks()
-                        super_speed_effect_off_time = super_speed_pickup_time + 2000
-                        super_speed_bool = True
-                        level_map[SURFACE][95] = 0
-                        super_speed_respawn_time = super_speed_pickup_time + 5000
-                        player_speed = player_speed * 2
-
-                if tile == 9:
-                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
-                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
-                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
-                        dash_pickup_time = pygame.time.get_ticks()
-                        dash_respawn_time = dash_pickup_time + 5000
-                        level_map[SURFACE-2][113] = 0 
-                        player_speed = player_speed * 2
-                        dash_duration = pygame.time.get_ticks() + 200
-                        dashing = True
-
-                if tile == 14:
+                # Coin
+                if tile == 12:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
 
                         coin_count += 1
-                        level_map[SURFACE-1][68] = 0
-                        level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
+                        level_map[row_index][col_index] = 0
 
-        # Apply super-speed powerup
-        if (super_speed_bool == True) and (pygame.time.get_ticks() >= super_speed_effect_off_time):
-            player_speed = player_speed / 2
-            super_speed_bool = False
-            super_speed_pickup_time = 0
+                # Spring
+                if tile == 23:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
+                        player_vel_y = -45
 
-        #-----Respawns super-speed power-up after 5 seconds
-        if (super_speed_respawn_time > 0) and (pygame.time.get_ticks() >= super_speed_respawn_time): 
-            level_map[SURFACE][95] = 8
-            super_speed_respawn_time = 0
+                # Left Dash
+                if tile == 22:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
 
-        # Apply dash powerup
+                        dash_pickup_time = pygame.time.get_ticks()
+                        left_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
+                        dash_duration = dash_pickup_time + 400
+                        dashing = True
+                        level_map[row_index][col_index] = 0 
+                        player_speed = player_speed * 5
+                        direction = -1
+                        if player_speed < 0:
+                            player_speed *= -1
+
+                # Up Dash
+                if tile == 21:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0 
+                        player_vel_y = -25
+                        up_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
+                        dashing = True
+
+                # This code handles jump reset
+                if tile == 20:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the jump reset from screen
+                        bubbleJump = True
+                        doubleJumped = False
+                        bubbleJump_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
+
+
+        # Inside the game loop
+        current_time = pygame.time.get_ticks()
         if dashing:
-            player_x += player_speed
-            if (pygame.time.get_ticks() >= dash_duration) and (dash_duration != 0):
-                player_speed = player_speed / 2
+            if (current_time >= dash_duration) and (dash_duration != 0):
+                player_speed = 8.5 * scale_factor
                 dashing = False
                 dash_duration = 0
 
-        #-----Respawns Dash power-up after 5 seconds
-        if (dash_respawn_time > 0 ) and (pygame.time.get_ticks() >= dash_respawn_time):
-            level_map[SURFACE-2][113] = 9
-            dash_respawn_time = 0
+        # Respawn power-ups after 5 seconds
+        left_dash_remove = []
+        for pos, respawn_time in left_dash_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 22  # Respawn power-up
+                left_dash_remove.append(pos)  # Mark for removal
+
+        # Apply speed effects from multiple power-ups
+        for effect in super_speed_effects[:]:  # Iterate over a copy of the list
+            if current_time >= effect["end_time"]:  # Check if effect expired
+                player_speed /= 2
+                super_speed_effects.remove(effect)
+
+        # Respawn power-ups after 5 seconds
+        to_remove = []
+        for pos, respawn_time in super_speed_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 13  # Respawn power-up
+                to_remove.append(pos)  # Mark for removal
+
+        # Respawn power-ups after 5 seconds
+        bubble_removes = []
+        for pos, respawn_time in bubbleJump_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 20  # Respawn power-up
+                bubble_removes.append(pos)  # Mark for removal
+
+        up_dash_removes = []
+        for pos, respawn_time in up_dash_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 21  # Respawn power-up
+                up_dash_removes.append(pos)  # Mark for removal
+
+        # Remove respawned power-ups from tracking
+        for pos in to_remove:
+            del super_speed_respawns[pos]
 
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
             show_level_completed_screen(slot)
@@ -645,13 +795,6 @@ def tutorial_level(slot: int):
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
             dying = False
-            if checkpoint_idx == 0 and doubleJumpBoots:
-                doubleJumpBoots = False
-                level_map[SURFACE][28] = 3
-            elif checkpoint_idx == 1 and speedBoots:
-                level_map[SURFACE-5][55] = 13
-                speedBoots = False
-                player_speed = player_speed / 1.25
 
         for k, checkpoint in enumerate(checkpoints):
             x, y = checkpoint
@@ -660,39 +803,10 @@ def tutorial_level(slot: int):
                 checkpoint_bool[k] = True
                 if checkpoint_idx == 2:
                     doubleJumpBoots = False # Remove their double jump boots
-                    speedBoots = False
                     player_speed = player_speed / 1.25 # Revert their speed back to normal
-                    level_map[SURFACE-1][68] = 14  #Spawn coin after reaching 2nd checkpoint
 
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
-
-        
-        #-----Inventory Fill-up logic
-
-        screen.blit(inventory, (inventory_x, inventory_y))
-
-        if (doubleJumpBoots):
-            if (doubleJumpBoots) and (speedBoots == False):
-                double_first = True
-                screen.blit(inventory_jump_boots, first_slot)
-            elif (doubleJumpBoots) and (speedBoots) and double_first:
-                screen.blit(inventory_jump_boots, first_slot)
-                screen.blit(inventory_speed_boots, second_slot)
-
-
-        if (speedBoots):
-            if  (speedBoots) and (doubleJumpBoots == False):
-                double_first == False
-                screen.blit(inventory_speed_boots, first_slot)
-                print(f"SpeedBoots: {speedBoots}")
-            elif (doubleJumpBoots) and (speedBoots) and (double_first == False):
-                screen.blit(inventory_speed_boots, first_slot)
-                screen.blit(inventory_jump_boots, second_slot)
-           
-
-        # print(f"First Slot: {first_slot}")
-        # print(f"Second Slot: {second_slot}")
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -701,5 +815,5 @@ def tutorial_level(slot: int):
         pygame.display.flip()  # Update display
 
 if __name__ == "__main__":
-    tutorial_level()
+    level_2(1)
     pygame.quit()
