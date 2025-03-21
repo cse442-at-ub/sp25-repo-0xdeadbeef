@@ -160,9 +160,9 @@ for row_index in range(GROUND, level_height):  # Only draw ground from row 23 do
             row[col_index] = 0
         for col_index in range(135, 140):
             row[col_index] = 0
-        for col_index in range(145, 166):
+        for col_index in range(145, 165):
             row[col_index] = 0
-        for col_index in range(167, 176):
+        for col_index in range(166, 176):
             row[col_index] = 0
         for col_index in range(186, 190):
             row[col_index] = 0
@@ -287,7 +287,7 @@ level_map[SURFACE-17][153] = 2 # Platform
 level_map[SURFACE-19][154] = 16 # Ice tile
 level_map[SURFACE-18][154] = 17 # Flipped ice tile
 
-level_map[SURFACE][166] = 23 # Spring
+level_map[SURFACE][165] = 23 # Spring
 
 level_map[SURFACE-5][178] = 3 # Double Jump Boots
 level_map[SURFACE-11][208] = 11 # Super Speed Boots
@@ -409,11 +409,11 @@ def level_2(slot: int):
     # (5, SURFACE) should be the starting point
     player_x = calculate_x_coordinate(5)  # Start position, change this number to spawn in a different place
     player_y = calculate_y_coordinate(SURFACE)
-    player_speed = 6.5 * scale_factor # Adjust player speed according to their resolution
+    player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
 
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
-    jump_power = -21 / scale_factor # Jump strength (Bigger negative number means higher jump)
+    jump_power = -22 / scale_factor # Jump strength (Bigger negative number means higher jump)
     on_ground = False # Track if player is on the ground
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
@@ -432,6 +432,12 @@ def level_2(slot: int):
     dash_pickup_time = 0
     dash_duration = 0
     dashing = False
+
+    # State Variables for Gadgets
+    bubbleJump = False
+    bubbleJump_respawns = {}
+    up_dash_respawns = {}
+    left_dash_respawns = {}
 
     checkpoints = [(player_x, player_y), (calculate_x_coordinate(55), calculate_y_coordinate(SURFACE-14)), (calculate_x_coordinate(122), calculate_y_coordinate(SURFACE-9)),
                    (calculate_x_coordinate(206), calculate_y_coordinate(SURFACE-11))]
@@ -598,6 +604,9 @@ def level_2(slot: int):
                     elif doubleJumpBoots and not doubleJumped:
                         player_vel_y = jump_power  # Double jump
                         doubleJumped = True  # Mark double jump as used
+                    elif bubbleJump:
+                        player_vel_y = jump_power  # jump again
+                        bubbleJump = False
             
         # Apply gravity
         player_vel_y += gravity
@@ -682,21 +691,64 @@ def level_2(slot: int):
                         coin_count += 1
                         level_map[row_index][col_index] = 0
 
-                # Dash (Modify so that it's all dashes regardless of direction)
-                if tile == 15:
+                # Spring
+                if tile == 23:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
+                        player_vel_y = -45
+
+                # Left Dash
+                if tile == 22:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
 
                         dash_pickup_time = pygame.time.get_ticks()
-                        dash_respawn_time = dash_pickup_time + 5000
-                        level_map[row_index][col_index] = 0 
-                        player_speed = player_speed * 2
-                        dash_duration = pygame.time.get_ticks() + 200
+                        left_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
+                        dash_duration = dash_pickup_time + 400
                         dashing = True
+                        level_map[row_index][col_index] = 0 
+                        player_speed = player_speed * 5
+                        direction = -1
+                        if player_speed < 0:
+                            player_speed *= -1
+
+                # Up Dash
+                if tile == 21:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0 
+                        player_vel_y = -25
+                        up_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
+                        dashing = True
+
+                # This code handles jump reset
+                if tile == 20:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the jump reset from screen
+                        bubbleJump = True
+                        doubleJumped = False
+                        bubbleJump_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
+
 
         # Inside the game loop
         current_time = pygame.time.get_ticks()
+        if dashing:
+            if (current_time >= dash_duration) and (dash_duration != 0):
+                player_speed = 8.5 * scale_factor
+                dashing = False
+                dash_duration = 0
+
+        # Respawn power-ups after 5 seconds
+        left_dash_remove = []
+        for pos, respawn_time in left_dash_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 22  # Respawn power-up
+                left_dash_remove.append(pos)  # Mark for removal
 
         # Apply speed effects from multiple power-ups
         for effect in super_speed_effects[:]:  # Iterate over a copy of the list
@@ -711,22 +763,22 @@ def level_2(slot: int):
                 level_map[pos[0]][pos[1]] = 13  # Respawn power-up
                 to_remove.append(pos)  # Mark for removal
 
+        # Respawn power-ups after 5 seconds
+        bubble_removes = []
+        for pos, respawn_time in bubbleJump_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 20  # Respawn power-up
+                bubble_removes.append(pos)  # Mark for removal
+
+        up_dash_removes = []
+        for pos, respawn_time in up_dash_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 21  # Respawn power-up
+                up_dash_removes.append(pos)  # Mark for removal
+
         # Remove respawned power-ups from tracking
         for pos in to_remove:
             del super_speed_respawns[pos]
-
-        # # Apply dash powerup
-        # if dashing:
-        #     player_x += player_speed
-        #     if (pygame.time.get_ticks() >= dash_duration) and (dash_duration != 0):
-        #         player_speed = player_speed / 2
-        #         dashing = False
-        #         dash_duration = 0
-
-        # #-----Respawns Dash power-up after 5 seconds
-        # if (dash_respawn_time > 0 ) and (pygame.time.get_ticks() >= dash_respawn_time):
-        #     level_map[SURFACE-2][113] = 9
-        #     dash_respawn_time = 0
 
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
             show_level_completed_screen(slot)
@@ -763,5 +815,5 @@ def level_2(slot: int):
         pygame.display.flip()  # Update display
 
 if __name__ == "__main__":
-    level_2()
+    level_2(1)
     pygame.quit()
