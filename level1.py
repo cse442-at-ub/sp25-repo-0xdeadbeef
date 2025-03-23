@@ -4,6 +4,9 @@ import sys
 import time
 import world_select
 import json
+from NPCs.level_1_npc_1 import handle_level_1_npc_1_dialogue  # Import the functionality of the first NPC from level 1
+from NPCs.level_1_npc_2 import handle_level_1_npc_2_dialogue  # Import the functionality of the second NPC from level 1
+from NPCs.level_1_npc_3 import handle_level_1_npc_3_dialogue  # Import the functionality of the third NPC from level 1
 
 pygame.init()
 
@@ -59,6 +62,9 @@ water = pygame.transform.scale(water, (TILE_SIZE, TILE_SIZE))
 
 windmill = pygame.image.load("./images/windmill.png")
 windmill = pygame.transform.scale(windmill, (TILE_SIZE * 5, TILE_SIZE * 6))
+
+jump_reset = pygame.image.load("./images/bubble.png")
+jump_reset = pygame.transform.scale(jump_reset, (TILE_SIZE, TILE_SIZE))
 
 spring = pygame.image.load("./images/spring.png")
 spring= pygame.transform.scale(spring, (TILE_SIZE, TILE_SIZE))
@@ -271,7 +277,8 @@ tiles = {
     34: flipped_platform_tile,
     35: thorn_rotated,
     36: thorn_left,
-    37: thorn_right
+    37: thorn_right,
+    38: jump_reset
 }
 
 # -----------------------------------
@@ -286,8 +293,9 @@ tiles = {
 # Power ups placement
 # level_map[SURFACE][0] = 8 
 # level_map[SURFACE-2][113] = 9 
-level_map[SURFACE - 6][29] = 3  # Jump Boots (moved to show at the beginning temporarily)
-level_map[SURFACE - 7][26] = 8  # Super Speed Powerup (moved to show at the beginning temporarily)
+level_map[SURFACE - 3][39] = 3  # Jump Boots (moved to show at the beginning temporarily)
+#level_map[SURFACE - 7][26] = 8  # Super Speed Powerup (moved to show at the beginning temporarily)
+level_map[SURFACE-8][76] = 38 # Jump Reset
 
 # Fences and sign placement
 # level_map[SURFACE-6][122:124] = [10] * 2 
@@ -317,7 +325,7 @@ level_map[SURFACE - 3][57] = 23 # Flipped Walkway Bridge
 level_map[SURFACE - 2][56:60] = [26] * 4 
 
 # Thorns placement 
-level_map[SURFACE - 7][25] = 6
+# level_map[SURFACE - 7][25] = 6 # Removed Spikes 
 level_map[SURFACE - 6][28] = 6
 level_map[SURFACE - 5][31] = 6
 level_map[SURFACE - 4][34] = 6
@@ -423,7 +431,10 @@ level_map[SURFACE - 12][110] = 2 # Platform
 level_map[SURFACE - 8][110] = 2 # Platform
 level_map[SURFACE - 9][110] = 6 # Thorn on platform
 
-
+# NPCs Placement
+level_map[SURFACE - 9][12] = 12 # First NPC
+level_map[SURFACE - 9][18] = 15 # Second NPC
+level_map[SURFACE - 3][58] = 16 # Third NPC
 
 rocks = {}           
 trees = {}                     
@@ -516,11 +527,11 @@ def level_1(slot: int):
     camera_x = 0
     player_x = 150  # Start position, change this number to spawn in a different place
     player_y = HEIGHT - 560
-    player_speed = 20 * scale_factor # Adjust player speed according to their resolution
+    player_speed = 6.5 * scale_factor # Adjust player speed according to their resolution
 
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.0 / scale_factor # Gravity effect (Greater number means stronger gravity)
-    jump_power = -28 / scale_factor # Jump strength (Bigger negative number means higher jump)
+    jump_power = -21 / scale_factor # Jump strength (Bigger negative number means higher jump)
     on_ground = False # Track if player is on the ground
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
@@ -548,6 +559,10 @@ def level_1(slot: int):
     death_count = 0
     coin_count = 0
     collidable_tiles = {1, 2, 32, 26, 27, 28, 29, 31}
+
+    # State Variables for Gadgets
+    bubbleJump = False
+    bubbleJump_respawns = {}
 
     running = True
     while running:
@@ -607,6 +622,38 @@ def level_1(slot: int):
             # Draw snowflake
             pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
         
+        # Check if player is near the first NPC
+        npc_x = calculate_x_coordinate(12)  # First NPC's x position
+        npc_y = (SURFACE - 9) * TILE_SIZE  # First NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle first NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_1_npc_1_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the second NPC
+        npc_x = calculate_x_coordinate(18)  # Second NPC's x position
+        npc_y = (SURFACE - 9) * TILE_SIZE  # Second NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle second NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_1_npc_2_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the third NPC
+        npc_x = calculate_x_coordinate(58)  # Third NPC's x position
+        npc_y = (SURFACE - 3) * TILE_SIZE  # Third NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle NPC 3 dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_1_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
 
         # Handle events
         keys = pygame.key.get_pressed()
@@ -660,6 +707,9 @@ def level_1(slot: int):
                     elif doubleJumpBoots and not doubleJumped:
                         player_vel_y = jump_power  # Double jump
                         doubleJumped = True  # Mark double jump as used
+                    elif bubbleJump:
+                        player_vel_y = jump_power  # jump again
+                        bubbleJump = False
             
         # Apply gravity
         player_vel_y += gravity
@@ -757,7 +807,23 @@ def level_1(slot: int):
                         level_map[SURFACE-1][68] = 0
                         level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
 
-        
+                # This code handles jump reset
+                if tile == 38:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the jump reset from screen
+                        bubbleJump = True
+                        doubleJumped = False
+                        bubbleJump_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
+
+        # Respawn power-ups after 5 seconds
+        bubble_removes = []
+        for pos, respawn_time in bubbleJump_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 38  # Respawn power-up
+                bubble_removes.append(pos)  # Mark for removal
+
         # Apply super-speed powerup
         if (super_speed_bool == True) and (pygame.time.get_ticks() >= super_speed_effect_off_time):
             player_speed = player_speed / 2
@@ -827,5 +893,5 @@ def level_1(slot: int):
 
 
 if __name__ == "__main__":
-    level_1()
+    level_1(1)
     pygame.quit()

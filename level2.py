@@ -3,6 +3,10 @@ import random
 import sys
 import world_select
 import json
+from NPCs.level_2_npc_1 import handle_level_2_npc_1_dialogue  # Import the functionality of the first NPC from level 2
+from NPCs.level_2_npc_2 import handle_level_2_npc_2_dialogue  # Import the functionality of the second NPC from level 2
+from NPCs.level_2_npc_3 import handle_level_2_npc_3_dialogue  # Import the functionality of the third NPC from level 2
+from NPCs.level_2_npc_4 import handle_level_2_npc_4_dialogue  # Import the functionality of the fourth NPC from level 2
 
 # Initialize PyGame
 pygame.init()
@@ -100,6 +104,22 @@ jump_reset = pygame.transform.scale(jump_reset, (TILE_SIZE, TILE_SIZE))
 spring = pygame.image.load("./images/spring.png")
 spring= pygame.transform.scale(spring, (TILE_SIZE, TILE_SIZE))
 
+npc_1 = pygame.image.load("./Character Combinations/black hair_dark_yellow shirt_black pants.png")
+npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
+flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  # Flip horizontally (True), no vertical flip (False)
+
+npc_2 = pygame.image.load("./Character Combinations/brown hair_white_red shirt_brown pants.png")
+npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
+flipped_npc_2 = pygame.transform.flip(npc_2, True, False)  # Flip horizontally (True), no vertical flip (False)
+
+npc_3 = pygame.image.load("./Character Combinations/ginger hair_white_yellow shirt_brown pants.png")
+npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
+flipped_npc_3 = pygame.transform.flip(npc_3, True, False)  # Flip horizontally (True), no vertical flip (False)
+
+npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_brown pants.png")
+npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
+flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  
+
 # Set up the level with a width of 200 and a height of 27 rows
 level_width = 280
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
@@ -142,9 +162,9 @@ for row_index in range(GROUND, level_height):  # Only draw ground from row 23 do
             row[col_index] = 0
         for col_index in range(135, 140):
             row[col_index] = 0
-        for col_index in range(145, 166):
+        for col_index in range(145, 165):
             row[col_index] = 0
-        for col_index in range(167, 176):
+        for col_index in range(166, 176):
             row[col_index] = 0
         for col_index in range(186, 190):
             row[col_index] = 0
@@ -269,7 +289,7 @@ level_map[SURFACE-17][153] = 2 # Platform
 level_map[SURFACE-19][154] = 16 # Ice tile
 level_map[SURFACE-18][154] = 17 # Flipped ice tile
 
-level_map[SURFACE][166] = 23 # Spring
+level_map[SURFACE][165] = 23 # Spring
 
 level_map[SURFACE-5][178] = 3 # Double Jump Boots
 level_map[SURFACE-11][208] = 11 # Super Speed Boots
@@ -283,11 +303,16 @@ level_map[SURFACE-10][252] = 20 # Jump Reset
 level_map[SURFACE-13][262] = 18 # House
 level_map[SURFACE-14][270] = 19 # Windmill
 
+# NPCs placements
+level_map[SURFACE-6][58] = 24 # First NPC
+level_map[SURFACE-14][60] = 25 # Second NPC
+level_map[SURFACE-9][124] = 26 # Third NPC
+level_map[SURFACE-11][268] = 27 # Fourth NPC
 
 # Dictionary containing which tile corresponds to what
 tiles = {1: ground_tile, 2: platform_tile, 3: double_jump_boots, 4: water, 5: floating_ground, 6: thorn, 7: flag, 8: walkway, 9: flipped_walkway, 10: invisible_platform,
          11: speed_boots, 12: coin, 13: super_speed_powerup, 14: dirt_tile, 15: dash_powerup, 16: ice_tile, 17: flipped_ice, 18: house, 19: windmill, 20: jump_reset,
-         21: up_dash, 22: left_dash, 23: spring}
+         21: up_dash, 22: left_dash, 23: spring, 24: npc_1, 25: npc_2, 26: npc_3, 27: npc_4}
 
 rocks = {43, 55, 107} # Column numbers for all the rocks
 trees = {20, 51, 201, 276} # Column numbers for all the trees
@@ -461,11 +486,11 @@ def level_2(slot: int):
     # (5, SURFACE) should be the starting point
     player_x = calculate_x_coordinate(5)  # Start position, change this number to spawn in a different place
     player_y = calculate_y_coordinate(SURFACE)
-    player_speed = 6.5 * scale_factor # Adjust player speed according to their resolution
+    player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
 
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
-    jump_power = -21 / scale_factor # Jump strength (Bigger negative number means higher jump)
+    jump_power = -22 / scale_factor # Jump strength (Bigger negative number means higher jump)
     on_ground = False # Track if player is on the ground
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
@@ -484,6 +509,12 @@ def level_2(slot: int):
     dash_pickup_time = 0
     dash_duration = 0
     dashing = False
+
+    # State Variables for Gadgets
+    bubbleJump = False
+    bubbleJump_respawns = {}
+    up_dash_respawns = {}
+    left_dash_respawns = {}
 
     checkpoints = [(player_x, player_y), (calculate_x_coordinate(55), calculate_y_coordinate(SURFACE-14)), (calculate_x_coordinate(122), calculate_y_coordinate(SURFACE-9)),
                    (calculate_x_coordinate(206), calculate_y_coordinate(SURFACE-11))]
@@ -565,6 +596,50 @@ def level_2(slot: int):
             # Draw snowflake
             pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
 
+        # Check if player is near the first NPC
+        npc_x = calculate_x_coordinate(58)  # First NPC's x position
+        npc_y = (SURFACE - 6) * TILE_SIZE  # First NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle first NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_2_npc_1_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the second NPC
+        npc_x = calculate_x_coordinate(60)  # Second NPC's x position
+        npc_y = (SURFACE - 14) * TILE_SIZE  # Second NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle second NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_2_npc_2_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the third NPC
+        npc_x = calculate_x_coordinate(124)  # Third NPC's x position
+        npc_y = (SURFACE - 9) * TILE_SIZE  # Third NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle third NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_2_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the fourth NPC
+        npc_x = calculate_x_coordinate(268)  # Fourth NPC's x position
+        npc_y = (SURFACE - 11) * TILE_SIZE  # Fourth NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle fourth NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_2_npc_4_dialogue(screen, player_rect, npc_rect, keys, current_time)   
+
         # Handle events
         keys = pygame.key.get_pressed()
         moving = False
@@ -617,6 +692,9 @@ def level_2(slot: int):
                     elif doubleJumpBoots and not doubleJumped:
                         player_vel_y = jump_power  # Double jump
                         doubleJumped = True  # Mark double jump as used
+                    elif bubbleJump:
+                        player_vel_y = jump_power  # jump again
+                        bubbleJump = False
             
         # Apply gravity
         player_vel_y += gravity
@@ -701,21 +779,64 @@ def level_2(slot: int):
                         coin_count += 1
                         level_map[row_index][col_index] = 0
 
-                # Dash (Modify so that it's all dashes regardless of direction)
-                if tile == 15:
+                # Spring
+                if tile == 23:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
+                        player_vel_y = -45
+
+                # Left Dash
+                if tile == 22:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
 
                         dash_pickup_time = pygame.time.get_ticks()
-                        dash_respawn_time = dash_pickup_time + 5000
-                        level_map[row_index][col_index] = 0 
-                        player_speed = player_speed * 2
-                        dash_duration = pygame.time.get_ticks() + 200
+                        left_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
+                        dash_duration = dash_pickup_time + 400
                         dashing = True
+                        level_map[row_index][col_index] = 0 
+                        player_speed = player_speed * 5
+                        direction = -1
+                        if player_speed < 0:
+                            player_speed *= -1
+
+                # Up Dash
+                if tile == 21:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0 
+                        player_vel_y = -25
+                        up_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
+                        dashing = True
+
+                # This code handles jump reset
+                if tile == 20:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the jump reset from screen
+                        bubbleJump = True
+                        doubleJumped = False
+                        bubbleJump_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
+
 
         # Inside the game loop
         current_time = pygame.time.get_ticks()
+        if dashing:
+            if (current_time >= dash_duration) and (dash_duration != 0):
+                player_speed = 8.5 * scale_factor
+                dashing = False
+                dash_duration = 0
+
+        # Respawn power-ups after 5 seconds
+        left_dash_remove = []
+        for pos, respawn_time in left_dash_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 22  # Respawn power-up
+                left_dash_remove.append(pos)  # Mark for removal
 
         # Apply speed effects from multiple power-ups
         for effect in super_speed_effects[:]:  # Iterate over a copy of the list
@@ -730,22 +851,22 @@ def level_2(slot: int):
                 level_map[pos[0]][pos[1]] = 13  # Respawn power-up
                 to_remove.append(pos)  # Mark for removal
 
+        # Respawn power-ups after 5 seconds
+        bubble_removes = []
+        for pos, respawn_time in bubbleJump_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 20  # Respawn power-up
+                bubble_removes.append(pos)  # Mark for removal
+
+        up_dash_removes = []
+        for pos, respawn_time in up_dash_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 21  # Respawn power-up
+                up_dash_removes.append(pos)  # Mark for removal
+
         # Remove respawned power-ups from tracking
         for pos in to_remove:
             del super_speed_respawns[pos]
-
-        # # Apply dash powerup
-        # if dashing:
-        #     player_x += player_speed
-        #     if (pygame.time.get_ticks() >= dash_duration) and (dash_duration != 0):
-        #         player_speed = player_speed / 2
-        #         dashing = False
-        #         dash_duration = 0
-
-        # #-----Respawns Dash power-up after 5 seconds
-        # if (dash_respawn_time > 0 ) and (pygame.time.get_ticks() >= dash_respawn_time):
-        #     level_map[SURFACE-2][113] = 9
-        #     dash_respawn_time = 0
 
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
             show_level_completed_screen(slot)
