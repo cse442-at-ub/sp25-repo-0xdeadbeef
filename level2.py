@@ -131,6 +131,8 @@ SURFACE = GROUND - 1 #Constant for the surface level
 
 # This is for the snowflake animations
 WHITE = (255, 255, 255)
+RED = (255, 0, 0) # For timer
+BLUE = (0, 0, 255) # For hover
 NUM_SNOWFLAKES = 200
 snowflakes = []
 
@@ -333,50 +335,125 @@ def calculate_y_coordinate(row):
     return int(row * TILE_SIZE)
 
 def show_level_completed_screen(slot: int):
-    # Display the background image
-    screen.blit(background, (0, 0))
 
-    # Set fonts for the text
-    title_font = pygame.font.Font('PixelifySans.ttf', 100)
-    menu_font = pygame.font.Font('PixelifySans.ttf', 60)
-
-    # Render the "Level Completed" text
-    level_completed_text = title_font.render("Level Completed", True, (255, 255, 255))
-    select_level_text = menu_font.render("Back to Select Level", True, (255, 255, 255))
-
-    # Position the texts
-    level_completed_rect = level_completed_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-    select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
-
-    # Create box around the text
-    box_padding = 20
-    level_end_screen_box = pygame.Rect(level_completed_rect.left - box_padding, level_completed_rect.top - box_padding, level_completed_rect.width + box_padding*2, level_completed_rect.height + (box_padding*2) + 80)
-    pygame.draw.rect(screen, (0, 0, 255), level_end_screen_box, 10)
-    
-    # Draw the texts
-    screen.blit(level_completed_text, level_completed_rect)
-    screen.blit(select_level_text, select_level_rect)
-
-    pygame.display.flip()
-
-    # Wait for player to either press a key or click the button
+    # Wait for player to click the button
     waiting = True
     while waiting:
+        # Display the background image
+        screen.blit(background, (0, 0))
+
+        # Set fonts for the text
+        title_font = pygame.font.Font('PixelifySans.ttf', 100)
+        menu_font = pygame.font.Font('PixelifySans.ttf', 60)
+        menu_font_hover = pygame.font.Font('PixelifySans.ttf', 65)  # Larger for hover
+
+        # Render hover effect dynamically
+        restart_hover = False
+        select_level_hover = False
+
+        # Render the "Level Completed" text
+        level_completed_text = title_font.render("Level Completed", True, WHITE)
+        select_level_text = menu_font.render("Back to Select Level", True, WHITE)
+
+        # Position the texts
+        level_completed_rect = level_completed_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
+        select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
+
+        # Check if mouse is hovering
+        if select_level_rect.collidepoint(pygame.mouse.get_pos()):
+            select_level_hover = True
+
+        # If hovering, change text size dynamically
+        if select_level_hover:
+            select_level_text = menu_font_hover.render("Back to Select Level", True, BLUE)
+            select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))  # Recalculate position
+
+        # Create box around the text
+        box_padding = 20
+        level_end_screen_box = pygame.Rect(level_completed_rect.left - box_padding, level_completed_rect.top - box_padding, level_completed_rect.width + box_padding*2, level_completed_rect.height + (box_padding*2) + 80)
+        pygame.draw.rect(screen, BLUE, level_end_screen_box, 10)
+        
+        # Draw the texts
+        screen.blit(level_completed_text, level_completed_rect)
+        screen.blit(select_level_text, select_level_rect)
+
+        pygame.display.flip()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
-                    waiting = False  # You could also go back to level select here
-
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
 
+def show_game_over_screen(slot: int):
+
+    # Wait for player to click the button
+    waiting = True
+    while waiting:
+
+        screen.blit(background, (0, 0))
+
+        # Set fonts for the text
+        title_font = pygame.font.Font('PixelifySans.ttf', 100)
+        sub_font = pygame.font.Font('PixelifySans.ttf', 60)
+        sub_font_hover = pygame.font.Font('PixelifySans.ttf', 65)  # Larger for hover
+
+        # Render hover effect dynamically
+        restart_hover = False
+        select_level_hover = False
+
+        # Render the "Game Over" text
+        game_over_text = title_font.render("Game Over", True, WHITE)
+        restart_text = sub_font.render("Retry", True, WHITE)
+        select_level_text = sub_font.render("Back to Select Level", True, WHITE)
+
+        # Position the texts
+        game_over_rect = game_over_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
+        restart_over_rect = restart_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
+        select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))
+
+        # Check if mouse is hovering
+        if restart_over_rect.collidepoint(pygame.mouse.get_pos()):
+            restart_hover = True
+        if select_level_rect.collidepoint(pygame.mouse.get_pos()):
+            select_level_hover = True
+
+        # If hovering, change text size dynamically
+        if restart_hover:
+            restart_text = sub_font_hover.render("Retry", True, BLUE)
+            restart_over_rect = restart_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))  # Recalculate position
+        if select_level_hover:
+            select_level_text = sub_font_hover.render("Back to Select Level", True, BLUE)
+            select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))  # Recalculate position
+
+        # Create box around the text
+        box_padding = 100
+        game_over_screen_box = pygame.Rect(game_over_rect.left - box_padding, game_over_rect.top, game_over_rect.width + box_padding*2, game_over_rect.height + (box_padding*2) + 40)
+        pygame.draw.rect(screen, BLUE, game_over_screen_box, 10)
+        
+        # Draw the texts
+        screen.blit(game_over_text, game_over_rect)
+        screen.blit(restart_text, restart_over_rect)
+        screen.blit(select_level_text, select_level_rect)
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = event.pos
+                if restart_over_rect.collidepoint(mouse_x, mouse_y):
+                    level_2(slot) # Retry the level
+                    sys.exit()
+                if select_level_rect.collidepoint(mouse_x, mouse_y):
+                    world_select.World_Selector(slot)
+                    sys.exit()  # Go back to level select
 
 def read_data(slot: int):
     with open(f"./User Saves/save{str(slot)}.json", "r") as file:
@@ -450,6 +527,10 @@ def level_2(slot: int):
 
     coin_count = 0
 
+    start_time = 180  # Timer starts at 180 seconds
+    timer = start_time
+    clock = pygame.time.Clock()
+
     running = True
     while running:
         screen.blit(background, (0, 0))
@@ -458,6 +539,13 @@ def level_2(slot: int):
         level_name_text = level_name_font.render("Level 2", True, (255, 255, 255))  # White text
 
         screen.blit(level_name_text, (20, 20))  # Position at (20, 20)
+
+        dt = clock.tick(60) / 1000  # Time elapsed per frame in seconds
+        timer -= dt  # Decrease timer
+
+        timer_text = level_name_font.render(f"Time: {int(timer)}", True, RED if timer <= 30 else WHITE)
+        screen.blit(timer_text, (WIDTH // 2 - 50, 20))
+
         # Draw level using tile images
         for row_index, row in enumerate(level_map):
             for col_index, tile in enumerate(row):
@@ -784,6 +872,10 @@ def level_2(slot: int):
             show_level_completed_screen(slot)
             running = False
         
+        if timer <= 0:
+            timer = 0  # Prevent negative values
+            show_game_over_screen(slot)
+            running = False
 
         if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
             player_x = 0
