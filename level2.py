@@ -336,6 +336,11 @@ def calculate_y_coordinate(row):
 
 def show_level_completed_screen(slot: int):
 
+    level_map[SURFACE-8][62] = 3 # Double Jump Boots
+    level_map[SURFACE-14][63] = 11 # Speed Boots
+    level_map[SURFACE-5][178] = 3 # Double Jump Boots
+    level_map[SURFACE-11][208] = 11 # Super Speed Boots
+
     # Wait for player to click the button
     waiting = True
     while waiting:
@@ -348,7 +353,6 @@ def show_level_completed_screen(slot: int):
         menu_font_hover = pygame.font.Font('PixelifySans.ttf', 65)  # Larger for hover
 
         # Render hover effect dynamically
-        restart_hover = False
         select_level_hover = False
 
         # Render the "Level Completed" text
@@ -390,6 +394,14 @@ def show_level_completed_screen(slot: int):
                     sys.exit()  # Go back to level select
 
 def show_game_over_screen(slot: int):
+
+    level_map[SURFACE-8][62] = 3 # Double Jump Boots
+    level_map[SURFACE-14][63] = 11 # Speed Boots
+    level_map[SURFACE-5][178] = 3 # Double Jump Boots
+    level_map[SURFACE-11][208] = 11 # Super Speed Boots
+
+    level_map[SURFACE-18][1] = 12 # Respawn Coin
+    level_map[10][135] = 12 # Respawn Coin
 
     # Wait for player to click the button
     waiting = True
@@ -488,6 +500,7 @@ def level_2(slot: int):
     player_y = calculate_y_coordinate(SURFACE)
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
 
+    player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
     jump_power = -22 / scale_factor # Jump strength (Bigger negative number means higher jump)
@@ -505,7 +518,6 @@ def level_2(slot: int):
     super_speed_respawns = {}
 
     #-----Declared variables for Dash power-up to avoid undefined variable error
-    dash_respawn_time = 0 
     dash_pickup_time = 0
     dash_duration = 0
     dashing = False
@@ -515,6 +527,10 @@ def level_2(slot: int):
     bubbleJump_respawns = {}
     up_dash_respawns = {}
     left_dash_respawns = {}
+
+    normal_friction = 0.25
+    ice_friction = 0.95  # Lower friction for slippery effect
+    on_ice = False
 
     checkpoints = [(player_x, player_y), (calculate_x_coordinate(55), calculate_y_coordinate(SURFACE-14)), (calculate_x_coordinate(122), calculate_y_coordinate(SURFACE-9)),
                    (calculate_x_coordinate(206), calculate_y_coordinate(SURFACE-11))]
@@ -534,17 +550,6 @@ def level_2(slot: int):
     running = True
     while running:
         screen.blit(background, (0, 0))
-
-        level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
-        level_name_text = level_name_font.render("Level 2", True, (255, 255, 255))  # White text
-
-        screen.blit(level_name_text, (20, 20))  # Position at (20, 20)
-
-        dt = clock.tick(60) / 1000  # Time elapsed per frame in seconds
-        timer -= dt  # Decrease timer
-
-        timer_text = level_name_font.render(f"Time: {int(timer)}", True, RED if timer <= 30 else WHITE)
-        screen.blit(timer_text, (WIDTH // 2 - 50, 20))
 
         # Draw level using tile images
         for row_index, row in enumerate(level_map):
@@ -640,25 +645,44 @@ def level_2(slot: int):
         current_time = pygame.time.get_ticks()  # Get current time in milliseconds
         handle_level_2_npc_4_dialogue(screen, player_rect, npc_rect, keys, current_time)   
 
+        acceleration = 0.5  # Slower acceleration on ice
+        friction = normal_friction if not on_ice else ice_friction
+
         # Handle events
         keys = pygame.key.get_pressed()
         moving = False
         if keys[pygame.K_d]: # If player presses D
-            player_x += player_speed
+            if on_ice:
+                player_vel_x += acceleration
+            else:
+                player_vel_x = player_speed
             moving = True
             direction = 1
         if keys[pygame.K_a]: # If player presses A
-            player_x -= player_speed        
+            if on_ice:
+                player_vel_x -= acceleration
+            else:
+                player_vel_x = -player_speed
             moving = True
             direction = -1
+        if not moving:
+            player_vel_x *= friction
+            if abs(player_vel_x) < 0.1:
+                player_vel_x = 0
         if keys[pygame.K_SPACE] and on_ground: # If player presses Spacebar
             player_vel_y = jump_power # Apply jump force
             on_ground = False # Player is now airborne
         if moving:
+            # Clamp velocity to max speed
+            if abs(player_vel_x) > player_speed:
+                player_vel_x = player_speed * (1 if player_vel_x > 0 else -1)
+            if abs(player_vel_x) < 0.1:
+                player_vel_x = 0
             animation_timer += 1
             if animation_timer >= animation_speed:  
                 animation_timer = 0
                 animation_index = 1 - animation_index  # Alternate between 0 and 1
+        player_x += player_vel_x  # Update position
 
         current_frame = run_frames[animation_index]
 
@@ -677,6 +701,17 @@ def level_2(slot: int):
                 screen.blit(player, (player_x - camera_x, player_y))
             else: # Left
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
+
+        level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
+        level_name_text = level_name_font.render("Level 2", True, WHITE)  # White text
+
+        screen.blit(level_name_text, (20, 20))  # Position at (20, 20)
+
+        dt = clock.tick(60) / 1000  # Time elapsed per frame in seconds
+        timer -= dt  # Decrease timer
+
+        timer_text = level_name_font.render(f"Time: {int(timer)}", True, RED if timer <= 30 else WHITE)
+        screen.blit(timer_text, (WIDTH // 2 - 50, 20))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -701,6 +736,7 @@ def level_2(slot: int):
         player_y += player_vel_y
 
         on_ground = False
+        on_ice = False
         for row_index, row in enumerate(level_map):
             for col_index, tile in enumerate(row):
                 if tile in collidable_tiles:  # Ground, platform, floating ground, invisible platform tiles, Dirt
@@ -784,7 +820,7 @@ def level_2(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
-                        player_vel_y = -45
+                        player_vel_y = -35
 
                 # Left Dash
                 if tile == 22:
@@ -822,6 +858,11 @@ def level_2(slot: int):
                         doubleJumped = False
                         bubbleJump_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
 
+                if tile == 16 or tile == 17:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
+                        player_y + TILE_SIZE == tile_y):  # Feet touching top of ice
+                        on_ice = True
 
         # Inside the game loop
         current_time = pygame.time.get_ticks()
@@ -887,15 +928,32 @@ def level_2(slot: int):
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
             dying = False
+            if checkpoint_idx == 0 and doubleJumpBoots:
+                doubleJumpBoots = False
+                level_map[SURFACE-8][62] = 3 # Double Jump Boots
+            elif checkpoint_idx == 1 and speedBoots:
+                speedBoots = False
+                level_map[SURFACE-14][63] = 11 # Speed Boots
+                player_speed = player_speed / 1.25 # Revert their speed back to normal
+            elif checkpoint_idx == 2 and doubleJumpBoots:
+                doubleJumpBoots = False
+                level_map[SURFACE-5][178] = 3 # Double Jump Boots
+            elif checkpoint_idx == 3 and speedBoots:
+                speedBoots = False
+                level_map[SURFACE-11][208] = 11 # Super Speed Boots
+                player_speed = player_speed / 1.25 # Revert their speed back to normal
 
         for k, checkpoint in enumerate(checkpoints):
             x, y = checkpoint
-            if player_x >= x and not checkpoint_bool[k]:
+            if player_x >= x and player_y <= y and not checkpoint_bool[k]:
                 checkpoint_idx += 1
                 checkpoint_bool[k] = True
                 if checkpoint_idx == 2:
                     doubleJumpBoots = False # Remove their double jump boots
+                    speedBoots = False
                     player_speed = player_speed / 1.25 # Revert their speed back to normal
+                elif checkpoint_idx == 3:
+                    doubleJumpBoots = False
 
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
