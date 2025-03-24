@@ -887,6 +887,7 @@ def level_1(slot: int):
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
             dying = False
+            level_map[SURFACE - 3][39] = 3
             if checkpoint_idx == 0 and doubleJumpBoots:
                 doubleJumpBoots = False
                 level_map[SURFACE][28] = 3
