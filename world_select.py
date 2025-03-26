@@ -5,6 +5,7 @@ from pygame.locals import * # type: ignore
 import tutorial
 import level1
 import level2
+import level3
 import save_slots
 import world_select
 import main_menu  
@@ -201,10 +202,10 @@ def World_Selector(slot: int):
                                 sys.exit()
 
                             # SOON TO DO: 
-                            # elif current_level == 0 and idx == 3:  # Level 3 button in Map 1
-                            #     print("Level 3 button clicked. Going to snow Level 3...")
-                            #     running = False
-                            #     level_2.start_level_2(slot)  # Call the Level 3 function
+                            elif current_level == 0 and idx == 3:  # Level 3 button in Map 1
+                                print("Level 3 button clicked. Going to snow Level 3...")
+                                running = False
+                                level3.level_3(slot)  # Call the Level 3 function
                             #     sys.exit()
                             # elif current_level == 0 and idx == 4:  # Level 4 button in Map 1
                             #     print("Level 4 button clicked. Going to snow Level 2...")
