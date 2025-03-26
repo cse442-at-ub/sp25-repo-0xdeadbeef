@@ -2,6 +2,8 @@ import pygame  # type: ignore
 import main_menu  
 import settings_menu  
 import save_slots  
+import os
+import json
 
 # Initialize pygame
 pygame.init()
@@ -28,7 +30,11 @@ icons = [
 
 # Positions for icons and text
 icon_positions = [(80 + i * 330, 100) for i in range(5)] + [(80 + i * 330, 400) for i in range(2)]
-text_positions = [(pos[0] + 90, pos[1] + 180) for pos in icon_positions]
+# text_positions = [(pos[0] + 90, pos[1] + 180) for pos in icon_positions]
+text_positions = [
+    [(pos[0] + 20, pos[1] + 195), (pos[0] + 120, pos[1] + 195), (pos[0] + 220, pos[1] + 195)]
+    for pos in icon_positions]
+
 
 # Load and resize yellow circle
 yellow_circle = pygame.transform.scale(pygame.image.load("Assets/Achievement Menu/yellow_circle.png"), (140, 140))
@@ -37,7 +43,7 @@ yellow_text_position = (yellow_icon_position[0] + 40, yellow_icon_position[1] + 
 
 # Font settings
 try:
-    font = pygame.font.Font("Assets/Save Slot Menu/PixelifySans.ttf", 70)
+    font = pygame.font.Font("Assets/Save Slot Menu/PixelifySans.ttf", 45)
 except FileNotFoundError:
     print("Error: Pixelify Sans font file not found. Using default font instead.")
     font = pygame.font.Font(None, 70)
@@ -109,6 +115,35 @@ def draw_text(text_str, pos, color=(255, 118, 33), outline_color=(0, 0, 0)):
 
 def run_achievements_menu():
     """Run the achievements menu."""
+    saveslotone = "User Saves/save1.json"
+    saveslottwo = "User Saves/save2.json"
+    saveslotthree = "User Saves/save3.json"
+
+    save_data_one = {}
+    save_data_two = {}
+    save_data_three = {}
+
+    if os.path.exists(saveslotone):
+        with open(saveslotone, "r") as file:
+            save_data_one = json.load(file)
+
+    if os.path.exists(saveslottwo):
+        with open(saveslottwo, "r") as file:
+            save_data_two = json.load(file)
+
+    if os.path.exists(saveslotthree):
+        with open(saveslotthree, "r") as file:
+            save_data_three = json.load(file)
+
+    level_names = ["Tutorial", "Level One", "Level Two", "Level Four", "Level Five"]
+    level_clears = {level: [0,0,0,] for level in level_names}
+
+    for level in level_names:
+        level_clears[level][0] = save_data_one.get(level, 0)
+        level_clears[level][1] = save_data_two.get(level, 0)
+        level_clears[level][2] = save_data_three.get(level, 0)
+
+
     running = True
     while running:
         events = pygame.event.get()
@@ -136,8 +171,17 @@ def run_achievements_menu():
         draw_text("0x", yellow_text_position, color=(255, 255, 255))
 
         # Draw counters below icons
-        for pos in text_positions:
-            draw_text("0x", pos, color=(255, 255, 255))
+        for i, level_name in enumerate(level_names):
+            for o, clears in enumerate(level_clears[level_name]): 
+                text_position = text_positions[i][o]
+                draw_text(f"{clears}x", text_position)
+
+                
+        # for pos in text_positions:
+        #     for po in pos:
+        #         draw_text("0x", po, color=(255, 255, 255))
+
+
 
         # Use correct variable name for mouse position and update back_button hover effect
         mouse_pos = pygame.mouse.get_pos()  # FIXED: was incorrectly written as mouse.pos

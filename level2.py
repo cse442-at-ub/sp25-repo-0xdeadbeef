@@ -7,6 +7,7 @@ from NPCs.level_2_npc_1 import handle_level_2_npc_1_dialogue  # Import the funct
 from NPCs.level_2_npc_2 import handle_level_2_npc_2_dialogue  # Import the functionality of the second NPC from level 2
 from NPCs.level_2_npc_3 import handle_level_2_npc_3_dialogue  # Import the functionality of the third NPC from level 2
 from NPCs.level_2_npc_4 import handle_level_2_npc_4_dialogue  # Import the functionality of the fourth NPC from level 2
+from saves_handler import *
 
 # Initialize PyGame
 pygame.init()
@@ -410,6 +411,8 @@ def show_level_completed_screen(slot: int):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
+                    level_name = "Level Two"
+                    achievement_counter(slot, level_name)
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
 
@@ -519,6 +522,7 @@ def level_2(slot: int):
     player_x = calculate_x_coordinate(5)  # Start position, change this number to spawn in a different place
     player_y = calculate_y_coordinate(SURFACE)
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
+    player_speed = player_speed * 2 
 
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping

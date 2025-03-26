@@ -7,6 +7,7 @@ import json
 from NPCs.level_1_npc_1 import handle_level_1_npc_1_dialogue  # Import the functionality of the first NPC from level 1
 from NPCs.level_1_npc_2 import handle_level_1_npc_2_dialogue  # Import the functionality of the second NPC from level 1
 from NPCs.level_1_npc_3 import handle_level_1_npc_3_dialogue  # Import the functionality of the third NPC from level 1
+from saves_handler import *
 
 pygame.init()
 
@@ -510,6 +511,8 @@ def show_level_completed_screen(slot: int):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
+                    level_name = "Level One"
+                    achievement_counter(slot, level_name)
                     world_select.World_Selector(slot)
                     sys.exit()
 
@@ -548,7 +551,7 @@ def level_1(slot: int):
     player_x = 150  # Start position, change this number to spawn in a different place
     player_y = HEIGHT - 560
     player_speed = 6.5 * scale_factor # Adjust player speed according to their resolution
-    
+    player_speed = player_speed * 2
 
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.0 / scale_factor # Gravity effect (Greater number means stronger gravity)

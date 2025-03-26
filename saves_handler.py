@@ -52,6 +52,35 @@ def update_save(slot, new_data):
     
     print(f"Save Slot {slot} updated successfully!")
 
+def achievement_counter(slot, level_info):
+    # Update achievment counter when level completed
+    file_path = os.path.join(SAVE_DIR, f"save{slot}.json")
+
+    # Load existing data 
+    if os.path.exists(file_path):
+        with open(file_path, "r") as file:
+            save_data = json.load(file)
+
+    else:
+        print(f"Save file for slot {slot} does not exist. Creating a new save...")
+        save_data = create_new_save(slot)  # Create new save if it doesn't exist
+
+    if level_info not in save_data:
+        level_first_clear = {level_info: 1}
+        save_data.update(level_first_clear)
+        print(f"First time clearing {level_info}!")
+
+    else: 
+        number_of_clears = save_data[level_info]
+        level_updated_clear = {level_info: number_of_clears + 1}
+        save_data.update(level_updated_clear) 
+    
+    with open(file_path, "w") as file:
+        json.dump(save_data, file, indent=4)
+    
+    print(f"{level_info} counter updated successfully")
+
+
 def delete_save(slot):
     file_path = os.path.join(SAVE_DIR, f"save{slot}.json")
     if os.path.exists(file_path):
