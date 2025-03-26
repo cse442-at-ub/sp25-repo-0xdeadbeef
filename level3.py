@@ -55,6 +55,9 @@ ice_tile = pygame.image.load("./images/ice.png")
 ice_tile = pygame.transform.scale(ice_tile, (TILE_SIZE, TILE_SIZE))
 flipped_ice = pygame.transform.flip(ice_tile, False, True)
 
+ice_block = pygame.image.load("./images/ice_block.png")
+ice_block = pygame.transform.scale(ice_block, (TILE_SIZE, TILE_SIZE))
+
 jump_reset = pygame.image.load("./images/bubble.png")
 jump_reset = pygame.transform.scale(jump_reset, (TILE_SIZE, TILE_SIZE))
 
@@ -201,6 +204,8 @@ level_map[level_height-3][15:35] = [3] * 20 # Water
 level_map[level_height-2][15:35] = [11] * 20 # Water Block
 level_map[level_height-1][15:35] = [11] * 20 # Water Block
 
+level_map[SURFACE-2][57] = 4 # Jump Reset
+
 level_map[SURFACE][39] = 7 # Thorn
 
 level_map[SURFACE-5][55] = 13 # Walkway
@@ -299,7 +304,7 @@ for row_index in range(level_height-5, level_height):
 # Dictionary containing which tile corresponds to what
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: water, 4: jump_reset, 5: dash_powerup, 6: floating_ground, 7: thorn, 8: flag, 9: dirt_tile, 10: frost_walking_boots,
          11: water_block, 12: coin, 13: walkway, 14: flipped_walkway, 15: invisible_platform, 16: double_jump_boots, 17: flipped_thorn, 18: left_thorn, 19: right_thorn, 20: super_speed_powerup,
-         21: ice_tile, 22: flipped_ice, 23: high_jump, 24: up_dash, 25: house, 26: tree, 27: background_tree}
+         21: ice_tile, 22: flipped_ice, 23: high_jump, 24: up_dash, 25: house, 26: tree, 27: background_tree, 28: ice_block}
 
 level_map[9][203] = 26 # Tree
 level_map[9][216] = 26 # Tree
@@ -629,7 +634,7 @@ def level_3(slot: int):
                         coin_count += 1
                         level_map[row_index][col_index] = 0
 
-                if tile == 21 or tile == 22:
+                if tile == 21 or tile == 22 or tile == 28:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
                         player_y + TILE_SIZE == tile_y):  # Feet touching top of ice
