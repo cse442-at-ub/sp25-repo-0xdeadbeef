@@ -20,6 +20,8 @@ pygame.mixer.music.set_volume(1.0)  # start at 100% volume
 # Gadget pick up sound 
 gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
 
+# Death sound 
+death_sound = pygame.mixer.Sound("Audio/Death.mp3")
 
 # Screen settings
 BASE_WIDTH = 1920
@@ -630,8 +632,11 @@ def tutorial_level(slot: int):
         if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
             player_x = 0
 
+        # When player falls past bottom of level = dies
         if player_y + TILE_SIZE >= level_height * TILE_SIZE:
+            death_sound.play() # Play death sound when player touches water or thorn
             dying = True
+            
 
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]

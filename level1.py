@@ -19,6 +19,9 @@ level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
 # Gadget pick up sound 
 gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
 
+# Death sound 
+death_sound = pygame.mixer.Sound("Audio/Death.mp3")
+
 # Screen Resolution 
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
@@ -528,6 +531,7 @@ def level_1(slot: int):
     pygame.mixer.music.load("Audio/Level1.mp3")
     pygame.mixer.music.play(-1)  # -1 loops forever
 
+    level_map[SURFACE - 3][39] = 3   # Jump Boots
 
     # Grab the sprite that was customized
     sprite = read_data(slot)
@@ -788,7 +792,7 @@ def level_1(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        
+                        death_sound.play() # Play death sound when player touches water or thorn
                         dying = True
 
                 
@@ -882,8 +886,10 @@ def level_1(slot: int):
         if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
             player_x = 0
 
+        # When player falls past bottom of level = dies
         if player_y + TILE_SIZE >= level_height * TILE_SIZE:
             dying = True
+            death_sound.play() # Play death sound when player touches water or thorn
 
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
