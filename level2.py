@@ -15,8 +15,6 @@ pygame.mixer.init() # Initialize Pygame Audio Mixer
 # Load the level complete sound 
 level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
 
-
-
 # Screen settings
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080

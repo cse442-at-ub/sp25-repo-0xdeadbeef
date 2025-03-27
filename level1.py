@@ -16,6 +16,9 @@ pygame.mixer.init() # Initialize Pygame Audio Mixer
 level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
 # pygame.mixer.music.set_volume(1.0)  # start at 100% volume 
 
+# Gadget pick up sound 
+gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
+
 # Screen Resolution 
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
@@ -776,6 +779,7 @@ def level_1(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play() # Play gadget pick up sound when picking up
                         doubleJumpBoots = True
                         doubleJumped = False
 
@@ -886,6 +890,8 @@ def level_1(slot: int):
             death_count += 1
             dying = False
             level_map[SURFACE - 3][39] = 3
+            # Reset the player’s flags so re-collect
+            doubleJumpBoots = False
             if checkpoint_idx == 0 and doubleJumpBoots:
                 doubleJumpBoots = False
                 level_map[SURFACE][28] = 3
