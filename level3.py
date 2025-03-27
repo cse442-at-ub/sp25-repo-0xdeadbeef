@@ -425,8 +425,8 @@ def level_3(slot: int):
     camera_x = 0
 
     # (5, SURFACE) should be the starting point
-    player_x = calculate_x_coordinate(20)  # Start position, change this number to spawn in a different place
-    player_y = calculate_y_coordinate(4)
+    player_x = calculate_x_coordinate(5)  # Start position, change this number to spawn in a different place
+    player_y = calculate_y_coordinate(SURFACE)
     
     # 8.5 should be standard speed
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
