@@ -808,7 +808,7 @@ def level_2(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        gadget_sound.play() # Play death sound when player touches water or thorn
+                        death_sound.play() # Play death sound when player touches water or thorn
                         dying = True
 
                 # This code picks up the speed boots
