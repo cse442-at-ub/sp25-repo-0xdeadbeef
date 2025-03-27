@@ -10,6 +10,7 @@ import world_select
 import main_menu  
 
 pygame.init()  # Initialize Pygame
+pygame.mixer.init() # Initialize Pygame Audio Mixer
 
 # Get full screen resolution
 WIDTH, HEIGHT = pygame.display.Info().current_w, pygame.display.Info().current_h
@@ -154,6 +155,12 @@ mini_squares = [
 ]
 
 def World_Selector(slot: int):
+    # Check if any music is currently playing
+    if not pygame.mixer.music.get_busy():
+        # If not, load the "Background.mp3" again
+        pygame.mixer.music.load("Audio/Background2.mp3")
+        pygame.mixer.music.play(-1)  # loop forever
+
     current_level = 0
     num_levels = len(background_images)
     running = True

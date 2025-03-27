@@ -9,6 +9,11 @@ from NPCs.level_1_npc_2 import handle_level_1_npc_2_dialogue  # Import the funct
 from NPCs.level_1_npc_3 import handle_level_1_npc_3_dialogue  # Import the functionality of the third NPC from level 1
 
 pygame.init()
+pygame.mixer.init() # Initialize Pygame Audio Mixer
+
+# Load the level complete sound 
+level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
+# pygame.mixer.music.set_volume(1.0)  # start at 100% volume 
 
 # Screen Resolution 
 BASE_WIDTH = 1920
@@ -457,6 +462,13 @@ def calculate_y_coordinate(row):
 
 
 def show_level_completed_screen(slot: int):
+
+    # Stop tutorial music
+    pygame.mixer.music.stop()
+
+    # Play the level complete sound once when this function runs
+    level_complete_sound.play()
+
     screen.blit(background, (0, 0))
     level_map[SURFACE][28] = 3  # Respawn double jump boots
     level_map[SURFACE-5][55] = 13  # Respawn speed boots
@@ -504,6 +516,15 @@ def read_data(slot: int):
 # Level One Game Loop
 # -----------------------------------
 def level_1(slot: int):
+
+    # Stop any previously playing music 
+    pygame.mixer.music.stop()
+    
+    # # Load the tutorial music
+    # pygame.mixer.music.load("Audio/TutorialMusic.mp3")
+    # pygame.mixer.music.play(-1)  # -1 loops forever
+
+
     # Grab the sprite that was customized
     sprite = read_data(slot)
 
