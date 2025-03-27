@@ -8,6 +8,7 @@ from NPCs.level_1_npc_1 import handle_level_1_npc_1_dialogue  # Import the funct
 from NPCs.level_1_npc_2 import handle_level_1_npc_2_dialogue  # Import the functionality of the second NPC from level 1
 from NPCs.level_1_npc_3 import handle_level_1_npc_3_dialogue  # Import the functionality of the third NPC from level 1
 
+# Initialize Pygame
 pygame.init()
 pygame.mixer.init() # Initialize Pygame Audio Mixer
 
@@ -520,9 +521,9 @@ def level_1(slot: int):
     # Stop any previously playing music 
     pygame.mixer.music.stop()
     
-    # # Load the tutorial music
-    # pygame.mixer.music.load("Audio/TutorialMusic.mp3")
-    # pygame.mixer.music.play(-1)  # -1 loops forever
+    # Load the tutorial music
+    pygame.mixer.music.load("Audio/Level1.mp3")
+    pygame.mixer.music.play(-1)  # -1 loops forever
 
 
     # Grab the sprite that was customized

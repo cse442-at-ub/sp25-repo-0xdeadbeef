@@ -10,9 +10,14 @@ from NPCs.level_2_npc_4 import handle_level_2_npc_4_dialogue  # Import the funct
 
 # Initialize PyGame
 pygame.init()
+pygame.mixer.init() # Initialize Pygame Audio Mixer
+
+# Load the level complete sound 
+level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
+
+
 
 # Screen settings
-
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
 
@@ -336,6 +341,12 @@ def calculate_y_coordinate(row):
 
 def show_level_completed_screen(slot: int):
 
+    # Stop tutorial music
+    pygame.mixer.music.stop()
+
+    # Play the level complete sound once when this function runs
+    level_complete_sound.play()
+
     level_map[SURFACE-8][62] = 3 # Double Jump Boots
     level_map[SURFACE-14][63] = 11 # Speed Boots
     level_map[SURFACE-5][178] = 3 # Double Jump Boots
@@ -474,6 +485,14 @@ def read_data(slot: int):
 
 # Function to run the tutorial level
 def level_2(slot: int):
+
+    # Stop any previously playing music 
+    pygame.mixer.music.stop()
+    
+    # Load the tutorial music
+    pygame.mixer.music.load("Audio/Level2.mp3")
+    pygame.mixer.music.play(-1)  # -1 loops forever
+
     # Grab the sprite that was customized
     sprite = read_data(slot)
 

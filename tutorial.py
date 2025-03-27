@@ -275,9 +275,9 @@ def tutorial_level(slot: int):
     # Stop any previously playing music 
     pygame.mixer.music.stop()
     
-    # # Load the tutorial music
-    # pygame.mixer.music.load("Audio/TutorialMusic.mp3")
-    # pygame.mixer.music.play(-1)  # -1 loops forever
+    # Load the tutorial music
+    pygame.mixer.music.load("Audio/TutorialLevel.mp3")
+    pygame.mixer.music.play(-1)  # -1 loops forever
 
     # Grab the sprite that was customized
     sprite = read_data(slot)
