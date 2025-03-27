@@ -231,10 +231,7 @@ for row_index in range(SURFACE - 1, SURFACE):
         level_map[row_index][col] = 28
 
 for col in range(134, level_width):
-    step_down = (col - 130) // 2
-    ground_start = min((SURFACE - 1) + step_down, GROUND)
-    for row_index in range(ground_start, level_height):
-        level_map[row_index][col] = 28
+    level_map[SURFACE][col] = 28
 
 
 
