@@ -64,6 +64,7 @@ jump_reset = pygame.transform.scale(jump_reset, (TILE_SIZE, TILE_SIZE))
 dash_powerup = pygame.image.load("./images/dash_powerup.png")
 dash_powerup = pygame.transform.scale(dash_powerup, (TILE_SIZE, TILE_SIZE))
 up_dash = pygame.transform.rotate(dash_powerup, 90)
+down_dash = pygame.transform.rotate(dash_powerup, -90)
 
 thorn = pygame.image.load("./images/thorn.png")
 thorn = pygame.transform.scale(thorn, (TILE_SIZE, TILE_SIZE))
@@ -101,8 +102,20 @@ house = pygame.transform.scale(house, (TILE_SIZE * 10, TILE_SIZE * 6))
 sign = pygame.image.load("./images/sign.png")
 sign = pygame.transform.scale(sign, (TILE_SIZE, TILE_SIZE))
 
-# Set up the level with a width of 250 and a height of 30 rows
-level_width = 250
+spring = pygame.image.load("./images/spring.png")
+spring= pygame.transform.scale(spring, (TILE_SIZE, TILE_SIZE))
+
+speed_boots = pygame.image.load("./images/speed_boots.png")
+speed_boots = pygame.transform.scale(speed_boots, (TILE_SIZE, TILE_SIZE))
+
+dash_gadget = pygame.image.load("./images/dash_powerup.png")
+dash_gadget = pygame.transform.scale(dash_gadget, (TILE_SIZE, TILE_SIZE))
+
+balloon = pygame.image.load("./images/dash_powerup.png")
+balloon = pygame.transform.scale(dash_gadget, (TILE_SIZE, TILE_SIZE))
+
+# Set up the level with a width of 300 and a height of 30 rows
+level_width = 300
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
 
 level_map = [[0] * level_width for _ in range(level_height)]  # Start with air
@@ -114,7 +127,7 @@ SURFACE = GROUND - 1 #Constant for the surface level
 WHITE = (255, 255, 255)
 RED = (255, 0, 0) # For timer
 BLUE = (0, 0, 255) # For hover
-NUM_SNOWFLAKES = 400
+NUM_SNOWFLAKES = 300
 snowflakes = []
 
 #This for loop is also for snowflakes
@@ -128,9 +141,15 @@ for _ in range(NUM_SNOWFLAKES):
 
 for row_index in range(GROUND, level_height):
     row = [1] * level_width  # Default to full ground row
-    for col_index in range(15, 25):  # Remove ground in columns 15-35
+    for col_index in range(15, 25):  # Remove ground in columns 15-24
         row[col_index] = 0  # Set to air (pit)
-    for col_index in range(37, 42):  # Remove ground in columns 15-35
+    for col_index in range(37, 41):  # Remove ground in columns 37-40
+        row[col_index] = 0  # Set to air (pit)
+    for col_index in range(42, 100):  # Remove ground in columns 42-99
+        row[col_index] = 0  # Set to air (pit)
+    for col_index in range(121, 150):  # Remove ground in columns 121-149
+        row[col_index] = 0  # Set to air (pit)
+    for col_index in range(170, level_width-20):  # Remove ground in columns 170-level_width-20
         row[col_index] = 0  # Set to air (pit)
     level_map[row_index] = row  # Add row to level map
 
@@ -143,6 +162,61 @@ for row_index in range(SURFACE-2, GROUND): # Raised Ground
     level_map[row_index][28:32] = [1] * 4
 for row_index in range(SURFACE-4, GROUND): # Raised Ground
     level_map[row_index][32:37] = [1] * 5
+for row_index in range(SURFACE-6, GROUND): # Raised Ground
+    level_map[row_index][41] = 1
+for row_index in range(SURFACE-17, SURFACE-12): # Upside Down Dirt
+    level_map[row_index][41] = 9
+level_map[SURFACE-18][37:70] = [6] * 33
+for row_index in range(SURFACE-17, SURFACE-8): # Upside Down Dirt
+    level_map[row_index][69] = 9
+for row_index in range(SURFACE-3, GROUND): # Raised Ground
+    level_map[row_index][69] = 1
+level_map[SURFACE-18][20:24] = [21] * 4 # Ice
+level_map[SURFACE-17][20:24] = [22] * 4 # Flipped ice
+level_map[GROUND][78] = 2 # Platform for spring
+
+level_map[SURFACE-18][88:113] = [21] * 25
+for row_index in range(SURFACE-17, SURFACE-4): # Huge Ice Block
+    level_map[row_index][88:113] = [28] * 25
+level_map[SURFACE-4][88:113] = [22] * 25
+level_map[0][95:101] = [9] * 6
+
+for row_index in range(4, SURFACE-18): # Upside Down Dirt
+    level_map[row_index][106] = 9
+
+for row_index in range(0, SURFACE-18): # Upside Down Dirt
+    level_map[row_index][112] = 9
+
+level_map[GROUND][78] = 2 # Platform for spring
+level_map[SURFACE-9][113:117] = [2] * 4 # Platform
+level_map[SURFACE-18][116:120] = [2] * 4 # Platform
+level_map[SURFACE-18][120] = 6 # Floating Ground Tile
+for row_index in range(SURFACE-17, SURFACE-3):
+    level_map[row_index][120] = 9 # Dirt Tiles
+for row_index in range(SURFACE-18, GROUND):
+    level_map[row_index][150:160] = [1] * 10
+for col_index in range(121, 146, 8):
+    level_map[SURFACE-18][col_index:col_index+3] = [21] * 3 # Platform
+for col_index in range(125, 146, 8):
+    level_map[SURFACE-13][col_index:col_index+3] = [21] * 3 # Platform
+for col_index in range(121, 146, 8):
+    level_map[SURFACE-9][col_index:col_index+3] = [21] * 3 # Platform
+for row_index in range(SURFACE-16, GROUND):
+    level_map[row_index][160:165] = [1] * 5
+for row_index in range(SURFACE-9, GROUND):
+    level_map[row_index][165:170] = [1] * 5
+level_map[SURFACE-18][184:189] = [6] * 5
+for row_index in range(SURFACE-18, GROUND):
+    level_map[row_index][184] = 1 # Raised Ground
+level_map[SURFACE-18][185:190] = [6] * 5
+level_map[SURFACE-11][190:201] = [6] * 11
+for row_index in range(0, SURFACE-11):
+    level_map[row_index][195] = 9 # Dirt Tiles
+level_map[SURFACE-18][201:206] = [6] * 5
+for row_index in range(SURFACE-18, GROUND):
+    level_map[row_index][206] = 1 # Raised Ground
+for row_index in range(SURFACE-16, GROUND):
+    level_map[row_index][280:level_width] = [1] * (level_width-280) # Raised Ground
 
 # Make terrain before this line. The next code block calculates the ground levels
 
@@ -155,24 +229,102 @@ for row_index, row in enumerate(level_map):
 
 # All code after this line should be for props, npcs, gadgets, and powerups. Terrain should not be made here.
 
-level_map[level_height-3][15:25] = [3] * 20 # Water
-level_map[level_height-2][15:25] = [11] * 20 # Water Block
-level_map[level_height-1][15:25] = [11] * 20 # Water Block
+level_map[SURFACE][13] = 31 # Dash Gadget
 
-level_map[level_height-3][37:42] = [3] * 20 # Water
-level_map[level_height-2][37:42] = [11] * 20 # Water Block
-level_map[level_height-1][37:42] = [11] * 20 # Water Block
+level_map[level_height-3][15:level_width] = [3] * (level_width-15) # Water
+level_map[level_height-2][15:level_width] = [11] * (level_width-15) # Water Block
+level_map[level_height-1][15:level_width] = [11] * (level_width-15) # Water Block
 
+level_map[SURFACE-7][41] = 7 # Thorn
+level_map[SURFACE-12][41] = 17 # Flipped Thorn
+
+level_map[SURFACE-5][44] = 4 # Jump Reset
+
+level_map[SURFACE-5][48:52] = [2] * 4 # Platform 
+level_map[SURFACE-6][50:52] = [7] * 2 # Thorns
+
+level_map[SURFACE-8][53] = 20 # Super Speed Powerup
+
+level_map[SURFACE-3][61:65] = [2] * 4 # Platform
+level_map[SURFACE-4][61] = 7 # Thorn
+level_map[SURFACE-4][64] = 7 # Thorn
+
+level_map[SURFACE-8][69] = 17 # Flipped Thorn
+level_map[SURFACE-4][69] = 7 # Thorn
+
+level_map[SURFACE-19][65:70] = [7] * 5 # Thorns on top
+level_map[SURFACE-19][39] = 16 # Double Jump Boots
+level_map[SURFACE-19][38] = 20 # Super Speed Powerup
+level_map[SURFACE-19][21] = 10 # Frost Walking Boots
+
+level_map[SURFACE-2][72] = 5 # Dash Powerup
+level_map[SURFACE][78] = 29 # Spring
+
+level_map[SURFACE-19][88:90] = [7] * 2 # Thorns
+level_map[SURFACE-19][95:101] = [7] * 6 # Thorns
+level_map[1][95:101] = [17] * 6 # Thorns
+
+level_map[SURFACE][102] = 8 # First Checkpoint (Flag)
+level_map[SURFACE][107] = 30 # Speed Boots
+
+for row_index in range(4, SURFACE-18):
+    level_map[row_index][105] = 18 # Left Thorns
+    level_map[row_index][107] = 19 # Right Thorns
+
+level_map[5][110] = 12 # Coin
+
+level_map[SURFACE][118] = 23 # High Jump
+level_map[SURFACE-10][114] = 23 # High Jump
+
+for col_index in range(126, 143, 8):
+    level_map[4][col_index] = 32 # Down Dash
+for col_index in range(130, 139, 8):
+    level_map[SURFACE-16][col_index] = 5 # Right Dash
+for col_index in range(126, 143, 8):
+    level_map[SURFACE-8][col_index] = 4 # Jump Reset
+level_map[SURFACE-12][122] = 4 # Jump Reset
+level_map[SURFACE-16][142] = 4 # Jump Reset
+
+level_map[SURFACE-11][146] = 12 # Coin
+
+level_map[SURFACE-19][152] = 8 # Second Checkpoint (Flag)
+
+level_map[SURFACE-17][185:190] = [17] * 5 # Flipped Thorns
+level_map[SURFACE-17][201:206] = [17] * 5 # Flipped Thorns
+level_map[SURFACE-10][190:201] = [17] * 11 # Flipped Thorns
+level_map[SURFACE-11][201] = 19 # Right Thorn
+level_map[SURFACE-12][196:201] = [7] * 5 # Thorns   
+
+level_map[SURFACE-10][168] = 33 # Balloon
+level_map[SURFACE-12][191] = 33 # Balloon
+level_map[SURFACE-3][187] = 4 # Jump Reset
+level_map[SURFACE-1][193] = 33 # Balloon
+level_map[SURFACE-19][205] = 30 # Speed Boots
+
+level_map[SURFACE-14][214:218] = [21] * 4 # Ice Tile
+level_map[SURFACE-13][214:218] = [22] * 4 # Flipped Ice Tile
+
+level_map[SURFACE-10][226:230] = [21] * 4 # Ice Tile
+level_map[SURFACE-9][226:230] = [22] * 4 # Flipped Ice Tile
+
+level_map[SURFACE-6][238:242] = [21] * 4 # Ice Tile
+level_map[SURFACE-5][238:242] = [22] * 4 # Flipped Ice Tile
+
+level_map[SURFACE-2][250:254] = [21] * 4 # Ice Tile
+level_map[SURFACE-1][250:254] = [22] * 4 # Flipped Ice Tile
+
+level_map[SURFACE-3][253] = 33 # Balloon
 
 # Dictionary containing which tile corresponds to what
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: water, 4: jump_reset, 5: dash_powerup, 6: floating_ground, 7: thorn, 8: flag, 9: dirt_tile, 10: frost_walking_boots,
          11: water_block, 12: coin, 13: walkway, 14: flipped_walkway, 15: invisible_platform, 16: double_jump_boots, 17: flipped_thorn, 18: left_thorn, 19: right_thorn, 20: super_speed_powerup,
-         21: ice_tile, 22: flipped_ice, 23: high_jump, 24: up_dash, 25: house, 26: tree, 27: background_tree, 28: ice_block}
+         21: ice_tile, 22: flipped_ice, 23: high_jump, 24: up_dash, 25: house, 26: tree, 27: background_tree, 28: ice_block, 29: spring, 30: speed_boots,
+         31: dash_gadget, 32: down_dash, 33: balloon}
 
-rocks = {} # Column numbers for all the rocks
-trees = {} # Column numbers for all the trees
-background_trees = {} # Column numbers for all the background trees
-signs = {} # Column numbers for all the signs
+rocks = {26, 112, 296} # Column numbers for all the rocks
+trees = {7, 115, 154, 281, 289} # Column numbers for all the trees
+background_trees = {29, 157, 286} # Column numbers for all the background trees
+signs = {33, 162, 293} # Column numbers for all the signs
 
 # Converts the x coordinates to the column on the map
 def calculate_column(x): 
@@ -196,6 +348,38 @@ def read_data(slot: int):
     return data.get("character")
 
 def show_level_completed_screen(slot: int, death_count: int):
+
+    level_map[SURFACE][13] = 31 # Dash Gadget
+    level_map[SURFACE-5][44] = 4 # Jump Reset
+    level_map[SURFACE-8][53] = 20 # Super Speed Powerup
+
+    level_map[SURFACE-19][39] = 16 # Double Jump Boots
+    level_map[SURFACE-19][38] = 20 # Super Speed Powerup
+    level_map[SURFACE-19][21] = 10 # Frost Walking Boots
+
+    level_map[SURFACE-2][72] = 5 # Dash Powerup
+
+    level_map[SURFACE][107] = 30 # Speed Boots
+
+    level_map[SURFACE][118] = 23 # High Jump
+    level_map[SURFACE-10][114] = 23 # High Jump
+
+    for col_index in range(126, 143, 8):
+        level_map[4][col_index] = 32 # Down Dash
+    for col_index in range(130, 139, 8):
+        level_map[SURFACE-16][col_index] = 5 # Right Dash
+    for col_index in range(126, 143, 8):
+        level_map[SURFACE-8][col_index] = 4 # Jump Reset
+    level_map[SURFACE-12][122] = 4 # Jump Reset
+    level_map[SURFACE-16][142] = 4 # Jump Reset
+
+    level_map[SURFACE-10][168] = 33 # Balloon
+    level_map[SURFACE-12][191] = 33 # Balloon
+    level_map[SURFACE-3][187] = 4 # Jump Reset
+    level_map[SURFACE-1][193] = 33 # Balloon
+    level_map[SURFACE-19][205] = 30 # Speed Boots
+
+    level_map[SURFACE-3][253] = 33 # Balloon
 
     # Wait for player to click the button
     waiting = True
@@ -252,6 +436,107 @@ def show_level_completed_screen(slot: int, death_count: int):
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
 
+def show_game_over_screen(slot: int):
+
+    level_map[5][110] = 12 # Coin
+    level_map[SURFACE-11][146] = 12 # Coin
+
+    level_map[SURFACE][13] = 31 # Dash Gadget
+    level_map[SURFACE-5][44] = 4 # Jump Reset
+    level_map[SURFACE-8][53] = 20 # Super Speed Powerup
+
+    level_map[SURFACE-19][39] = 16 # Double Jump Boots
+    level_map[SURFACE-19][38] = 20 # Super Speed Powerup
+    level_map[SURFACE-19][21] = 10 # Frost Walking Boots
+
+    level_map[SURFACE-2][72] = 5 # Dash Powerup
+
+    level_map[SURFACE][107] = 30 # Speed Boots
+
+    level_map[SURFACE][118] = 23 # High Jump
+    level_map[SURFACE-10][114] = 23 # High Jump
+
+    for col_index in range(126, 143, 8):
+        level_map[4][col_index] = 32 # Down Dash
+    for col_index in range(130, 139, 8):
+        level_map[SURFACE-16][col_index] = 5 # Right Dash
+    for col_index in range(126, 143, 8):
+        level_map[SURFACE-8][col_index] = 4 # Jump Reset
+    level_map[SURFACE-12][122] = 4 # Jump Reset
+    level_map[SURFACE-16][142] = 4 # Jump Reset
+
+    level_map[SURFACE-10][168] = 33 # Balloon
+    level_map[SURFACE-12][191] = 33 # Balloon
+    level_map[SURFACE-3][187] = 4 # Jump Reset
+    level_map[SURFACE-1][193] = 33 # Balloon
+    level_map[SURFACE-19][205] = 30 # Speed Boots
+
+    level_map[SURFACE-3][253] = 33 # Balloon
+
+    # Wait for player to click the button
+    waiting = True
+    while waiting:
+
+        screen.blit(background, (0, 0))
+
+        # Set fonts for the text
+        title_font = pygame.font.Font('PixelifySans.ttf', 100)
+        sub_font = pygame.font.Font('PixelifySans.ttf', 60)
+        sub_font_hover = pygame.font.Font('PixelifySans.ttf', 65)  # Larger for hover
+
+        # Render hover effect dynamically
+        restart_hover = False
+        select_level_hover = False
+
+        # Render the "Game Over" text
+        game_over_text = title_font.render("Game Over", True, WHITE)
+        restart_text = sub_font.render("Retry", True, WHITE)
+        select_level_text = sub_font.render("Back to Select Level", True, WHITE)
+
+        # Position the texts
+        game_over_rect = game_over_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
+        restart_over_rect = restart_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
+        select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))
+
+        # Check if mouse is hovering
+        if restart_over_rect.collidepoint(pygame.mouse.get_pos()):
+            restart_hover = True
+        if select_level_rect.collidepoint(pygame.mouse.get_pos()):
+            select_level_hover = True
+
+        # If hovering, change text size dynamically
+        if restart_hover:
+            restart_text = sub_font_hover.render("Retry", True, BLUE)
+            restart_over_rect = restart_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))  # Recalculate position
+        if select_level_hover:
+            select_level_text = sub_font_hover.render("Back to Select Level", True, BLUE)
+            select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))  # Recalculate position
+
+        # Create box around the text
+        box_padding = 100
+        game_over_screen_box = pygame.Rect(game_over_rect.left - box_padding, game_over_rect.top, game_over_rect.width + box_padding*2, game_over_rect.height + (box_padding*2) + 40)
+        pygame.draw.rect(screen, BLUE, game_over_screen_box, 10)
+        
+        # Draw the texts
+        screen.blit(game_over_text, game_over_rect)
+        screen.blit(restart_text, restart_over_rect)
+        screen.blit(select_level_text, select_level_rect)
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = event.pos
+                if restart_over_rect.collidepoint(mouse_x, mouse_y):
+                    level_4(slot) # Retry the level
+                    sys.exit()
+                if select_level_rect.collidepoint(mouse_x, mouse_y):
+                    world_select.World_Selector(slot)
+                    sys.exit()  # Go back to level select
+
 def level_4(slot: int):
     # Grab the sprite that was customized
     sprite = read_data(slot)
@@ -289,6 +574,8 @@ def level_4(slot: int):
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
     frostWalkBoots = False # Track if player has frost walk boots
+    speedBoots = False # Track if player has speed boots
+    dashGadget = False # Track if player has the dash gadget
 
     animation_index = 0  # Alternates between 0 and 1
     animation_timer = 0  # Tracks when to switch frames
@@ -299,21 +586,26 @@ def level_4(slot: int):
     ice_friction = 0.95  # Lower friction for slippery effect
     on_ice = False
 
-    checkpoints = [(player_x, player_y)]
+    checkpoints = [(player_x, player_y), (calculate_x_coordinate(102), calculate_y_coordinate(SURFACE)), (calculate_x_coordinate(152), calculate_y_coordinate(SURFACE-19))]
     checkpoint_bool = [False] * len(checkpoints)
     checkpoint_bool[0] = True
     checkpoint_idx = 0
     dying = False
     death_count = 0
-    collidable_tiles = {1, 2, 6, 9, 15, 21, 22}
+    collidable_tiles = {1, 2, 6, 9, 15, 21, 22, 28}
     dying_tiles = {3, 7, 11, 17, 18, 19}
 
     coin_count = 0
+
+    start_time = 180  # Timer starts at 180 seconds
+    timer = start_time
+    clock = pygame.time.Clock()
 
     running = True
     while running:
         
         screen.blit(background, (0, 0))
+
         # Draw level using tile images
         for row_index, row in enumerate(level_map):
             for col_index, tile in enumerate(row):
@@ -430,6 +722,12 @@ def level_4(slot: int):
 
         screen.blit(level_name_text, (20, 20))  # Position at (20, 20)
 
+        dt = clock.tick(60) / 1000  # Time elapsed per frame in seconds
+        timer -= dt  # Decrease timer
+
+        timer_text = level_name_font.render(f"Time: {int(timer)}", True, RED if timer <= 30 else WHITE)
+        screen.blit(timer_text, (WIDTH // 2 - 50, 20))
+
         # Apply gravity
         player_vel_y += gravity
         player_y += player_vel_y
@@ -450,8 +748,6 @@ def level_4(slot: int):
                         on_ground = True  # Player lands
                         doubleJumped = False # Reset double jump
 
-                    # if tile == 15: # If walkway, ignore collision from left and right and from bottom
-                    #     continue
                     # This code block ensures collision with solid blocks from the left and right
                     if (player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):  # If the player is at the same height as the block
                         if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and player_x + TILE_SIZE - player_speed <= tile_x):  
@@ -496,6 +792,11 @@ def level_4(slot: int):
             show_level_completed_screen(slot, death_count)
             running = False
 
+        if timer <= 0:
+            timer = 0  # Prevent negative values
+            show_game_over_screen(slot)
+            running = False
+
         if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
             player_x = 0
 
@@ -506,12 +807,31 @@ def level_4(slot: int):
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
             dying = False
+            if checkpoint_idx == 0:
+                frostWalkBoots = False
+                doubleJumpBoots = False
+                dashGadget = False
+                level_map[SURFACE-19][21] = 10 # Frost Walking Boots
+                level_map[SURFACE-19][39] = 16 # Double Jump Boots
+                level_map[SURFACE][13] = 31 # Dash Gadget
+            elif checkpoint_idx == 1:
+                speedBoots = False
+                level_map[SURFACE][107] = 30 # Speed Boots
+            elif checkpoint_idx == 2:
+                speedBoots = False
+                level_map[SURFACE-19][205] = 30 # Speed Boots
+
 
         for k, checkpoint in enumerate(checkpoints):
             x, y = checkpoint
-            if player_x >= x and player_y <= y and not checkpoint_bool[k]:
+            if player_x >= x and player_y <= y and player_y >= (y - (TILE_SIZE * 4)) and not checkpoint_bool[k]:
                 checkpoint_idx += 1
                 checkpoint_bool[k] = True
+                if checkpoint_idx == 1:
+                    doubleJumpBoots = False
+                    dashGadget = False
+                elif checkpoint_idx == 2:
+                    speedBoots = False
                     
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
