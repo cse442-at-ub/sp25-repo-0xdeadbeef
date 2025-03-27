@@ -293,6 +293,8 @@ tiles = {
     38: jump_reset
 }
 
+deadly_tiles = {6, 25, 33, 35, 36, 37}
+
 # -----------------------------------
 # Special Objects and NPC Placement
 # -----------------------------------
@@ -788,7 +790,7 @@ def level_1(slot: int):
                         doubleJumped = False
 
                 # If player touches water or thorn
-                if tile == 25 or tile == 6:
+                if tile in deadly_tiles:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
@@ -836,6 +838,12 @@ def level_1(slot: int):
                         coin_count += 1
                         level_map[SURFACE-1][68] = 0
                         level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
+
+                if tile == 28:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
+                        player_y + TILE_SIZE == tile_y):  # Feet touching top of ice
+                        on_ice = True
 
                 # This code handles jump reset
                 if tile == 38:
