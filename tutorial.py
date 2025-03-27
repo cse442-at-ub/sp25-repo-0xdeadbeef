@@ -17,6 +17,9 @@ pygame.mixer.init() # Initialize Pygame Audio Mixer
 level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
 pygame.mixer.music.set_volume(1.0)  # start at 100% volume 
 
+# Gadget pick up sound 
+gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
+
 
 # Screen settings
 BASE_WIDTH = 1920
@@ -541,6 +544,7 @@ def tutorial_level(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play() # Play gadget pick up sound when picking up
                         doubleJumpBoots = True
                         doubleJumped = False
 
@@ -550,6 +554,7 @@ def tutorial_level(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play() # Play gadget pick up sound when picking up
                         player_speed = player_speed * 1.25 # Up the player speed
                         speedBoots = True
 
