@@ -6,14 +6,13 @@ import sys
 
 import character_customization
 import world_select
-from saves_handler import check_save, create_new_save, delete_save
+from saves_handler import check_save, create_new_save
 
 import pygame_widgets 
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox 
 
 pygame.init()   # Initialize Pygame
-pygame.mixer.init() # Initialize Pygame Audio Mixer
 
 info = pygame.display.Info()
 WIDTH = info.current_w
@@ -68,18 +67,9 @@ class TransparentButton:
             if self.current_font != self.normal_font:
                 self.current_font = self.normal_font
                 self.update_surface()
-
-    def updateText(self, newText):
-        self.text = newText
     
 
 def Screen_SaveSlot():
-    # Check if any music is currently playing
-    if not pygame.mixer.music.get_busy():
-        # If not, load the "Background.mp3" again
-        pygame.mixer.music.load("Audio/Background.mp3")
-        pygame.mixer.music.play(-1)  # loop forever
-
     # Display the screen title
     pygame.display.set_caption("Save Slot Screen")
     
@@ -104,15 +94,9 @@ def Screen_SaveSlot():
             buttonNames.append("Save " + f"{i+1}" + " {New}")
     
     buttons = [
-        # Save Slot Buttons
         TransparentButton(buttonNames[0], font_path, WIDTH//2, HEIGHT//2 - 200),
         TransparentButton(buttonNames[1], font_path, WIDTH//2, HEIGHT//2 - 50),
         TransparentButton(buttonNames[2], font_path, WIDTH//2, HEIGHT//2 + 100),
-        # Delete buttons
-        TransparentButton("X", font_path, WIDTH//2 + 600, HEIGHT//2 - 200),
-        TransparentButton("X", font_path, WIDTH//2 + 600, HEIGHT//2 - 50),
-        TransparentButton("X", font_path, WIDTH//2 + 600, HEIGHT//2 + 100),
-        # Back buttons
         TransparentButton("Back", font_path, WIDTH//2, HEIGHT - 100),
     ]
 
@@ -159,28 +143,9 @@ def Screen_SaveSlot():
                         world_select.World_Selector(3)
                     sys.exit()
 
-            # Handle delete slot 
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if buttons[3].is_clicked(event.pos) or buttons[4].is_clicked(event.pos) or buttons[5].is_clicked(event.pos):
-                    print("Delete Save #")
-                    if check_save(1) and buttons[3].is_clicked(event.pos): 
-                        delete_save(1)
-                        buttons[0].updateText("Save 1 {New}")
-                        buttons[0].update_surface()
-                    elif check_save(2) and buttons[4].is_clicked(event.pos):
-                        delete_save(2)
-                        buttons[1].updateText("Save 2 {New}")
-                        buttons[1].update_surface()
-                    elif check_save(3) and buttons[5].is_clicked(event.pos):
-                        delete_save(3)
-                        buttons[2].updateText("Save 3 {New}")
-                        buttons[2].update_surface()
-                    else:
-                        print("No Saved Data in Slot")
-
             # Handle clicks on Back button using the fourth button in the array (index 3)
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if buttons[6].is_clicked(event.pos):  # Use buttons[3] for the Back button
+                if buttons[3].is_clicked(event.pos):  # Use buttons[3] for the Back button
                     print("Back clicked. Going to main menu...")
                     running = False
                     main_menu.run_main_menu()  # Go back to main menu

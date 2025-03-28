@@ -10,13 +10,6 @@ from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox 
 
 pygame.init()   # Initialize Pygame
-pygame.mixer.init() # Initialize Pygame Audio Mixer
-
-# Load and play music ONCE
-# Load and start playing background music. The -1 loop value loops it indefinitely.
-pygame.mixer.music.load("Audio/Background.mp3")
-pygame.mixer.music.play(-1)         # loop forever
-pygame.mixer.music.set_volume(0.2)  # start at 50% volume 
 
 info = pygame.display.Info()
 WIDTH = info.current_w
@@ -25,12 +18,12 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Main Menu with Hover Effect")
 
 # BLIZZARD SETUP
-num_snowflakes = random.randint(0, 50) # randomly set the number of snowflakes to something between 50 and 200
+num_snowflakes = random.randint(50, 200) # randomly set the number of snowflakes to something between 50 and 2000
 snowflakes = []
 
 def create_blizzard():
     # Create initial snowflakes at random positions, with random speeds.
-    for _ in range(num_snowflakes):
+    for i in range(num_snowflakes):
         x = random.randint(0, WIDTH)
         y = random.randint(-HEIGHT, 0)  # start above the screen
         speed_x = random.uniform(-1, 1) # wind: flakes drift left/right
@@ -82,12 +75,6 @@ exit_rect = exit_normal.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 150))
 
 # Initialize snow before main loop
 def run_main_menu():
-    # Check if any music is currently playing
-    if not pygame.mixer.music.get_busy():
-        # If not, load the "Background.mp3" again
-        pygame.mixer.music.load("Audio/Background.mp3")
-        pygame.mixer.music.play(-1)  # loop forever
-
     create_blizzard() # Initialize snow
 
     running = True
