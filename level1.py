@@ -11,6 +11,8 @@ from saves_handler import *
 
 pygame.init()
 
+counter_for_coin_increment = 0
+
 # Screen Resolution 
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
@@ -513,6 +515,7 @@ def show_level_completed_screen(slot: int):
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
                     level_name = "Level One"
                     achievement_counter(slot, level_name)
+                    eclipse_increment(slot, counter_for_coin_increment)
                     world_select.World_Selector(slot)
                     sys.exit()
 
@@ -585,6 +588,10 @@ def level_1(slot: int):
     dying = False
     death_count = 0
     coin_count = 0
+
+    global counter_for_coin_increment
+    counter_for_coin_increment = coin_count
+
     collidable_tiles = {1, 2, 32, 26, 27, 28, 29, 31}
 
     # State Variables for Gadgets
@@ -831,6 +838,7 @@ def level_1(slot: int):
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
 
                         coin_count += 1
+                        counter_for_coin_increment = coin_count
                         level_map[SURFACE-1][68] = 0
                         level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
 

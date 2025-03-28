@@ -39,7 +39,7 @@ text_positions = [
 # Load and resize yellow circle
 yellow_circle = pygame.transform.scale(pygame.image.load("Assets/Achievement Menu/yellow_circle.png"), (140, 140))
 yellow_icon_position = (WIDTH // 2 - 825, 700)
-yellow_text_position = (yellow_icon_position[0] + 40, yellow_icon_position[1] + 160)
+yellow_text_position = [(yellow_icon_position[0] - 55, yellow_icon_position[1] + 160), (yellow_icon_position[0]+ 45, yellow_icon_position[1] + 160), (yellow_icon_position[0] + 145, yellow_icon_position[1] + 160)]
 
 # Font settings
 try:
@@ -135,13 +135,18 @@ def run_achievements_menu():
         with open(saveslotthree, "r") as file:
             save_data_three = json.load(file)
 
-    level_names = ["Tutorial", "Level One", "Level Two", "Level Four", "Level Five"]
+    level_names = ["Tutorial", "Level One", "Level Two", "Level Four", "Level Five", "Level Six", "Level Seven"]
     level_clears = {level: [0,0,0,] for level in level_names}
 
     for level in level_names:
         level_clears[level][0] = save_data_one.get(level, 0)
         level_clears[level][1] = save_data_two.get(level, 0)
         level_clears[level][2] = save_data_three.get(level, 0)
+
+    yellow_counts = []
+    yellow_counts.append(save_data_one.get("Eclipse", 0))
+    yellow_counts.append(save_data_two.get("Eclipse", 0))
+    yellow_counts.append(save_data_three.get("Eclipse", 0))
 
 
     running = True
@@ -168,13 +173,15 @@ def run_achievements_menu():
 
         # Draw yellow circle and its counter
         screen.blit(yellow_circle, yellow_icon_position)
-        draw_text("0x", yellow_text_position, color=(255, 255, 255))
+
+        for i, count in enumerate(yellow_counts):
+            draw_text(f"{count}x", yellow_text_position[i], color=(255, 255, 255))
 
         # Draw counters below icons
         for i, level_name in enumerate(level_names):
             for o, clears in enumerate(level_clears[level_name]): 
                 text_position = text_positions[i][o]
-                draw_text(f"{clears}x", text_position)
+                draw_text(f"{clears}x", text_position, color=(255,255,255))
 
                 
         # for pos in text_positions:
