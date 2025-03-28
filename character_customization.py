@@ -7,6 +7,7 @@ import world_select
 from saves_handler import *
 
 pygame.init()  # Initialize Pygame
+pygame.mixer.init() # Initialize Pygame Audio Mixer
 
 # Get full screen dimensions
 info = pygame.display.Info()
@@ -102,6 +103,12 @@ def createSpriteString(hairIndex, skinIndex, shirtIndex, pantsIndex):
     return spritePath
 
 def customization_screen(slot: int): 
+    # Check if any music is currently playing
+    if not pygame.mixer.music.get_busy():
+        # If not, load the "Background.mp3" again
+        pygame.mixer.music.load("Audio/Background.mp3")
+        pygame.mixer.music.play(-1)  # loop forever
+
     pygame.display.set_caption("Character Customization Screen")
 
 

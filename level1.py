@@ -8,7 +8,19 @@ from NPCs.level_1_npc_1 import handle_level_1_npc_1_dialogue  # Import the funct
 from NPCs.level_1_npc_2 import handle_level_1_npc_2_dialogue  # Import the functionality of the second NPC from level 1
 from NPCs.level_1_npc_3 import handle_level_1_npc_3_dialogue  # Import the functionality of the third NPC from level 1
 
+# Initialize Pygame
 pygame.init()
+pygame.mixer.init() # Initialize Pygame Audio Mixer
+
+# Load the level complete sound 
+level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
+# pygame.mixer.music.set_volume(1.0)  # start at 100% volume 
+
+# Gadget pick up sound 
+gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
+
+# Death sound 
+death_sound = pygame.mixer.Sound("Audio/Death.mp3")
 
 # Screen Resolution 
 BASE_WIDTH = 1920
@@ -239,10 +251,7 @@ for row_index in range(SURFACE - 1, SURFACE):
         level_map[row_index][col] = 28
 
 for col in range(134, level_width):
-    step_down = (col - 130) // 2
-    ground_start = min((SURFACE - 1) + step_down, GROUND)
-    for row_index in range(ground_start, level_height):
-        level_map[row_index][col] = 28
+    level_map[SURFACE][col] = 28
 
 
 
@@ -300,6 +309,8 @@ tiles = {
     37: thorn_right,
     38: jump_reset
 }
+
+deadly_tiles = {6, 25, 33, 35, 36, 37}
 
 # -----------------------------------
 # Special Objects and NPC Placement
@@ -477,6 +488,13 @@ def calculate_y_coordinate(row):
 
 
 def show_level_completed_screen(slot: int):
+
+    # Stop tutorial music
+    pygame.mixer.music.stop()
+
+    # Play the level complete sound once when this function runs
+    level_complete_sound.play()
+
     screen.blit(background, (0, 0))
     level_map[SURFACE][28] = 3  # Respawn double jump boots
     level_map[SURFACE-5][55] = 13  # Respawn speed boots
@@ -524,6 +542,16 @@ def read_data(slot: int):
 # Level One Game Loop
 # -----------------------------------
 def level_1(slot: int):
+
+    # Stop any previously playing music 
+    pygame.mixer.music.stop()
+    
+    # Load the tutorial music
+    pygame.mixer.music.load("Audio/Level1.mp3")
+    pygame.mixer.music.play(-1)  # -1 loops forever
+
+    level_map[SURFACE - 3][39] = 3   # Jump Boots
+
     # Grab the sprite that was customized
     sprite = read_data(slot)
 
@@ -778,15 +806,16 @@ def level_1(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play() # Play gadget pick up sound when picking up
                         doubleJumpBoots = True
                         doubleJumped = False
 
                 # If player touches water or thorn
-                if tile == 25 or tile == 6:
+                if tile in deadly_tiles:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        
+                        death_sound.play() # Play death sound when player touches water or thorn
                         dying = True
 
                 
@@ -830,6 +859,12 @@ def level_1(slot: int):
                         coin_count += 1
                         level_map[SURFACE-1][68] = 0
                         level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
+
+                if tile == 28:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
+                        player_y + TILE_SIZE == tile_y):  # Feet touching top of ice
+                        on_ice = True
 
                 # This code handles jump reset
                 if tile == 38:
@@ -880,14 +915,18 @@ def level_1(slot: int):
         if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
             player_x = 0
 
+        # When player falls past bottom of level = dies
         if player_y + TILE_SIZE >= level_height * TILE_SIZE:
             dying = True
+            death_sound.play() # Play death sound when player touches water or thorn
 
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
             dying = False
             level_map[SURFACE - 3][39] = 3
+            # Reset the player’s flags so re-collect
+            doubleJumpBoots = False
             if checkpoint_idx == 0 and doubleJumpBoots:
                 doubleJumpBoots = False
                 level_map[SURFACE][28] = 3
