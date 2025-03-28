@@ -1,13 +1,16 @@
 import pygame  # type: ignore
 import sys
-from pygame.locals import *
+from pygame.locals import * # type: ignore
 
 import tutorial
+import level1
+import level2
 import save_slots
 import world_select
 import main_menu  
 
 pygame.init()  # Initialize Pygame
+pygame.mixer.init() # Initialize Pygame Audio Mixer
 
 # Get full screen resolution
 WIDTH, HEIGHT = pygame.display.Info().current_w, pygame.display.Info().current_h
@@ -114,8 +117,16 @@ right_rect = right_arrow_image.get_rect(center=(3 * WIDTH // 4 + 20, HEIGHT // 2
 # Load mini square images
 unlocked_level_image = pygame.image.load("Accessories/unlocked_level_button.png")
 current_level_images = [
-    pygame.image.load("Accessories/current_snow_level_button.png"),
-    pygame.image.load("Accessories/current_desert_level_button.png"),
+    pygame.image.load("Accessories/snow_tutorial_level_button.png"), # tutorial button for snow map
+    pygame.image.load("Accessories/snow_level_one_button.png"), # level 1 for snow map
+    pygame.image.load("Accessories/snow_level_two_button.png"), # level 2 for snow map
+    pygame.image.load("Accessories/snow_level_three_button.png"), # level 3 for snow map
+    pygame.image.load("Accessories/snow_level_four_button.png"), # level 4 for snow map
+
+    pygame.image.load("Accessories/current_desert_level_button.png"), # replace this later with level 5 and 6 for desert map commented directly below
+    # pygame.image.load("Accessories/desert_level_five_button.png"),
+    # pygame.image.load("Accessories/desert_level_six_button.png"),
+
     # Add more as needed
 ]
 locked_level_image = pygame.image.load("Accessories/locked_level_button.png")
@@ -124,16 +135,18 @@ current_level_images = [pygame.transform.scale(img, (40, 40)) for img in current
 locked_level_image = pygame.transform.scale(locked_level_image, (40, 40))
 
 mini_squares = [
-    [  # Level 1
-        {"pos": (WIDTH // 2 - 150, HEIGHT // 2 - 80), "image": unlocked_level_image},
-        {"pos": (WIDTH // 2 + 10, HEIGHT // 2 - 20), "image": current_level_images[0]},  # current_snow_level_button.png
-        {"pos": (WIDTH // 2 - 140, HEIGHT // 2 + 70), "image": unlocked_level_image},
-        {"pos": (WIDTH // 2 + 157, HEIGHT // 2 - 35), "image": unlocked_level_image},
-        {"pos": (WIDTH // 2 + 110, HEIGHT // 2 + 150), "image": locked_level_image},
+    [  # Map 1
+        {"pos": (WIDTH // 2 - 140, HEIGHT // 2 + 70), "image": current_level_images[0]}, # Tutorial Level
+        {"pos": (WIDTH // 2 - 150, HEIGHT // 2 - 80), "image": current_level_images[1]}, # Level 1
+        {"pos": (WIDTH // 2 + 10, HEIGHT // 2 - 20), "image": current_level_images[2]}, # Level 2
+        {"pos": (WIDTH // 2 + 157, HEIGHT // 2 - 35), "image": current_level_images[3]}, # Level 3
+        {"pos": (WIDTH // 2 + 110, HEIGHT // 2 + 150), "image": current_level_images[4]}, # Level 4 (FINAL LEVEL)
+        # {"pos": (WIDTH // 2 + 157, HEIGHT // 2 - 35), "image": unlocked_level_image},
+        # {"pos": (WIDTH // 2 + 110, HEIGHT // 2 + 150), "image": locked_level_image},
     ],
-    [  # Level 2
+    [  # Map 2
         {"pos": (WIDTH // 2 - 200, HEIGHT // 2 - 180), "image": unlocked_level_image},
-        {"pos": (WIDTH // 2 - 250, HEIGHT // 2 - 20), "image": current_level_images[1]},
+        {"pos": (WIDTH // 2 - 250, HEIGHT // 2 - 20), "image": current_level_images[5]},
         {"pos": (WIDTH // 2 - 30, HEIGHT // 2 - 40), "image": unlocked_level_image},
         {"pos": (WIDTH // 2 + 110, HEIGHT // 2 + 40), "image": unlocked_level_image},
         {"pos": (WIDTH // 2 - 20, HEIGHT // 2 + 140), "image": locked_level_image},
@@ -142,6 +155,12 @@ mini_squares = [
 ]
 
 def World_Selector(slot: int):
+    # Check if any music is currently playing
+    if not pygame.mixer.music.get_busy():
+        # If not, load the "Background.mp3" again
+        pygame.mixer.music.load("Audio/Background2.mp3")
+        pygame.mixer.music.play(-1)  # loop forever
+
     current_level = 0
     num_levels = len(background_images)
     running = True
@@ -172,11 +191,47 @@ def World_Selector(slot: int):
                     for idx, square in enumerate(mini_squares[current_level]):
                         rect = square["image"].get_rect(topleft=square["pos"])
                         if rect.collidepoint(event.pos):
-                            if current_level == 0 and idx == 1:
-                                print("Current snow level button clicked. Going to tutorial snow level...")
+                            if current_level == 0 and idx == 0:  # Current snow level button
+                                print("Tutorial button clicked. Going to tutorial snow level...")
                                 running = False
                                 tutorial.tutorial_level(slot)
                                 sys.exit()
+                            elif current_level == 0 and idx == 1:  # Level 1 button in Map 1
+                                print("Level 1 button clicked. Going to snow Level 1...")
+                                running = False
+                                level1.level_1(slot)  # Call the Level 1 function
+                                sys.exit()
+                            elif current_level == 0 and idx == 2:  # Level 2 button in Map 1
+                                print("Level 2 button clicked. Going to snow Level 2...")
+                                running = False
+                                level2.level_2(slot)  # Call the Level 2 function
+                                sys.exit()
+
+                            # SOON TO DO: 
+                            # elif current_level == 0 and idx == 3:  # Level 3 button in Map 1
+                            #     print("Level 3 button clicked. Going to snow Level 3...")
+                            #     running = False
+                            #     level_2.start_level_2(slot)  # Call the Level 3 function
+                            #     sys.exit()
+                            # elif current_level == 0 and idx == 4:  # Level 4 button in Map 1
+                            #     print("Level 4 button clicked. Going to snow Level 2...")
+                            #     running = False
+                            #     level_2.start_level_2(slot)  # Call the Level 4 function
+                            #     sys.exit()
+
+                            # SOON TO DOx2 : 
+                            # elif current_level == 0 and idx == 5:  # Level 5 button in Map 2
+                            #     print("Level 5 button clicked. Going to desert Level 5...")
+                            #     running = False
+                            #     level_5.start_level_5(slot)  # Call the Level 5 function
+                            #     sys.exit()
+                            # elif current_level == 0 and idx == 6:  # Level 6 button in Map 2
+                            #     print("Level 6 button clicked. Going to desert Level 6...")
+                            #     running = False
+                            #     level_6.start_level_6(slot)  # Call the Level 6 function
+                            #     sys.exit()
+
+                        
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_LEFT:
                     current_level = (current_level - 1) % num_levels
