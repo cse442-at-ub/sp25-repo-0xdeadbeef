@@ -21,6 +21,12 @@ gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
 # Death sound 
 death_sound = pygame.mixer.Sound("Audio/Death.mp3")
 
+# Super speed power up sound
+super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
+
+# Dash power up sound
+dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
+
 # Screen settings
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
@@ -826,7 +832,7 @@ def level_2(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
+                        super_speed_sound.play()
                         level_map[row_index][col_index] = 0
                         player_speed *= 2  # Double the speed
                         super_speed_effects.append({"end_time": pygame.time.get_ticks() + 2000})  # 2 sec effect
@@ -858,6 +864,7 @@ def level_2(slot: int):
                         left_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
                         dash_duration = dash_pickup_time + 400
                         dashing = True
+                        dash_sound.play()
                         level_map[row_index][col_index] = 0 
                         player_speed = player_speed * 5
                         direction = -1
@@ -873,6 +880,7 @@ def level_2(slot: int):
                         player_vel_y = -25
                         up_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
                         dashing = True
+                        dash_sound.play()
 
                 # This code handles jump reset
                 if tile == 20:

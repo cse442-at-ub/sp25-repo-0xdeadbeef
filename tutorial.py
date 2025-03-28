@@ -23,6 +23,12 @@ gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
 # Death sound 
 death_sound = pygame.mixer.Sound("Audio/Death.mp3")
 
+# Super speed power up sound
+super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
+
+# Dash power up sound
+dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
+
 # Screen settings
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
@@ -575,6 +581,7 @@ def tutorial_level(slot: int):
                         super_speed_pickup_time = pygame.time.get_ticks()
                         super_speed_effect_off_time = super_speed_pickup_time + 2000
                         super_speed_bool = True
+                        super_speed_sound.play()
                         level_map[SURFACE][95] = 0
                         super_speed_respawn_time = super_speed_pickup_time + 5000
                         player_speed = player_speed * 2
@@ -590,6 +597,7 @@ def tutorial_level(slot: int):
                         player_speed = player_speed * 2
                         dash_duration = pygame.time.get_ticks() + 200
                         dashing = True
+                        dash_sound.play()
 
                 if tile == 14:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
