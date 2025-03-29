@@ -554,7 +554,6 @@ def level_1(slot: int):
     player_x = 150  # Start position, change this number to spawn in a different place
     player_y = HEIGHT - 560
     player_speed = 6.5 * scale_factor # Adjust player speed according to their resolution
-    player_speed = player_speed * 2
 
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.0 / scale_factor # Gravity effect (Greater number means stronger gravity)

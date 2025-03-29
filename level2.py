@@ -526,7 +526,6 @@ def level_2(slot: int):
     player_x = calculate_x_coordinate(5)  # Start position, change this number to spawn in a different place
     player_y = calculate_y_coordinate(SURFACE)
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
-    player_speed = player_speed * 2 
 
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
