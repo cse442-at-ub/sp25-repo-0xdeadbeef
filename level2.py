@@ -135,6 +135,26 @@ npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_b
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  
 
+#-----Gadget inventory images and dictionary
+
+inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.transform.scale(inventory, (250, 70))
+inventory_x = (WIDTH - 250) // 2
+inventory_y = HEIGHT - 100
+
+inventory_jump_boots = pygame.image.load("./images/boots.png")
+inventory_jump_boots = pygame.transform.scale(inventory_jump_boots, (42, 50))
+
+inventory_speed_boots = pygame.image.load("./images/speed_boots.png")
+inventory_speed_boots = pygame.transform.scale(inventory_speed_boots, (42, 50))
+
+INV_SLOT_WIDTH = 42
+INV_SLOT_HEIGHT = 45
+
+first_slot = (inventory_x + 5, inventory_y + 10)
+second_slot = (inventory_x + INV_SLOT_WIDTH + 10, inventory_y + 10)
+
+
 # Set up the level with a width of 200 and a height of 27 rows
 level_width = 280
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
@@ -551,6 +571,9 @@ def level_2(slot: int):
     dash_pickup_time = 0
     dash_duration = 0
     dashing = False
+
+    #-----Variable to check which gadget was picked up first
+    double_first = False
 
     # State Variables for Gadgets
     bubbleJump = False
@@ -993,6 +1016,30 @@ def level_2(slot: int):
 
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
+
+        #-----Inventory Fill-up logic
+
+        screen.blit(inventory, (inventory_x, inventory_y))
+
+        if (doubleJumpBoots):
+            if (doubleJumpBoots) and (speedBoots == False):
+                double_first = True
+                screen.blit(inventory_jump_boots, first_slot)
+            elif (doubleJumpBoots) and (speedBoots) and double_first:
+                screen.blit(inventory_jump_boots, first_slot)
+                screen.blit(inventory_speed_boots, second_slot)
+
+
+        if (speedBoots):
+            if  (speedBoots) and (doubleJumpBoots == False):
+                double_first == False
+                screen.blit(inventory_speed_boots, first_slot)
+                print(f"SpeedBoots: {speedBoots}")
+            elif (doubleJumpBoots) and (speedBoots) and (double_first == False):
+                screen.blit(inventory_speed_boots, first_slot)
+                screen.blit(inventory_jump_boots, second_slot)
+
+
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

@@ -110,6 +110,30 @@ rock = pygame.transform.scale(rock, (TILE_SIZE, TILE_SIZE // 2))
 background_tree = pygame.image.load("./images/background_tree.png")
 background_tree = pygame.transform.scale(background_tree, (TILE_SIZE * 1.5, TILE_SIZE * 2))
 
+
+#-----Gadget inventory images and dictionary
+
+inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.transform.scale(inventory, (250, 70))
+inventory_x = (WIDTH - 250) // 2
+inventory_y = HEIGHT - 100
+
+inventory_jump_boots = pygame.image.load("./images/boots.png")
+inventory_jump_boots = pygame.transform.scale(inventory_jump_boots, (42, 50))
+
+inventory_speed_boots = pygame.image.load("./images/speed_boots.png")
+inventory_speed_boots = pygame.transform.scale(inventory_speed_boots, (42, 50))
+
+INV_SLOT_WIDTH = 42
+INV_SLOT_HEIGHT = 45
+
+first_slot = (inventory_x + 5, inventory_y + 10)
+second_slot = (inventory_x + INV_SLOT_WIDTH + 10, inventory_y + 10)
+
+# The inventory will initially be empty
+# inventory_slots = {0: inventory_jump_boots, 1: inventory_speed_boots, 2: None, 3: None, 4: None}
+# inventory_conditions = {0: double, 1: False, 2: False, 3: False, 4: False}
+
 # Set up the level with a width of 140 and a height of 40 rows
 level_width = 140
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
@@ -340,6 +364,9 @@ def tutorial_level(slot: int):
     dash_duration = 0
     dashing = False
 
+    #-----Variable to check which gadget was picked up first
+    double_first = False
+
     checkpoints = [(200, HEIGHT-200), (1480, HEIGHT-400), (3480, HEIGHT-200)]
     checkpoint_bool = [True, False, False]
     checkpoint_idx = 0
@@ -411,6 +438,9 @@ def tutorial_level(slot: int):
 
             # Draw snowflake
             pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
+
+        # screen.blit(inventory, (inventory_x, inventory_y))
+
         
         # Check if player is near the NPC
         npc_x = calculate_x_coordinate(60)  # NPC's x position
@@ -493,6 +523,9 @@ def tutorial_level(slot: int):
                 screen.blit(player, (player_x - camera_x, player_y))
             else: # Left
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
+
+        screen.blit(inventory, (inventory_x, inventory_y))
+
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -666,11 +699,39 @@ def tutorial_level(slot: int):
                 checkpoint_bool[k] = True
                 if checkpoint_idx == 2:
                     doubleJumpBoots = False # Remove their double jump boots
+                    speedBoots = False
                     player_speed = player_speed / 1.25 # Revert their speed back to normal
                     level_map[SURFACE-1][68] = 14  #Spawn coin after reaching 2nd checkpoint
 
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
+
+        
+        #-----Inventory Fill-up logic
+
+        screen.blit(inventory, (inventory_x, inventory_y))
+
+        if (doubleJumpBoots):
+            if (doubleJumpBoots) and (speedBoots == False):
+                double_first = True
+                screen.blit(inventory_jump_boots, first_slot)
+            elif (doubleJumpBoots) and (speedBoots) and double_first:
+                screen.blit(inventory_jump_boots, first_slot)
+                screen.blit(inventory_speed_boots, second_slot)
+
+
+        if (speedBoots):
+            if  (speedBoots) and (doubleJumpBoots == False):
+                double_first == False
+                screen.blit(inventory_speed_boots, first_slot)
+                print(f"SpeedBoots: {speedBoots}")
+            elif (doubleJumpBoots) and (speedBoots) and (double_first == False):
+                screen.blit(inventory_speed_boots, first_slot)
+                screen.blit(inventory_jump_boots, second_slot)
+           
+
+        # print(f"First Slot: {first_slot}")
+        # print(f"Second Slot: {second_slot}")
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
