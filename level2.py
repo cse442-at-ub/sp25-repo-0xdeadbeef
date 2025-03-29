@@ -11,12 +11,27 @@ from saves_handler import *
 
 # Initialize PyGame
 pygame.init()
+pygame.mixer.init() # Initialize Pygame Audio Mixer
+
+# Load the level complete sound 
+level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
+
+# Gadget pick up sound 
+gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
+
+# Death sound 
+death_sound = pygame.mixer.Sound("Audio/Death.mp3")
+
+# Super speed power up sound
+super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
+
+# Dash power up sound
+dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
 
 counter_for_coin_increment = 0
 
 
 # Screen settings
-
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
 
@@ -360,6 +375,12 @@ def calculate_y_coordinate(row):
 
 def show_level_completed_screen(slot: int):
 
+    # Stop tutorial music
+    pygame.mixer.music.stop()
+
+    # Play the level complete sound once when this function runs
+    level_complete_sound.play()
+
     level_map[SURFACE-8][62] = 3 # Double Jump Boots
     level_map[SURFACE-14][63] = 11 # Speed Boots
     level_map[SURFACE-5][178] = 3 # Double Jump Boots
@@ -499,8 +520,17 @@ def read_data(slot: int):
         data = json.load(file)
     return data.get("character")
 
+
 # Function to run the tutorial level
 def level_2(slot: int):
+    
+    # Stop any previously playing music 
+    pygame.mixer.music.stop()
+    
+    # Load the tutorial music
+    pygame.mixer.music.load("Audio/Level2.mp3")
+    pygame.mixer.music.play(-1)  # -1 loops forever
+
     # Grab the sprite that was customized
     sprite = read_data(slot)
 
@@ -808,15 +838,16 @@ def level_2(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play() # Play gadget pick up sound when picking up
                         doubleJumpBoots = True
                         doubleJumped = False
 
-                # If player touches water
+                # If player touches water or thorn
                 if tile == 4 or tile == 6:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        
+                        death_sound.play() # Play death sound when player touches water or thorn
                         dying = True
 
                 # This code picks up the speed boots
@@ -825,6 +856,7 @@ def level_2(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play() # Play gadget pick up sound when picking up
                         player_speed = player_speed * 1.25 # Up the player speed
                         speedBoots = True
 
@@ -833,7 +865,7 @@ def level_2(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
+                        super_speed_sound.play()
                         level_map[row_index][col_index] = 0
                         player_speed *= 2  # Double the speed
                         super_speed_effects.append({"end_time": pygame.time.get_ticks() + 2000})  # 2 sec effect
@@ -866,6 +898,7 @@ def level_2(slot: int):
                         left_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
                         dash_duration = dash_pickup_time + 400
                         dashing = True
+                        dash_sound.play()
                         level_map[row_index][col_index] = 0 
                         player_speed = player_speed * 5
                         direction = -1
@@ -881,6 +914,7 @@ def level_2(slot: int):
                         player_vel_y = -25
                         up_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
                         dashing = True
+                        dash_sound.play()
 
                 # This code handles jump reset
                 if tile == 20:
@@ -955,8 +989,10 @@ def level_2(slot: int):
         if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
             player_x = 0
 
+        # When player falls past bottom of level = dies
         if player_y + TILE_SIZE >= level_height * TILE_SIZE:
             dying = True
+            death_sound.play() # Play death sound when player touches water or thorn
 
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]

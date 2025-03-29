@@ -3,6 +3,11 @@ import random
 import json
 import sys
 import world_select
+from collections import deque
+from NPCs.level_3_npc_1 import handle_level_3_npc_1_dialogue  # Import the functionality of the NPC from level 3
+from NPCs.level_3_npc_2 import handle_level_3_npc_2_dialogue  # Import the functionality of the NPC from level 3
+from NPCs.level_3_npc_3 import handle_level_3_npc_3_dialogue  # Import the functionality of the NPC from level 3
+from NPCs.level_3_npc_4 import handle_level_3_npc_4_dialogue  # Import the functionality of the NPC from level 3
 
 # Initialize PyGame
 pygame.init()
@@ -74,7 +79,7 @@ right_thorn = pygame.transform.rotate(thorn, -90)
 flag = pygame.image.load("./images/flag.png")
 flag = pygame.transform.scale(flag, (TILE_SIZE, TILE_SIZE))
 
-frost_walking_boots = pygame.image.load("./images/boots.png")
+frost_walking_boots = pygame.image.load("./images/ice_boots.png")
 frost_walking_boots = pygame.transform.scale(frost_walking_boots, (TILE_SIZE, TILE_SIZE))
 
 coin = pygame.image.load("./images/coin.png")
@@ -92,7 +97,7 @@ double_jump_boots = pygame.transform.scale(double_jump_boots, (TILE_SIZE, TILE_S
 super_speed_powerup = pygame.image.load("./images/super_speed_powerup.png")
 super_speed_powerup = pygame.transform.scale(super_speed_powerup, (TILE_SIZE, TILE_SIZE))
 
-high_jump = pygame.image.load("./images/dash_powerup.png")
+high_jump = pygame.image.load("./images/high_jump.png")
 high_jump = pygame.transform.scale(high_jump, (TILE_SIZE, TILE_SIZE))
 
 house = pygame.image.load("./images/house.png")
@@ -100,6 +105,22 @@ house = pygame.transform.scale(house, (TILE_SIZE * 10, TILE_SIZE * 6))
 
 sign = pygame.image.load("./images/sign.png")
 sign = pygame.transform.scale(sign, (TILE_SIZE, TILE_SIZE))
+
+npc_1 = pygame.image.load("./Character Combinations/black hair_dark_yellow shirt_black pants.png")
+npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
+flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  # Flip horizontally (True), no vertical flip (False)
+
+npc_2 = pygame.image.load("./Character Combinations/brown hair_white_red shirt_brown pants.png")
+npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
+flipped_npc_2 = pygame.transform.flip(npc_2, True, False)  # Flip horizontally (True), no vertical flip (False)
+
+npc_3 = pygame.image.load("./Character Combinations/ginger hair_white_yellow shirt_brown pants.png")
+npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
+flipped_npc_3 = pygame.transform.flip(npc_3, True, False)  # Flip horizontally (True), no vertical flip (False)
+
+npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_brown pants.png")
+npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
+flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  
 
 # Set up the level with a width of 250 and a height of 30 rows
 level_width = 250
@@ -226,7 +247,7 @@ level_map[level_height-1][95:130] = [11] * 35 # Water Block
 
 level_map[SURFACE-7][105] = 4 # Jump Reset
 level_map[SURFACE-7][115] = 4 # Jump Reset
-level_map[SURFACE-15][115] = 5 # Dash Powerup
+level_map[SURFACE-14][115] = 4 # Jump Reset
 level_map[SURFACE-3][125] = 4 # Jump Reset
 level_map[SURFACE-6][130] = 20 # Super Speed Powerup
 
@@ -304,13 +325,19 @@ for row_index in range(level_height-5, level_height):
 # Dictionary containing which tile corresponds to what
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: water, 4: jump_reset, 5: dash_powerup, 6: floating_ground, 7: thorn, 8: flag, 9: dirt_tile, 10: frost_walking_boots,
          11: water_block, 12: coin, 13: walkway, 14: flipped_walkway, 15: invisible_platform, 16: double_jump_boots, 17: flipped_thorn, 18: left_thorn, 19: right_thorn, 20: super_speed_powerup,
-         21: ice_tile, 22: flipped_ice, 23: high_jump, 24: up_dash, 25: house, 26: tree, 27: background_tree, 28: ice_block}
+         21: ice_tile, 22: flipped_ice, 23: high_jump, 24: up_dash, 25: house, 26: tree, 27: background_tree, 28: ice_block, 29: npc_1, 30: npc_2, 31: npc_3, 32: npc_4}
 
 level_map[9][203] = 26 # Tree
 level_map[9][216] = 26 # Tree
 
 level_map[10][206] = 27 # Background Tree
 level_map[10][213] = 27 # Background Tree
+
+# NPCs placements
+level_map[SURFACE][8] = 29 # First NPC (Placed at the start of the map)
+level_map[SURFACE-5][52] = 30 # Second NPC - (Placed at the bridge at the start of the lake)
+level_map[11][208] = 31 # Third NPC - (Placed next to the high jump boost)
+level_map[SURFACE-14][237] = 32 # Fourth NPC - (Placed at the house at the end of the map)
 
 rocks = {3, 36, 41, 91, 246} # Column numbers for all the rocks
 trees = {48, 157, 247} # Column numbers for all the trees
@@ -453,10 +480,22 @@ def level_3(slot: int):
     checkpoint_idx = 0
     dying = False
     death_count = 0
-    collidable_tiles = {1, 2, 6, 9, 15, 21, 22}
+    collidable_tiles = {1, 2, 3, 6, 9, 15, 21, 22}
     dying_tiles = {3, 7, 11, 17, 18, 19}
 
     coin_count = 0
+
+    # State Variables for Gadgets
+    bubbleJump = False
+    bubbleJump_respawns = {}
+    dash_respawns = {}
+    dashing = False
+    dash_duration = 0
+    super_speed_effects = []
+    super_speed_respawns = {}
+    higherJumps = False
+    higherJumps_respawns = {}
+    up_dash_respawns = {}
 
     running = True
     while running:
@@ -516,6 +555,50 @@ def level_3(slot: int):
             # Draw snowflake
             pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
 
+        # Check if player is near the first NPC
+        npc_x = calculate_x_coordinate(8)  # First NPC's x position
+        npc_y = (SURFACE) * TILE_SIZE  # First NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle first NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_3_npc_1_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the second NPC
+        npc_x = calculate_x_coordinate(52)  # Second NPC's x position
+        npc_y = (SURFACE - 5) * TILE_SIZE  # Second NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle second NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_3_npc_2_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the third NPC
+        npc_x = calculate_x_coordinate(208)  # Third NPC's x position
+        npc_y = 11 * TILE_SIZE  # Third NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle third NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_3_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the fourth NPC
+        npc_x = calculate_x_coordinate(237)  # Fourth NPC's x position
+        npc_y = (SURFACE - 14) * TILE_SIZE  # Fourth NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle fourth NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_3_npc_4_dialogue(screen, player_rect, npc_rect, keys, current_time)   
+
         acceleration = 0.5  # Slower acceleration on ice
         friction = normal_friction if not on_ice else ice_friction
 
@@ -540,9 +623,6 @@ def level_3(slot: int):
             player_vel_x *= friction
             if abs(player_vel_x) < 0.1:
                 player_vel_x = 0
-        if keys[pygame.K_SPACE] and on_ground: # If player presses Spacebar
-            player_vel_y = jump_power # Apply jump force
-            on_ground = False # Player is now airborne
         if moving:
             # Clamp velocity to max speed
             if abs(player_vel_x) > player_speed:
@@ -554,6 +634,28 @@ def level_3(slot: int):
                 animation_timer = 0
                 animation_index = 1 - animation_index  # Alternate between 0 and 1
         player_x += player_vel_x  # Update position
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            
+            # Jumping Logic (Space Pressed)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    if higherJumps:
+                        player_vel_y = jump_power * 2
+                        higherJumps = False
+                    elif on_ground:
+                        player_vel_y = jump_power  # Normal jump
+                        on_ground = False
+                        doubleJumped = False  # Reset double jump when landing
+                    elif doubleJumpBoots and not doubleJumped:
+                        player_vel_y = jump_power  # Double jump
+                        doubleJumped = True  # Mark double jump as used
+                    elif bubbleJump:
+                        player_vel_y = jump_power  # jump again
+                        bubbleJump = False
+
 
         current_frame = run_frames[animation_index]
 
@@ -620,10 +722,15 @@ def level_3(slot: int):
                 # If player dies
                 if tile in dying_tiles:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
-                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
-                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        
-                        dying = True
+                    if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
+                        # Ice boots functionality - change water to ice
+                        if frostWalkBoots and tile == 3:
+                            current_x = calculate_column(player_x)
+                            current_y = calculate_row(player_y)+1
+                            level_map[current_y][current_x] = 21  # Turn the starting tile into ice
+                        else:
+                            dying = True
 
                 # Coin
                 if tile == 12:
@@ -639,6 +746,80 @@ def level_3(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
                         player_y + TILE_SIZE == tile_y):  # Feet touching top of ice
                         on_ice = True
+
+                # -------------------------------- Gadget/Powerup Pickup Functionality -------------------------------- #
+                # Bubble jump reset
+                if tile == 4: 
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the jump reset from screen
+                        bubbleJump = True
+                        doubleJumped = False
+                        bubbleJump_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
+
+                # Dash
+                if tile == 5:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+
+                        dash_pickup_time = pygame.time.get_ticks()
+                        dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
+                        dash_duration = dash_pickup_time + 700
+                        dashing = True
+                        level_map[row_index][col_index] = 0 
+                        player_speed = player_speed * 3
+                        direction = 1
+                        if player_speed < 0:
+                            player_speed *= -1
+
+                # Ice boots
+                if tile == 10:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        frostWalkBoots = True
+                        
+                if tile == 16:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        doubleJumpBoots = True
+                        doubleJumped = False
+
+                # Super Speed Powerup
+                if tile == 20: 
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+
+                        level_map[row_index][col_index] = 0
+                        player_speed *= 2.5  # Double the speed
+                        super_speed_effects.append({"end_time": pygame.time.get_ticks() + 1600})  # 1.6 sec effect
+                        super_speed_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000  # 5 sec respawn
+
+                # High Jump
+                if tile == 23:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        higherJumps = True
+                        higherJumps_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
+
+                # Up Dash
+                if tile == 24:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0 
+                        player_vel_y = -30
+                        up_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
+
+
         
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
             show_level_completed_screen(slot, death_count)
@@ -675,6 +856,55 @@ def level_3(slot: int):
                     frostWalkBoots = False
                 elif checkpoint_idx == 2 and doubleJumpBoots: # Remove Double Jump Boots Effect
                     doubleJumpBoots = False
+
+        # ------------------------------- Power-up Respawns ---------------------------------- #
+        current_time = pygame.time.get_ticks()
+        # Respawn bubble jump reset after 5 seconds
+        bubble_removes = []
+        for pos, respawn_time in bubbleJump_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 4  # Respawn power-up
+                bubble_removes.append(pos)  # Mark for removal
+
+        # Respawn higher jump reset after 5 seconds
+        jumps_removes = []
+        for pos, respawn_time in higherJumps_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 23  # Respawn power-up
+                jumps_removes.append(pos)  # Mark for removal
+
+        # Set speed back for player if dashing
+        if dashing:
+            if (current_time >= dash_duration) and (dash_duration != 0):
+                player_speed = 8.5 * scale_factor
+                dashing = False
+                dash_duration = 0
+
+        # Respawn dash powerup after 5 seconds
+        dash_remove = []
+        for pos, respawn_time in dash_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 5  # Respawn power-up
+                dash_remove.append(pos)  # Mark for removal
+
+        # Respawn power-ups after 5 seconds
+        to_remove = []
+        for pos, respawn_time in super_speed_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 20  # Respawn power-up
+                to_remove.append(pos)  # Mark for removal
+
+        # Apply speed effects from multiple power-ups
+        for effect in super_speed_effects[:]:  # Iterate over a copy of the list
+            if current_time >= effect["end_time"]:  # Check if effect expired
+                player_speed /= 2.5
+                super_speed_effects.remove(effect)
+
+        up_dash_removes = []
+        for pos, respawn_time in up_dash_respawns.items():
+            if current_time >= respawn_time:
+                level_map[pos[0]][pos[1]] = 24  # Respawn power-up
+                up_dash_removes.append(pos)  # Mark for removal
                     
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))

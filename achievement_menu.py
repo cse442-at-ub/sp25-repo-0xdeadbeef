@@ -7,6 +7,7 @@ import json
 
 # Initialize pygame
 pygame.init()
+pygame.mixer.init() # Initialize Pygame Audio Mixer
 
 # Screen settings
 info = pygame.display.Info()
@@ -114,6 +115,12 @@ def draw_text(text_str, pos, color=(255, 118, 33), outline_color=(0, 0, 0)):
     screen.blit(text_surface, pos)
 
 def run_achievements_menu():
+    # Check if any music is currently playing
+    if not pygame.mixer.music.get_busy():
+        # If not, load the "Background.mp3" again
+        pygame.mixer.music.load("Audio/Background.mp3")
+        pygame.mixer.music.play(-1)  # loop forever
+
     """Run the achievements menu."""
     saveslotone = "User Saves/save1.json"
     saveslottwo = "User Saves/save2.json"
