@@ -122,6 +122,25 @@ npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_b
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  
 
+#-----Gadget inventory images and dictionary
+
+inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.transform.scale(inventory, (250, 70))
+inventory_x = (WIDTH - 250) // 2
+inventory_y = HEIGHT - 100
+
+inventory_jump_boots = pygame.image.load("./images/boots.png")
+inventory_jump_boots = pygame.transform.scale(inventory_jump_boots, (42, 50))
+
+inventory_frost_boots = pygame.image.load("./images/ice_boots.png")
+inventory_frost_boots = pygame.transform.scale(inventory_frost_boots, (42, 50))
+
+INV_SLOT_WIDTH = 42
+INV_SLOT_HEIGHT = 45
+
+first_slot = (inventory_x + 5, inventory_y + 10)
+second_slot = (inventory_x + INV_SLOT_WIDTH + 10, inventory_y + 10)
+
 # Set up the level with a width of 250 and a height of 30 rows
 level_width = 250
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
@@ -496,6 +515,9 @@ def level_3(slot: int):
     higherJumps = False
     higherJumps_respawns = {}
     up_dash_respawns = {}
+
+    #-----Variable to check which gadget was picked up first
+    double_first = False
 
     running = True
     while running:
@@ -908,6 +930,30 @@ def level_3(slot: int):
                     
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
+
+        #-----Inventory Fill-up logic
+
+        screen.blit(inventory, (inventory_x, inventory_y))
+
+        if (doubleJumpBoots):
+            if (doubleJumpBoots) and (frostWalkBoots == False):
+                double_first = True
+                screen.blit(inventory_jump_boots, first_slot)
+            elif (doubleJumpBoots) and (frostWalkBoots) and double_first:
+                screen.blit(inventory_jump_boots, first_slot)
+                screen.blit(inventory_frost_boots, second_slot)
+
+
+        if (frostWalkBoots):
+            if  (frostWalkBoots) and (doubleJumpBoots == False):
+                double_first = False
+                screen.blit(inventory_frost_boots, first_slot)
+                print(f"Frostboots: {frostWalkBoots}")
+            elif (doubleJumpBoots) and (frostWalkBoots) and (double_first == False):
+                screen.blit(inventory_frost_boots, first_slot)
+                screen.blit(inventory_jump_boots, second_slot)
+
+
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
