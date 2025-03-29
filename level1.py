@@ -22,6 +22,9 @@ gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
 # Death sound 
 death_sound = pygame.mixer.Sound("Audio/Death.mp3")
 
+# Coin pick up sound 
+coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
+
 # Screen Resolution 
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
@@ -489,7 +492,7 @@ def calculate_y_coordinate(row):
 
 def show_level_completed_screen(slot: int):
 
-    # Stop tutorial music
+    # Stop level 1 music
     pygame.mixer.music.stop()
 
     # Play the level complete sound once when this function runs
@@ -855,9 +858,9 @@ def level_1(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         coin_count += 1
                         level_map[SURFACE-1][68] = 0
+                        coin_sound.play()
                         level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
 
                 if tile == 28:

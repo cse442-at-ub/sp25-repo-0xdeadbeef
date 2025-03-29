@@ -29,6 +29,9 @@ super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
 # Dash power up sound
 dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
 
+# Coin pick up sound 
+coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
+
 # Screen settings
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
@@ -636,9 +639,9 @@ def tutorial_level(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         coin_count += 1
                         level_map[SURFACE-1][68] = 0
+                        coin_sound.play() # Play coin pick up sound when contact
                         level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
 
         # Apply super-speed powerup
