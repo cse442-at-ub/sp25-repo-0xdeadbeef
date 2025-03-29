@@ -7,6 +7,7 @@ import json
 from NPCs.level_1_npc_1 import handle_level_1_npc_1_dialogue  # Import the functionality of the first NPC from level 1
 from NPCs.level_1_npc_2 import handle_level_1_npc_2_dialogue  # Import the functionality of the second NPC from level 1
 from NPCs.level_1_npc_3 import handle_level_1_npc_3_dialogue  # Import the functionality of the third NPC from level 1
+from saves_handler import *
 
 # Initialize Pygame
 pygame.init()
@@ -21,6 +22,8 @@ gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
 
 # Death sound 
 death_sound = pygame.mixer.Sound("Audio/Death.mp3")
+
+counter_for_coin_increment = 0
 
 # Screen Resolution 
 BASE_WIDTH = 1920
@@ -528,6 +531,9 @@ def show_level_completed_screen(slot: int):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
+                    level_name = "Level One"
+                    achievement_counter(slot, level_name)
+                    eclipse_increment(slot, counter_for_coin_increment)
                     world_select.World_Selector(slot)
                     sys.exit()
 
@@ -576,7 +582,6 @@ def level_1(slot: int):
     player_x = 150  # Start position, change this number to spawn in a different place
     player_y = HEIGHT - 560
     player_speed = 6.5 * scale_factor # Adjust player speed according to their resolution
-    
 
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.0 / scale_factor # Gravity effect (Greater number means stronger gravity)
@@ -610,6 +615,10 @@ def level_1(slot: int):
     dying = False
     death_count = 0
     coin_count = 0
+
+    global counter_for_coin_increment
+    counter_for_coin_increment = coin_count
+
     collidable_tiles = {1, 2, 32, 26, 27, 28, 29, 31}
 
     # State Variables for Gadgets
@@ -857,6 +866,7 @@ def level_1(slot: int):
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
 
                         coin_count += 1
+                        counter_for_coin_increment = coin_count
                         level_map[SURFACE-1][68] = 0
                         level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
 

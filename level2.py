@@ -7,6 +7,7 @@ from NPCs.level_2_npc_1 import handle_level_2_npc_1_dialogue  # Import the funct
 from NPCs.level_2_npc_2 import handle_level_2_npc_2_dialogue  # Import the functionality of the second NPC from level 2
 from NPCs.level_2_npc_3 import handle_level_2_npc_3_dialogue  # Import the functionality of the third NPC from level 2
 from NPCs.level_2_npc_4 import handle_level_2_npc_4_dialogue  # Import the functionality of the fourth NPC from level 2
+from saves_handler import *
 
 # Initialize PyGame
 pygame.init()
@@ -26,6 +27,9 @@ super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
 
 # Dash power up sound
 dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
+
+counter_for_coin_increment = 0
+
 
 # Screen settings
 BASE_WIDTH = 1920
@@ -431,6 +435,9 @@ def show_level_completed_screen(slot: int):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
+                    level_name = "Level Two"
+                    achievement_counter(slot, level_name)
+                    eclipse_increment(slot, counter_for_coin_increment)
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
 
@@ -595,6 +602,9 @@ def level_2(slot: int):
     collidable_tiles = {1, 2, 5, 10, 14, 16, 17, 23}
 
     coin_count = 0
+
+    global counter_for_coin_increment
+    counter_for_coin_increment = coin_count
 
     start_time = 180  # Timer starts at 180 seconds
     timer = start_time
@@ -868,6 +878,7 @@ def level_2(slot: int):
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
 
                         coin_count += 1
+                        counter_for_coin_increment = coin_count
                         level_map[row_index][col_index] = 0
 
                 # Spring
