@@ -5,11 +5,14 @@ from pygame.locals import * # type: ignore
 import tutorial
 import level1
 import level2
+import level3
+import level4
 import save_slots
 import world_select
 import main_menu  
 
 pygame.init()  # Initialize Pygame
+pygame.mixer.init() # Initialize Pygame Audio Mixer
 
 # Get full screen resolution
 WIDTH, HEIGHT = pygame.display.Info().current_w, pygame.display.Info().current_h
@@ -154,6 +157,12 @@ mini_squares = [
 ]
 
 def World_Selector(slot: int):
+    # Check if any music is currently playing
+    if not pygame.mixer.music.get_busy():
+        # If not, load the "Background.mp3" again
+        pygame.mixer.music.load("Audio/Background2.mp3")
+        pygame.mixer.music.play(-1)  # loop forever
+
     current_level = 0
     num_levels = len(background_images)
     running = True
@@ -199,18 +208,16 @@ def World_Selector(slot: int):
                                 running = False
                                 level2.level_2(slot)  # Call the Level 2 function
                                 sys.exit()
-
-                            # SOON TO DO: 
-                            # elif current_level == 0 and idx == 3:  # Level 3 button in Map 1
-                            #     print("Level 3 button clicked. Going to snow Level 3...")
-                            #     running = False
-                            #     level_2.start_level_2(slot)  # Call the Level 3 function
-                            #     sys.exit()
-                            # elif current_level == 0 and idx == 4:  # Level 4 button in Map 1
-                            #     print("Level 4 button clicked. Going to snow Level 2...")
-                            #     running = False
-                            #     level_2.start_level_2(slot)  # Call the Level 4 function
-                            #     sys.exit()
+                            elif current_level == 0 and idx == 3:  # Level 3 button in Map 1
+                                print("Level 3 button clicked. Going to snow Level 3...")
+                                running = False
+                                level3.level_3(slot)  # Call the Level 3 function
+                                sys.exit()
+                            elif current_level == 0 and idx == 4:  # Level 4 button in Map 1
+                                print("Level 4 button clicked. Going to snow Level 4...")
+                                running = False
+                                level4.level_4(slot)  # Call the Level 4 function
+                                sys.exit()
 
                             # SOON TO DOx2 : 
                             # elif current_level == 0 and idx == 5:  # Level 5 button in Map 2

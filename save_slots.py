@@ -13,6 +13,7 @@ from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox 
 
 pygame.init()   # Initialize Pygame
+pygame.mixer.init() # Initialize Pygame Audio Mixer
 
 info = pygame.display.Info()
 WIDTH = info.current_w
@@ -73,6 +74,12 @@ class TransparentButton:
     
 
 def Screen_SaveSlot():
+    # Check if any music is currently playing
+    if not pygame.mixer.music.get_busy():
+        # If not, load the "Background.mp3" again
+        pygame.mixer.music.load("Audio/Background.mp3")
+        pygame.mixer.music.play(-1)  # loop forever
+
     # Display the screen title
     pygame.display.set_caption("Save Slot Screen")
     
