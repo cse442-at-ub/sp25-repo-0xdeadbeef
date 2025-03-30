@@ -593,11 +593,11 @@ def level_4(slot: int):
     player_y = calculate_y_coordinate(SURFACE)
     
     # 8.5 should be standard speed
-    player_speed = 20 * scale_factor # Adjust player speed according to their resolution
+    player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.25 * scale_factor # Gravity effect (Greater number means stronger gravity)
-    jump_power = -20 * scale_factor # Jump strength (Bigger negative number means higher jump)
+    jump_power = -18 * scale_factor # Jump strength (Bigger negative number means higher jump)
     on_ground = False # Track if player is on the ground
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
@@ -890,7 +890,7 @@ def level_4(slot: int):
                             current_y = calculate_row(player_y)+1
                             level_map[current_y][current_x] = 21  # Turn the starting tile into ice
                         else:
-                            dying = False
+                            dying = True
 
                 # Coin
                 if tile == 12:
