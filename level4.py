@@ -280,6 +280,8 @@ level_map[SURFACE-19][21] = 10 # Frost Walking Boots
 
 #level_map[SURFACE-2][72] = 5 # Dash Powerup
 level_map[SURFACE][75] = 29 # Spring
+level_map[SURFACE - 16][75] = 4 # Spring
+level_map[SURFACE - 18][73] = 4 # Spring
 
 level_map[SURFACE-19][88:90] = [7] * 2 # Thorns
 level_map[SURFACE-19][95:101] = [7] * 6 # Thorns
@@ -336,7 +338,7 @@ level_map[SURFACE-1][250:254] = [22] * 4 # Flipped Ice Tile
 
 level_map[SURFACE-3][253] = 33 # Balloon
 
-level_map[SURFACE-5][35] = 34 # First NPC - (Placed next to the first sign of the map)
+level_map[SURFACE][10] = 34 # First NPC - (Placed next to the dash powerup)
 level_map[SURFACE-19][151] = 35 # Second NPC - (Placed next to the second checkpoint flag of the map)
 level_map[SURFACE-19][202] = 36 # Third NPC - (Placed next to the second speed boots)
 level_map[SURFACE-17][291] = 37 # Fourth NPC - (Placed next to the last sign of the map)
@@ -704,8 +706,8 @@ def level_4(slot: int):
             pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
 
         # Check if player is near the first NPC
-        npc_x = calculate_x_coordinate(35)  # First NPC's x position
-        npc_y = (SURFACE-5) * TILE_SIZE  # First NPC's y position
+        npc_x = calculate_x_coordinate(10)  # First NPC's x position
+        npc_y = (SURFACE) * TILE_SIZE  # First NPC's y position
         player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
         npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
 
@@ -979,7 +981,7 @@ def level_4(slot: int):
                         dash_duration = dash_pickup_time + 500
                         dashed = True
                         level_map[row_index][col_index] = 0 
-                        player_speed = player_speed * 2 
+                        player_speed = player_speed * 2.5 
                         direction = 1
                         if player_speed < 0:
                             player_speed *= -1

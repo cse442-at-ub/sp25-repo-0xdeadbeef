@@ -226,6 +226,7 @@ level_map[level_height-2][15:35] = [11] * 20 # Water Block
 level_map[level_height-1][15:35] = [11] * 20 # Water Block
 
 level_map[SURFACE-2][57] = 4 # Jump Reset
+level_map[SURFACE-7][100] = 4 # Jump Reset
 
 level_map[SURFACE][39] = 7 # Thorn
 
@@ -301,6 +302,7 @@ level_map[SURFACE-3][193] = 4 # Jump Reset
 level_map[SURFACE-5][198] = 4 # Jump Reset
 
 level_map[SURFACE-9][198] = 24 # Up Dash Powerup
+level_map[SURFACE-13][198] = 4 # Up Dash Powerup
 
 level_map[12][202:219] = [6] * 17 # Floating Ground
 level_map[12][201] = 18 # Left Thorn
@@ -653,7 +655,7 @@ def level_3(slot: int):
                         player_vel_y = jump_power  # Double jump
                         doubleJumped = True  # Mark double jump as used
                     elif bubbleJump:
-                        player_vel_y = jump_power  # jump again
+                        player_vel_y = jump_power * 1.015  # jump again
                         bubbleJump = False
 
 
