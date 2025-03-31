@@ -8,6 +8,7 @@ from NPCs.level_3_npc_1 import handle_level_3_npc_1_dialogue  # Import the funct
 from NPCs.level_3_npc_2 import handle_level_3_npc_2_dialogue  # Import the functionality of the NPC from level 3
 from NPCs.level_3_npc_3 import handle_level_3_npc_3_dialogue  # Import the functionality of the NPC from level 3
 from NPCs.level_3_npc_4 import handle_level_3_npc_4_dialogue  # Import the functionality of the NPC from level 3
+from firework_level_end import show_level_complete_deaths
 
 # Initialize PyGame
 pygame.init()
@@ -144,6 +145,25 @@ npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_b
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  
 
+#-----Gadget inventory images and dictionary
+
+inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.transform.scale(inventory, (250, 70))
+inventory_x = (WIDTH - 250) // 2
+inventory_y = HEIGHT - 100
+
+inventory_jump_boots = pygame.image.load("./images/boots.png")
+inventory_jump_boots = pygame.transform.scale(inventory_jump_boots, (42, 50))
+
+inventory_frost_boots = pygame.image.load("./images/ice_boots.png")
+inventory_frost_boots = pygame.transform.scale(inventory_frost_boots, (42, 50))
+
+INV_SLOT_WIDTH = 42
+INV_SLOT_HEIGHT = 45
+
+first_slot = (inventory_x + 5, inventory_y + 10)
+second_slot = (inventory_x + INV_SLOT_WIDTH + 10, inventory_y + 10)
+
 # Set up the level with a width of 250 and a height of 30 rows
 level_width = 250
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
@@ -248,6 +268,7 @@ level_map[level_height-2][15:35] = [11] * 20 # Water Block
 level_map[level_height-1][15:35] = [11] * 20 # Water Block
 
 level_map[SURFACE-2][57] = 4 # Jump Reset
+level_map[SURFACE-7][100] = 4 # Jump Reset
 
 level_map[SURFACE][39] = 7 # Thorn
 
@@ -323,6 +344,7 @@ level_map[SURFACE-3][193] = 4 # Jump Reset
 level_map[SURFACE-5][198] = 4 # Jump Reset
 
 level_map[SURFACE-9][198] = 24 # Up Dash Powerup
+level_map[SURFACE-13][198] = 4 # Up Dash Powerup
 
 level_map[12][202:219] = [6] * 17 # Floating Ground
 level_map[12][201] = 18 # Left Thorn
@@ -395,65 +417,14 @@ def show_level_completed_screen(slot: int, death_count: int):
     # Play the level complete sound once when this function runs
     level_complete_sound.play()
 
+
     level_map[5][24] = 10 # Frost Walking Boots
     level_map[SURFACE-5][82] = 16 # Double Jump Boots
     level_map[3][204] = 10 # Frost Walking Boots
     level_map[3][216] = 16 # Double Jump Boots
 
-    # Wait for player to click the button
-    waiting = True
-    while waiting:
-        # Display the background image
-        screen.blit(background, (0, 0))
-
-        # Set fonts for the text
-        title_font = pygame.font.Font('PixelifySans.ttf', 100)
-        menu_font = pygame.font.Font('PixelifySans.ttf', 60)
-        menu_font_hover = pygame.font.Font('PixelifySans.ttf', 65)  # Larger for hover
-
-        # Render hover effect dynamically
-        select_level_hover = False
-
-        # Render the "Level Completed" text
-        level_completed_text = title_font.render("Level Completed", True, WHITE)
-        death_count_text = title_font.render(f"Deaths: {death_count}", True, WHITE)
-        select_level_text = menu_font.render("Back to Select Level", True, WHITE)
-
-        # Position the texts
-        level_completed_rect = level_completed_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-        death_count_rect = death_count_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
-        select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))
-
-        # Check if mouse is hovering
-        if select_level_rect.collidepoint(pygame.mouse.get_pos()):
-            select_level_hover = True
-
-        # If hovering, change text size dynamically
-        if select_level_hover:
-            select_level_text = menu_font_hover.render("Back to Select Level", True, BLUE)
-            select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))  # Recalculate position
-
-        # Create box around the text
-        box_padding = 20
-        level_end_screen_box = pygame.Rect(level_completed_rect.left - box_padding, level_completed_rect.top - box_padding, level_completed_rect.width + box_padding*2, level_completed_rect.height + (box_padding*2) + 200)
-        pygame.draw.rect(screen, BLUE, level_end_screen_box, 10)
-        
-        # Draw the texts
-        screen.blit(level_completed_text, level_completed_rect)
-        screen.blit(death_count_text, death_count_rect)
-        screen.blit(select_level_text, select_level_rect)
-
-        pygame.display.flip()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = event.pos
-                if select_level_rect.collidepoint(mouse_x, mouse_y):
-                    world_select.World_Selector(slot)
-                    sys.exit()  # Go back to level select
+    # Change this 0 for coin increment code
+    show_level_complete_deaths(slot, 0, death_count)
 
 def level_3(slot: int):
 
@@ -532,6 +503,9 @@ def level_3(slot: int):
     higherJumps = False
     higherJumps_respawns = {}
     up_dash_respawns = {}
+
+    #-----Variable to check which gadget was picked up first
+    double_first = False
 
     running = True
     while running:
@@ -689,7 +663,7 @@ def level_3(slot: int):
                         player_vel_y = jump_power  # Double jump
                         doubleJumped = True  # Mark double jump as used
                     elif bubbleJump:
-                        player_vel_y = jump_power  # jump again
+                        player_vel_y = jump_power * 1.015  # jump again
                         bubbleJump = False
 
 
@@ -951,6 +925,30 @@ def level_3(slot: int):
                     
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
+
+        #-----Inventory Fill-up logic
+
+        screen.blit(inventory, (inventory_x, inventory_y))
+
+        if (doubleJumpBoots):
+            if (doubleJumpBoots) and (frostWalkBoots == False):
+                double_first = True
+                screen.blit(inventory_jump_boots, first_slot)
+            elif (doubleJumpBoots) and (frostWalkBoots) and double_first:
+                screen.blit(inventory_jump_boots, first_slot)
+                screen.blit(inventory_frost_boots, second_slot)
+
+
+        if (frostWalkBoots):
+            if  (frostWalkBoots) and (doubleJumpBoots == False):
+                double_first = False
+                screen.blit(inventory_frost_boots, first_slot)
+                print(f"Frostboots: {frostWalkBoots}")
+            elif (doubleJumpBoots) and (frostWalkBoots) and (double_first == False):
+                screen.blit(inventory_frost_boots, first_slot)
+                screen.blit(inventory_jump_boots, second_slot)
+
+
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

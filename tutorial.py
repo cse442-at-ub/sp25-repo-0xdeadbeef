@@ -8,6 +8,8 @@ from NPCs.tutorial_npc_3_dialogue import handle_npc_3_dialogue  # Import the thi
 from NPCs.tutorial_npc_4_dialogue import handle_npc_4_dialogue  # Import the fourth NPC dialogue functionality
 import world_select
 import json
+from saves_handler import *
+from firework_level_end import show_level_complete
 
 # Initialize PyGame
 pygame.init()
@@ -32,7 +34,9 @@ dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
 # Coin pick up sound 
 coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
 
-# Screen settings
+counter_for_coin_increment = 0
+
+# Screen setting
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
 
@@ -245,61 +249,12 @@ def calculate_y_coordinate(row):
 
 
 def show_level_completed_screen(slot: int):
-
-    # Stop tutorial music
-    pygame.mixer.music.stop()
-
-    # Play the level complete sound once when this function runs
-    level_complete_sound.play()
-
-    # Display the background image
-    screen.blit(background, (0, 0))
-
     level_map[SURFACE][28] = 3 # Respawn double jump boots
     level_map[SURFACE-5][55] = 13 # Respawn speed boots
     level_map[SURFACE-1][68] = 0  # Despawn coin
     level_map[SURFACE-2][79:81] = [0] * 2 # Despawn platforms after getting coin
 
-    # Set fonts for the text
-    title_font = pygame.font.Font('PixelifySans.ttf', 100)
-    menu_font = pygame.font.Font('PixelifySans.ttf', 60)
-
-    # Render the "Level Completed" text
-    level_completed_text = title_font.render("Level Completed", True, (255, 255, 255))
-    select_level_text = menu_font.render("Back to Select Level", True, (255, 255, 255))
-
-    # Position the texts
-    level_completed_rect = level_completed_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-    select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
-
-    # Create box around the text
-    box_padding = 20
-    level_end_screen_box = pygame.Rect(level_completed_rect.left - box_padding, level_completed_rect.top - box_padding, level_completed_rect.width + box_padding*2, level_completed_rect.height + (box_padding*2) + 80)
-    pygame.draw.rect(screen, (0, 0, 255), level_end_screen_box, 10)
-    
-    # Draw the texts
-    screen.blit(level_completed_text, level_completed_rect)
-    screen.blit(select_level_text, select_level_rect)
-
-    pygame.display.flip()
-
-    # Wait for player to either press a key or click the button
-    waiting = True
-    while waiting:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
-                    waiting = False  # You could also go back to level select here
-
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = event.pos
-                if select_level_rect.collidepoint(mouse_x, mouse_y):
-                    world_select.World_Selector(slot)
-                    sys.exit()  # Go back to level select
+    show_level_complete(slot, counter_for_coin_increment)
 
 
 def read_data(slot: int):
@@ -377,6 +332,9 @@ def tutorial_level(slot: int):
     death_count = 0
 
     coin_count = 0
+
+    global counter_for_coin_increment
+    counter_for_coin_increment = coin_count
 
     running = True
     while running:
@@ -640,6 +598,8 @@ def tutorial_level(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         coin_count += 1
+                        # global counter_for_coin_increment
+                        counter_for_coin_increment = coin_count
                         level_map[SURFACE-1][68] = 0
                         coin_sound.play() # Play coin pick up sound when contact
                         level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
@@ -743,5 +703,5 @@ def tutorial_level(slot: int):
         pygame.display.flip()  # Update display
 
 if __name__ == "__main__":
-    tutorial_level()
+    tutorial_level(1)
     pygame.quit()
