@@ -377,13 +377,9 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     level_map[SURFACE][13] = 31 # Dash Gadget
     level_map[SURFACE-5][44] = 4 # Jump Reset
-    level_map[SURFACE-8][53] = 20 # Super Speed Powerup
-
+    level_map[SURFACE-8][54] = 4 # Jump Reset
     level_map[SURFACE-19][39] = 16 # Double Jump Boots
-    level_map[SURFACE-19][38] = 20 # Super Speed Powerup
     level_map[SURFACE-19][21] = 10 # Frost Walking Boots
-
-    level_map[SURFACE-2][72] = 5 # Dash Powerup
 
     level_map[SURFACE][107] = 30 # Speed Boots
 
@@ -413,14 +409,11 @@ def show_game_over_screen(slot: int):
 
     level_map[5][110] = 12 # Coin
     level_map[SURFACE-11][146] = 12 # Coin
-
-    level_map[SURFACE][13] = 31 # Dash Gadget
+    level_map[SURFACE-8][54] = 4 # Jump reset
     level_map[SURFACE-5][44] = 4 # Jump Reset
 
     level_map[SURFACE-19][39] = 16 # Double Jump Boots
     level_map[SURFACE-19][21] = 10 # Frost Walking Boots
-
-    level_map[SURFACE-2][72] = 5 # Dash Powerup
 
     level_map[SURFACE][107] = 30 # Speed Boots
 
