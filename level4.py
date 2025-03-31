@@ -629,7 +629,9 @@ def level_4(slot: int):
     on_ice = False
 
     dying = False
-    death_count = 0
+    death_count = load_save(slot).get("Level 4 Deaths")
+    if not death_count:
+        death_count = 0
     collidable_tiles = {1, 2, 3, 6, 9, 15, 21, 22, 28}
     dying_tiles = {3, 11, 18, 19, 7, 17} 
 
@@ -1035,6 +1037,7 @@ def level_4(slot: int):
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
+            update_save(slot, {"Level 4 Deaths": death_count})
             dying = False
             if checkpoint_idx == 0:
                 frostWalkBoots = False

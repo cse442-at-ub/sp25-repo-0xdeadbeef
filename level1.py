@@ -616,7 +616,9 @@ def level_1(slot: int):
     #-----Variable to check which gadget was picked up first
     double_first = False
     dying = False
-    death_count = 0
+    death_count = load_save(slot).get("Level 1 Deaths")
+    if not death_count:
+        death_count = 0
     coin_count = 0
 
     global counter_for_coin_increment
@@ -939,6 +941,7 @@ def level_1(slot: int):
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
+            update_save(slot, {"Level 1 Deaths": death_count})
             dying = False
             level_map[SURFACE - 3][39] = 3
             # Reset the player’s flags so re-collect

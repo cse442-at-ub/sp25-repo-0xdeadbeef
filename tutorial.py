@@ -368,7 +368,9 @@ def tutorial_level(slot: int):
     doubleJumped = False # Track if player double jumped already
     speedBoots = False
 
-    if checkpoint_idx == 1:
+    if checkpoint_idx == 0:
+        level_map[SURFACE][28] = 3 # Double Jump Boots
+    elif checkpoint_idx == 1:
         doubleJumpBoots = True
         level_map[SURFACE-5][55] = 13 # Respawn Speed Boots
 
@@ -392,8 +394,9 @@ def tutorial_level(slot: int):
     #-----Variable to check which gadget was picked up first
     double_first = False
     dying = False
-    death_count = 0
-
+    death_count = load_save(slot).get("Tutorial Deaths")
+    if not death_count:
+        death_count = 0
     coin_count = 0
 
     global counter_for_coin_increment
@@ -710,6 +713,7 @@ def tutorial_level(slot: int):
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
+            update_save(slot, {"Tutorial Deaths": death_count})
             dying = False
             if checkpoint_idx == 0 and doubleJumpBoots:
                 doubleJumpBoots = False
