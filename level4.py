@@ -12,8 +12,33 @@ from firework_level_end import show_level_complete_deaths
 # Initialize PyGame
 pygame.init()
 
-# Screen settings
+pygame.mixer.init() # Initialize Pygame Audio Mixer
 
+# Load the level complete sound 
+level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
+
+# Gadget pick up sound 
+gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
+
+# Death sound 
+death_sound = pygame.mixer.Sound("Audio/Death.mp3")
+
+# Super speed power up sound
+super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
+
+# Dash power up sound
+dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
+
+# Power up sound (global)
+power_up_sound = pygame.mixer.Sound("Audio/PowerUpPickUp.mp3") 
+
+# Spring sound 
+spring_sound = pygame.mixer.Sound("Audio/Spring.mp3")
+
+# Coin pick up sound 
+coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
+
+# Screen settings
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
 
@@ -406,6 +431,12 @@ def read_data(slot: int):
 
 def show_level_completed_screen(slot: int, death_count: int):
 
+    # Stop level 4 music
+    pygame.mixer.music.stop()
+
+    # Play the level complete sound once when this function runs
+    level_complete_sound.play()
+
     level_map[SURFACE][13] = 31 # Dash Gadget
     level_map[SURFACE-5][44] = 4 # Jump Reset
     level_map[SURFACE-8][54] = 4 # Jump Reset
@@ -533,6 +564,14 @@ def show_game_over_screen(slot: int):
                     sys.exit()  # Go back to level select
 
 def level_4(slot: int):
+
+    # Stop any previously playing music 
+    pygame.mixer.music.stop()
+    
+    # Load the tutorial music
+    pygame.mixer.music.load("Audio/Level4.mp3")
+    pygame.mixer.music.play(-1)  # -1 loops forever
+
     # Grab the sprite that was customized
     sprite = read_data(slot)
 
@@ -858,15 +897,16 @@ def level_4(slot: int):
                             level_map[current_y][current_x] = 21  # Turn the starting tile into ice
                         else:
                             dying = True
+                            death_sound.play()
 
                 # Coin
                 if tile == 12:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         coin_count += 1
                         level_map[row_index][col_index] = 0
+                        coin_sound.play()
 
                 if tile == 21 or tile == 22 or tile == 28:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
@@ -891,6 +931,7 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        power_up_sound.play()
                         higherJumps = True
                         higherJumps_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
 
@@ -900,15 +941,17 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                             dashGadget = True
-                            level_map[row_index][col_index] = 0 
+                            level_map[row_index][col_index] = 0
+                            super_speed_sound.play()
 
-                # Super Speed Powerups
+
+                # Super Speed Power ups
                 if tile == 20: 
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         level_map[row_index][col_index] = 0
+                        gadget_sound.play()
                         player_speed *= 4  # Double the speed
                         super_speed_effects.append({"end_time": pygame.time.get_ticks() + 1600})  # 1.6 sec effect
                         super_speed_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000  # 5 sec respawn
@@ -919,6 +962,8 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
                         player_vel_y = -50
+                        spring_sound.play()
+                        
 
                 # Double Jump Boots
                 if tile == 16:
@@ -926,6 +971,7 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play()
                         doubleJumpBoots = True
                         doubleJumped = False
 
@@ -935,6 +981,7 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play()
                         frostWalkBoots = True
 
                 # Dash
@@ -942,13 +989,17 @@ def level_4(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         dash_pickup_time = pygame.time.get_ticks()
                         dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
                         dash_duration = dash_pickup_time + 500
                         dashed = True
                         level_map[row_index][col_index] = 0 
+
+                        dash_sound.play()
+                        player_speed = player_speed * 2 
+
                         player_speed = player_speed * 2.5 
+
                         direction = 1
                         if player_speed < 0:
                             player_speed *= -1
@@ -960,6 +1011,7 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play()
                         player_speed = player_speed * 1.25 # Up the player speed
                         speedBoots = True
 
@@ -969,6 +1021,7 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        dash_sound.play()
                         player_vel_y += 15
                         down_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
 
@@ -976,8 +1029,8 @@ def level_4(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         level_map[row_index][col_index] = 0  # Remove the balloon from the map
+                        power_up_sound.play()
                         hasBalloon = True
                         balloon_vel = -5  # Initial upward speed
                         balloon_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
@@ -997,6 +1050,8 @@ def level_4(slot: int):
 
         if player_y + TILE_SIZE >= level_height * TILE_SIZE:
             dying = True
+            death_sound.play()
+
 
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]

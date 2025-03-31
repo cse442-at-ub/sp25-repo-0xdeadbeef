@@ -29,7 +29,15 @@ super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
 # Dash power up sound
 dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
 
+
+# Spring sound 
+spring_sound = pygame.mixer.Sound("Audio/Spring.mp3")
+
+# Coin pick up sound 
+coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
+
 counter_for_coin_increment = 0
+
 
 
 # Screen settings
@@ -376,7 +384,7 @@ def calculate_y_coordinate(row):
 
 def show_level_completed_screen(slot: int, death_count: int):
 
-    # Stop tutorial music
+    # Stop level 2 music
     pygame.mixer.music.stop()
 
     # Play the level complete sound once when this function runs
@@ -813,8 +821,8 @@ def level_2(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        super_speed_sound.play()
                         level_map[row_index][col_index] = 0
+                        super_speed_sound.play()
                         player_speed *= 2  # Double the speed
                         super_speed_effects.append({"end_time": pygame.time.get_ticks() + 2000})  # 2 sec effect
                         super_speed_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000  # 5 sec respawn
@@ -824,10 +832,10 @@ def level_2(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         coin_count += 1
                         counter_for_coin_increment = coin_count
                         level_map[row_index][col_index] = 0
+                        coin_sound.play()
 
                 # Spring
                 if tile == 23:
@@ -835,6 +843,7 @@ def level_2(slot: int):
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
                         player_vel_y = -35
+                        spring_sound.sound() # Play spring sound when making contact
 
                 # Left Dash
                 if tile == 22:
