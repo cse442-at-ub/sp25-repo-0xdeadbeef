@@ -7,7 +7,7 @@ from NPCs.level_4_npc_1 import handle_level_4_npc_1_dialogue  # Import the funct
 from NPCs.level_4_npc_2 import handle_level_4_npc_2_dialogue  # Import the functionality of the second NPC from level 4
 from NPCs.level_4_npc_3 import handle_level_4_npc_3_dialogue  # Import the functionality of the third NPC from level 4
 from NPCs.level_4_npc_4 import handle_level_4_npc_4_dialogue  # Import the functionality of the fourth NPC from level 4
-
+from firework_level_end import show_level_complete_deaths
 
 # Initialize PyGame
 pygame.init()
@@ -309,6 +309,8 @@ level_map[SURFACE-19][21] = 10 # Frost Walking Boots
 
 #level_map[SURFACE-2][72] = 5 # Dash Powerup
 level_map[SURFACE][75] = 29 # Spring
+level_map[SURFACE - 16][75] = 4 # Spring
+level_map[SURFACE - 18][73] = 4 # Spring
 
 level_map[SURFACE-19][88:90] = [7] * 2 # Thorns
 level_map[SURFACE-19][95:101] = [7] * 6 # Thorns
@@ -365,7 +367,7 @@ level_map[SURFACE-1][250:254] = [22] * 4 # Flipped Ice Tile
 
 level_map[SURFACE-3][253] = 33 # Balloon
 
-level_map[SURFACE-5][35] = 34 # First NPC - (Placed next to the first sign of the map)
+level_map[SURFACE][10] = 34 # First NPC - (Placed next to the dash powerup)
 level_map[SURFACE-19][151] = 35 # Second NPC - (Placed next to the second checkpoint flag of the map)
 level_map[SURFACE-19][202] = 36 # Third NPC - (Placed next to the second speed boots)
 level_map[SURFACE-17][291] = 37 # Fourth NPC - (Placed next to the last sign of the map)
@@ -406,13 +408,9 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     level_map[SURFACE][13] = 31 # Dash Gadget
     level_map[SURFACE-5][44] = 4 # Jump Reset
-    level_map[SURFACE-8][53] = 20 # Super Speed Powerup
-
+    level_map[SURFACE-8][54] = 4 # Jump Reset
     level_map[SURFACE-19][39] = 16 # Double Jump Boots
-    level_map[SURFACE-19][38] = 20 # Super Speed Powerup
     level_map[SURFACE-19][21] = 10 # Frost Walking Boots
-
-    level_map[SURFACE-2][72] = 5 # Dash Powerup
 
     level_map[SURFACE][107] = 30 # Speed Boots
 
@@ -436,75 +434,17 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     level_map[SURFACE-3][253] = 33 # Balloon
 
-    # Wait for player to click the button
-    waiting = True
-    while waiting:
-        # Display the background image
-        screen.blit(background, (0, 0))
-
-        # Set fonts for the text
-        title_font = pygame.font.Font('PixelifySans.ttf', 100)
-        menu_font = pygame.font.Font('PixelifySans.ttf', 60)
-        menu_font_hover = pygame.font.Font('PixelifySans.ttf', 65)  # Larger for hover
-
-        # Render hover effect dynamically
-        select_level_hover = False
-
-        # Render the "Level Completed" text
-        level_completed_text = title_font.render("Level Completed", True, WHITE)
-        death_count_text = title_font.render(f"Deaths: {death_count}", True, WHITE)
-        select_level_text = menu_font.render("Back to Select Level", True, WHITE)
-
-        # Position the texts
-        level_completed_rect = level_completed_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-        death_count_rect = death_count_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
-        select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))
-
-        # Check if mouse is hovering
-        if select_level_rect.collidepoint(pygame.mouse.get_pos()):
-            select_level_hover = True
-
-        # If hovering, change text size dynamically
-        if select_level_hover:
-            select_level_text = menu_font_hover.render("Back to Select Level", True, BLUE)
-            select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))  # Recalculate position
-
-        # Create box around the text
-        box_padding = 20
-        level_end_screen_box = pygame.Rect(level_completed_rect.left - box_padding, level_completed_rect.top - box_padding, level_completed_rect.width + box_padding*2, level_completed_rect.height + (box_padding*2) + 200)
-        pygame.draw.rect(screen, BLUE, level_end_screen_box, 10)
-        
-        # Draw the texts
-        screen.blit(level_completed_text, level_completed_rect)
-        screen.blit(death_count_text, death_count_rect)
-        screen.blit(select_level_text, select_level_rect)
-
-        pygame.display.flip()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = event.pos
-                if select_level_rect.collidepoint(mouse_x, mouse_y):
-                    world_select.World_Selector(slot)
-                    sys.exit()  # Go back to level select
+    show_level_complete_deaths(slot, 0, death_count)
 
 def show_game_over_screen(slot: int):
 
     level_map[5][110] = 12 # Coin
     level_map[SURFACE-11][146] = 12 # Coin
-
-    level_map[SURFACE][13] = 31 # Dash Gadget
+    level_map[SURFACE-8][54] = 4 # Jump reset
     level_map[SURFACE-5][44] = 4 # Jump Reset
-    level_map[SURFACE-8][53] = 20 # Super Speed Powerup
 
     level_map[SURFACE-19][39] = 16 # Double Jump Boots
-    level_map[SURFACE-19][38] = 20 # Super Speed Powerup
     level_map[SURFACE-19][21] = 10 # Frost Walking Boots
-
-    level_map[SURFACE-2][72] = 5 # Dash Powerup
 
     level_map[SURFACE][107] = 30 # Speed Boots
 
@@ -733,8 +673,8 @@ def level_4(slot: int):
             pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
 
         # Check if player is near the first NPC
-        npc_x = calculate_x_coordinate(35)  # First NPC's x position
-        npc_y = (SURFACE-5) * TILE_SIZE  # First NPC's y position
+        npc_x = calculate_x_coordinate(10)  # First NPC's x position
+        npc_y = (SURFACE) * TILE_SIZE  # First NPC's y position
         player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
         npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
 
@@ -1008,7 +948,7 @@ def level_4(slot: int):
                         dash_duration = dash_pickup_time + 500
                         dashed = True
                         level_map[row_index][col_index] = 0 
-                        player_speed = player_speed * 2 
+                        player_speed = player_speed * 2.5 
                         direction = 1
                         if player_speed < 0:
                             player_speed *= -1

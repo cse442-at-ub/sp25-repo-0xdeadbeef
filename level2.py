@@ -8,6 +8,7 @@ from NPCs.level_2_npc_2 import handle_level_2_npc_2_dialogue  # Import the funct
 from NPCs.level_2_npc_3 import handle_level_2_npc_3_dialogue  # Import the functionality of the third NPC from level 2
 from NPCs.level_2_npc_4 import handle_level_2_npc_4_dialogue  # Import the functionality of the fourth NPC from level 2
 from saves_handler import *
+from firework_level_end import show_level_complete_deaths
 
 # Initialize PyGame
 pygame.init()
@@ -373,7 +374,7 @@ def calculate_row(y):
 def calculate_y_coordinate(row):
     return int(row * TILE_SIZE)
 
-def show_level_completed_screen(slot: int):
+def show_level_completed_screen(slot: int, death_count: int):
 
     # Stop tutorial music
     pygame.mixer.music.stop()
@@ -386,60 +387,7 @@ def show_level_completed_screen(slot: int):
     level_map[SURFACE-5][178] = 3 # Double Jump Boots
     level_map[SURFACE-11][208] = 11 # Super Speed Boots
 
-    # Wait for player to click the button
-    waiting = True
-    while waiting:
-        # Display the background image
-        screen.blit(background, (0, 0))
-
-        # Set fonts for the text
-        title_font = pygame.font.Font('PixelifySans.ttf', 100)
-        menu_font = pygame.font.Font('PixelifySans.ttf', 60)
-        menu_font_hover = pygame.font.Font('PixelifySans.ttf', 65)  # Larger for hover
-
-        # Render hover effect dynamically
-        select_level_hover = False
-
-        # Render the "Level Completed" text
-        level_completed_text = title_font.render("Level Completed", True, WHITE)
-        select_level_text = menu_font.render("Back to Select Level", True, WHITE)
-
-        # Position the texts
-        level_completed_rect = level_completed_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-        select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
-
-        # Check if mouse is hovering
-        if select_level_rect.collidepoint(pygame.mouse.get_pos()):
-            select_level_hover = True
-
-        # If hovering, change text size dynamically
-        if select_level_hover:
-            select_level_text = menu_font_hover.render("Back to Select Level", True, BLUE)
-            select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))  # Recalculate position
-
-        # Create box around the text
-        box_padding = 20
-        level_end_screen_box = pygame.Rect(level_completed_rect.left - box_padding, level_completed_rect.top - box_padding, level_completed_rect.width + box_padding*2, level_completed_rect.height + (box_padding*2) + 80)
-        pygame.draw.rect(screen, BLUE, level_end_screen_box, 10)
-        
-        # Draw the texts
-        screen.blit(level_completed_text, level_completed_rect)
-        screen.blit(select_level_text, select_level_rect)
-
-        pygame.display.flip()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = event.pos
-                if select_level_rect.collidepoint(mouse_x, mouse_y):
-                    level_name = "Level Two"
-                    achievement_counter(slot, level_name)
-                    eclipse_increment(slot, counter_for_coin_increment)
-                    world_select.World_Selector(slot)
-                    sys.exit()  # Go back to level select
+    show_level_complete_deaths(slot, 0, death_count)
 
 def show_game_over_screen(slot: int):
 
@@ -978,7 +926,7 @@ def level_2(slot: int):
             del super_speed_respawns[pos]
 
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
-            show_level_completed_screen(slot)
+            show_level_completed_screen(slot, death_count)
             running = False
         
         if timer <= 0:
