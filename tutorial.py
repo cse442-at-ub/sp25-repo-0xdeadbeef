@@ -9,6 +9,7 @@ from NPCs.tutorial_npc_4_dialogue import handle_npc_4_dialogue  # Import the fou
 import world_select
 import json
 from saves_handler import *
+from firework_level_end import show_level_complete
 
 # Initialize PyGame
 pygame.init()
@@ -245,64 +246,12 @@ def calculate_y_coordinate(row):
 
 
 def show_level_completed_screen(slot: int):
-
-    # Stop tutorial music
-    pygame.mixer.music.stop()
-
-    # Play the level complete sound once when this function runs
-    level_complete_sound.play()
-
-    # Display the background image
-    screen.blit(background, (0, 0))
-
     level_map[SURFACE][28] = 3 # Respawn double jump boots
     level_map[SURFACE-5][55] = 13 # Respawn speed boots
     level_map[SURFACE-1][68] = 0  # Despawn coin
     level_map[SURFACE-2][79:81] = [0] * 2 # Despawn platforms after getting coin
 
-    # Set fonts for the text
-    title_font = pygame.font.Font('PixelifySans.ttf', 100)
-    menu_font = pygame.font.Font('PixelifySans.ttf', 60)
-
-    # Render the "Level Completed" text
-    level_completed_text = title_font.render("Level Completed", True, (255, 255, 255))
-    select_level_text = menu_font.render("Back to Select Level", True, (255, 255, 255))
-
-    # Position the texts
-    level_completed_rect = level_completed_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-    select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
-
-    # Create box around the text
-    box_padding = 20
-    level_end_screen_box = pygame.Rect(level_completed_rect.left - box_padding, level_completed_rect.top - box_padding, level_completed_rect.width + box_padding*2, level_completed_rect.height + (box_padding*2) + 80)
-    pygame.draw.rect(screen, (0, 0, 255), level_end_screen_box, 10)
-    
-    # Draw the texts
-    screen.blit(level_completed_text, level_completed_rect)
-    screen.blit(select_level_text, select_level_rect)
-
-    pygame.display.flip()
-
-    # Wait for player to either press a key or click the button
-    waiting = True
-    while waiting:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
-                    waiting = False  # You could also go back to level select here
-
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = event.pos
-                if select_level_rect.collidepoint(mouse_x, mouse_y):
-                    level_name = "Tutorial"
-                    achievement_counter(slot, level_name)
-                    eclipse_increment(slot, counter_for_coin_increment)
-                    world_select.World_Selector(slot)
-                    sys.exit()  # Go back to level select
+    show_level_complete(slot, counter_for_coin_increment)
 
 
 def read_data(slot: int):
@@ -751,5 +700,5 @@ def tutorial_level(slot: int):
         pygame.display.flip()  # Update display
 
 if __name__ == "__main__":
-    tutorial_level()
+    tutorial_level(1)
     pygame.quit()
