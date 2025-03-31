@@ -135,6 +135,35 @@ npc_4 = pygame.image.load("./Character Combinations/ginger hair_white_yellow shi
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  # Flip horizontally (True), no vertical flip (False)
 
+#-----Gadget inventory images and dictionary
+
+inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.transform.scale(inventory, (250, 70))
+inventory_x = (WIDTH - 250) // 2
+inventory_y = HEIGHT - 100
+
+inventory_jump_boots = pygame.image.load("./images/boots.png")
+inventory_jump_boots = pygame.transform.scale(inventory_jump_boots, (42, 50))
+
+inventory_speed_boots = pygame.image.load("./images/speed_boots.png")
+inventory_speed_boots = pygame.transform.scale(inventory_speed_boots, (42, 50))
+
+inventory_dash_gadget = pygame.image.load("./images/jett_dash.png")
+inventory_dash_gadget = pygame.transform.scale(inventory_dash_gadget, (42, 50))
+
+inventory_frost_boots = pygame.image.load("./images/ice_boots.png")
+inventory_frost_boots = pygame.transform.scale(inventory_frost_boots, (42, 50))
+
+INV_SLOT_WIDTH = 42
+INV_SLOT_HEIGHT = 45
+
+first_slot = (inventory_x + 5, inventory_y + 10)
+second_slot = (inventory_x + INV_SLOT_WIDTH + 10, inventory_y + 10)
+third_slot = (inventory_x + (2*INV_SLOT_WIDTH + 20), inventory_y + 10)
+fourth_slot = (inventory_x + (3*INV_SLOT_WIDTH + 40), inventory_y + 10)
+
+
+
 # Set up the level with a width of 300 and a height of 30 rows
 level_width = 300
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
@@ -1082,6 +1111,33 @@ def level_4(slot: int):
             if player_y + TILE_SIZE < 0:  # If the player moves off the top of the screen
                 hasBalloon = False  # Pop the balloon
                 balloon_vel = 0  # Reset velocity
+
+
+        #-----Inventory Fill-up logic
+
+        screen.blit(inventory, (inventory_x, inventory_y))
+
+        inv_slots = []
+
+        inv_slot_dimensions = [first_slot, second_slot, third_slot, fourth_slot]
+
+        if dashGadget:
+            inv_slots.append(inventory_dash_gadget)
+
+        if doubleJumpBoots:
+            inv_slots.append(inventory_jump_boots)
+
+        if frostWalkBoots:
+            inv_slots.append(inventory_frost_boots)
+
+        if speedBoots:
+            inv_slots.append(inventory_speed_boots)
+
+
+        for x, gadget in enumerate(inv_slots):
+            screen.blit(gadget, inv_slot_dimensions[x])
+        
+
 
         pygame.display.flip()  # Update display
 
