@@ -8,12 +8,35 @@ from NPCs.tutorial_npc_3_dialogue import handle_npc_3_dialogue  # Import the thi
 from NPCs.tutorial_npc_4_dialogue import handle_npc_4_dialogue  # Import the fourth NPC dialogue functionality
 import world_select
 import json
+from saves_handler import *
+from firework_level_end import show_level_complete
 
 # Initialize PyGame
 pygame.init()
+pygame.mixer.init() # Initialize Pygame Audio Mixer
 
-# Screen settings
+# Load the level complete sound 
+level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
+pygame.mixer.music.set_volume(1.0)  # start at 100% volume 
 
+# Gadget pick up sound 
+gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
+
+# Death sound 
+death_sound = pygame.mixer.Sound("Audio/Death.mp3")
+
+# Super speed power up sound
+super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
+
+# Dash power up sound
+dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
+
+# Coin pick up sound 
+coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
+
+counter_for_coin_increment = 0
+
+# Screen setting
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
 
@@ -93,6 +116,30 @@ rock = pygame.transform.scale(rock, (TILE_SIZE, TILE_SIZE // 2))
 
 background_tree = pygame.image.load("./images/background_tree.png")
 background_tree = pygame.transform.scale(background_tree, (TILE_SIZE * 1.5, TILE_SIZE * 2))
+
+
+#-----Gadget inventory images and dictionary
+
+inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.transform.scale(inventory, (250, 70))
+inventory_x = (WIDTH - 250) // 2
+inventory_y = HEIGHT - 100
+
+inventory_jump_boots = pygame.image.load("./images/boots.png")
+inventory_jump_boots = pygame.transform.scale(inventory_jump_boots, (42, 50))
+
+inventory_speed_boots = pygame.image.load("./images/speed_boots.png")
+inventory_speed_boots = pygame.transform.scale(inventory_speed_boots, (42, 50))
+
+INV_SLOT_WIDTH = 42
+INV_SLOT_HEIGHT = 45
+
+first_slot = (inventory_x + 5, inventory_y + 10)
+second_slot = (inventory_x + INV_SLOT_WIDTH + 10, inventory_y + 10)
+
+# The inventory will initially be empty
+# inventory_slots = {0: inventory_jump_boots, 1: inventory_speed_boots, 2: None, 3: None, 4: None}
+# inventory_conditions = {0: double, 1: False, 2: False, 3: False, 4: False}
 
 # Set up the level with a width of 140 and a height of 40 rows
 level_width = 140
@@ -202,54 +249,12 @@ def calculate_y_coordinate(row):
 
 
 def show_level_completed_screen(slot: int):
-    # Display the background image
-    screen.blit(background, (0, 0))
-
     level_map[SURFACE][28] = 3 # Respawn double jump boots
     level_map[SURFACE-5][55] = 13 # Respawn speed boots
     level_map[SURFACE-1][68] = 0  # Despawn coin
     level_map[SURFACE-2][79:81] = [0] * 2 # Despawn platforms after getting coin
 
-    # Set fonts for the text
-    title_font = pygame.font.Font('PixelifySans.ttf', 100)
-    menu_font = pygame.font.Font('PixelifySans.ttf', 60)
-
-    # Render the "Level Completed" text
-    level_completed_text = title_font.render("Level Completed", True, (255, 255, 255))
-    select_level_text = menu_font.render("Back to Select Level", True, (255, 255, 255))
-
-    # Position the texts
-    level_completed_rect = level_completed_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-    select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
-
-    # Create box around the text
-    box_padding = 20
-    level_end_screen_box = pygame.Rect(level_completed_rect.left - box_padding, level_completed_rect.top - box_padding, level_completed_rect.width + box_padding*2, level_completed_rect.height + (box_padding*2) + 80)
-    pygame.draw.rect(screen, (0, 0, 255), level_end_screen_box, 10)
-    
-    # Draw the texts
-    screen.blit(level_completed_text, level_completed_rect)
-    screen.blit(select_level_text, select_level_rect)
-
-    pygame.display.flip()
-
-    # Wait for player to either press a key or click the button
-    waiting = True
-    while waiting:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
-                    waiting = False  # You could also go back to level select here
-
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = event.pos
-                if select_level_rect.collidepoint(mouse_x, mouse_y):
-                    world_select.World_Selector(slot)
-                    sys.exit()  # Go back to level select
+    show_level_complete(slot, counter_for_coin_increment)
 
 
 def read_data(slot: int):
@@ -259,6 +264,14 @@ def read_data(slot: int):
 
 # Function to run the tutorial level
 def tutorial_level(slot: int):
+
+    # Stop any previously playing music 
+    pygame.mixer.music.stop()
+    
+    # Load the tutorial music
+    pygame.mixer.music.load("Audio/TutorialLevel.mp3")
+    pygame.mixer.music.play(-1)  # -1 loops forever
+
     # Grab the sprite that was customized
     sprite = read_data(slot)
 
@@ -309,6 +322,9 @@ def tutorial_level(slot: int):
     dash_duration = 0
     dashing = False
 
+    #-----Variable to check which gadget was picked up first
+    double_first = False
+
     checkpoints = [(200, HEIGHT-200), (1480, HEIGHT-400), (3480, HEIGHT-200)]
     checkpoint_bool = [True, False, False]
     checkpoint_idx = 0
@@ -316,6 +332,9 @@ def tutorial_level(slot: int):
     death_count = 0
 
     coin_count = 0
+
+    global counter_for_coin_increment
+    counter_for_coin_increment = coin_count
 
     running = True
     while running:
@@ -380,6 +399,9 @@ def tutorial_level(slot: int):
 
             # Draw snowflake
             pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
+
+        # screen.blit(inventory, (inventory_x, inventory_y))
+
         
         # Check if player is near the NPC
         npc_x = calculate_x_coordinate(60)  # NPC's x position
@@ -463,6 +485,9 @@ def tutorial_level(slot: int):
             else: # Left
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
 
+        screen.blit(inventory, (inventory_x, inventory_y))
+
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
@@ -521,6 +546,7 @@ def tutorial_level(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play() # Play gadget pick up sound when picking up
                         doubleJumpBoots = True
                         doubleJumped = False
 
@@ -530,6 +556,7 @@ def tutorial_level(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play() # Play gadget pick up sound when picking up
                         player_speed = player_speed * 1.25 # Up the player speed
                         speedBoots = True
 
@@ -537,7 +564,7 @@ def tutorial_level(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
+                        death_sound.play() # Play gadget pick up sound when picking up
                         dying = True
 
                 if tile == 8:
@@ -548,6 +575,7 @@ def tutorial_level(slot: int):
                         super_speed_pickup_time = pygame.time.get_ticks()
                         super_speed_effect_off_time = super_speed_pickup_time + 2000
                         super_speed_bool = True
+                        super_speed_sound.play()
                         level_map[SURFACE][95] = 0
                         super_speed_respawn_time = super_speed_pickup_time + 5000
                         player_speed = player_speed * 2
@@ -563,14 +591,17 @@ def tutorial_level(slot: int):
                         player_speed = player_speed * 2
                         dash_duration = pygame.time.get_ticks() + 200
                         dashing = True
+                        dash_sound.play()
 
                 if tile == 14:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         coin_count += 1
+                        # global counter_for_coin_increment
+                        counter_for_coin_increment = coin_count
                         level_map[SURFACE-1][68] = 0
+                        coin_sound.play() # Play coin pick up sound when contact
                         level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
 
         # Apply super-speed powerup
@@ -605,8 +636,12 @@ def tutorial_level(slot: int):
         if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
             player_x = 0
 
+        # When player falls past bottom of level = dies
         if player_y + TILE_SIZE >= level_height * TILE_SIZE:
+            death_sound.play() # Play death sound when player touches water or thorn
             dying = True
+            
+            
 
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
@@ -627,11 +662,39 @@ def tutorial_level(slot: int):
                 checkpoint_bool[k] = True
                 if checkpoint_idx == 2:
                     doubleJumpBoots = False # Remove their double jump boots
+                    speedBoots = False
                     player_speed = player_speed / 1.25 # Revert their speed back to normal
                     level_map[SURFACE-1][68] = 14  #Spawn coin after reaching 2nd checkpoint
 
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
+
+        
+        #-----Inventory Fill-up logic
+
+        screen.blit(inventory, (inventory_x, inventory_y))
+
+        if (doubleJumpBoots):
+            if (doubleJumpBoots) and (speedBoots == False):
+                double_first = True
+                screen.blit(inventory_jump_boots, first_slot)
+            elif (doubleJumpBoots) and (speedBoots) and double_first:
+                screen.blit(inventory_jump_boots, first_slot)
+                screen.blit(inventory_speed_boots, second_slot)
+
+
+        if (speedBoots):
+            if  (speedBoots) and (doubleJumpBoots == False):
+                double_first == False
+                screen.blit(inventory_speed_boots, first_slot)
+                print(f"SpeedBoots: {speedBoots}")
+            elif (doubleJumpBoots) and (speedBoots) and (double_first == False):
+                screen.blit(inventory_speed_boots, first_slot)
+                screen.blit(inventory_jump_boots, second_slot)
+           
+
+        # print(f"First Slot: {first_slot}")
+        # print(f"Second Slot: {second_slot}")
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -640,5 +703,5 @@ def tutorial_level(slot: int):
         pygame.display.flip()  # Update display
 
 if __name__ == "__main__":
-    tutorial_level()
+    tutorial_level(1)
     pygame.quit()
