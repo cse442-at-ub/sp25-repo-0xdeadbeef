@@ -9,6 +9,7 @@ from NPCs.level_3_npc_2 import handle_level_3_npc_2_dialogue  # Import the funct
 from NPCs.level_3_npc_3 import handle_level_3_npc_3_dialogue  # Import the functionality of the NPC from level 3
 from NPCs.level_3_npc_4 import handle_level_3_npc_4_dialogue  # Import the functionality of the NPC from level 3
 from firework_level_end import show_level_complete_deaths
+from saves_handler import update_unlock_state, get_unlock_state
 
 # Initialize PyGame
 pygame.init()
@@ -422,6 +423,10 @@ def show_level_completed_screen(slot: int, death_count: int):
     level_map[SURFACE-5][82] = 16 # Double Jump Boots
     level_map[3][204] = 10 # Frost Walking Boots
     level_map[3][216] = 16 # Double Jump Boots
+    
+    current_state = get_unlock_state(slot, "map1")
+    current_state[4] = True  # Unlock level 4
+    update_unlock_state(slot, current_state, "map1")
 
     # Change this 0 for coin increment code
     show_level_complete_deaths(slot, 0, death_count)
@@ -834,7 +839,6 @@ def level_3(slot: int):
                         player_vel_y = -30
                         dash_sound.play()
                         up_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
-
 
         
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level

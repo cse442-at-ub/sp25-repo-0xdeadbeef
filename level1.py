@@ -9,6 +9,7 @@ from NPCs.level_1_npc_2 import handle_level_1_npc_2_dialogue  # Import the funct
 from NPCs.level_1_npc_3 import handle_level_1_npc_3_dialogue  # Import the functionality of the third NPC from level 1
 from saves_handler import *
 from firework_level_end import show_level_complete
+from saves_handler import update_unlock_state, get_unlock_state
 
 # Initialize Pygame
 pygame.init()
@@ -508,6 +509,10 @@ def show_level_completed_screen(slot: int):
     level_map[SURFACE-1][68] = 0   # Despawn coin
     level_map[SURFACE-2][79:81] = [0] * 2  # Despawn platforms after getting coin
 
+    current_state = get_unlock_state(slot, "map1")
+    current_state[2] = True  # Unlock level 2
+    update_unlock_state(slot, current_state, "map1")
+
     show_level_complete(slot, 0)
     
 
@@ -889,6 +894,7 @@ def level_1(slot: int):
         if (dash_respawn_time > 0 ) and (pygame.time.get_ticks() >= dash_respawn_time):
             level_map[SURFACE-2][113] = 9
             dash_respawn_time = 0
+
 
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
             show_level_completed_screen(slot)

@@ -8,6 +8,7 @@ from NPCs.level_4_npc_2 import handle_level_4_npc_2_dialogue  # Import the funct
 from NPCs.level_4_npc_3 import handle_level_4_npc_3_dialogue  # Import the functionality of the third NPC from level 4
 from NPCs.level_4_npc_4 import handle_level_4_npc_4_dialogue  # Import the functionality of the fourth NPC from level 4
 from firework_level_end import show_level_complete_deaths
+from saves_handler import update_unlock_state, get_unlock_state
 
 # Initialize PyGame
 pygame.init()
@@ -464,6 +465,10 @@ def show_level_completed_screen(slot: int, death_count: int):
     level_map[SURFACE-19][205] = 30 # Speed Boots
 
     level_map[SURFACE-3][253] = 33 # Balloon
+
+    # current_state = get_unlock_state(slot, "map2")
+    # current_state[5] = True  # Unlock level 5
+    # update_unlock_state(slot, current_state, "map2")
 
     show_level_complete_deaths(slot, 0, death_count)
 
