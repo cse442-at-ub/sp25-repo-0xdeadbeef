@@ -8,12 +8,35 @@ from NPCs.level_3_npc_1 import handle_level_3_npc_1_dialogue  # Import the funct
 from NPCs.level_3_npc_2 import handle_level_3_npc_2_dialogue  # Import the functionality of the NPC from level 3
 from NPCs.level_3_npc_3 import handle_level_3_npc_3_dialogue  # Import the functionality of the NPC from level 3
 from NPCs.level_3_npc_4 import handle_level_3_npc_4_dialogue  # Import the functionality of the NPC from level 3
+from firework_level_end import show_level_complete_deaths
 
 # Initialize PyGame
 pygame.init()
 
-# Screen settings
+pygame.mixer.init() # Initialize Pygame Audio Mixer
 
+# Load the level complete sound 
+level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
+
+# Gadget pick up sound 
+gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
+
+# Death sound 
+death_sound = pygame.mixer.Sound("Audio/Death.mp3")
+
+# Super speed power up sound
+super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
+
+# Dash power up sound
+dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
+
+# Power up sound (global) -- high jump and ballon power up
+power_up_sound = pygame.mixer.Sound("Audio/PowerUpPickUp.mp3") 
+
+# Coin pick up sound 
+coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
+
+# Screen settings
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
 
@@ -122,6 +145,25 @@ npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_b
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  
 
+#-----Gadget inventory images and dictionary
+
+inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.transform.scale(inventory, (250, 70))
+inventory_x = (WIDTH - 250) // 2
+inventory_y = HEIGHT - 100
+
+inventory_jump_boots = pygame.image.load("./images/boots.png")
+inventory_jump_boots = pygame.transform.scale(inventory_jump_boots, (42, 50))
+
+inventory_frost_boots = pygame.image.load("./images/ice_boots.png")
+inventory_frost_boots = pygame.transform.scale(inventory_frost_boots, (42, 50))
+
+INV_SLOT_WIDTH = 42
+INV_SLOT_HEIGHT = 45
+
+first_slot = (inventory_x + 5, inventory_y + 10)
+second_slot = (inventory_x + INV_SLOT_WIDTH + 10, inventory_y + 10)
+
 # Set up the level with a width of 250 and a height of 30 rows
 level_width = 250
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
@@ -226,6 +268,7 @@ level_map[level_height-2][15:35] = [11] * 20 # Water Block
 level_map[level_height-1][15:35] = [11] * 20 # Water Block
 
 level_map[SURFACE-2][57] = 4 # Jump Reset
+level_map[SURFACE-7][100] = 4 # Jump Reset
 
 level_map[SURFACE][39] = 7 # Thorn
 
@@ -301,6 +344,7 @@ level_map[SURFACE-3][193] = 4 # Jump Reset
 level_map[SURFACE-5][198] = 4 # Jump Reset
 
 level_map[SURFACE-9][198] = 24 # Up Dash Powerup
+level_map[SURFACE-13][198] = 4 # Up Dash Powerup
 
 level_map[12][202:219] = [6] * 17 # Floating Ground
 level_map[12][201] = 18 # Left Thorn
@@ -367,67 +411,30 @@ def read_data(slot: int):
 
 def show_level_completed_screen(slot: int, death_count: int):
 
+    # Stop level 3 music
+    pygame.mixer.music.stop()
+
+    # Play the level complete sound once when this function runs
+    level_complete_sound.play()
+
+
     level_map[5][24] = 10 # Frost Walking Boots
     level_map[SURFACE-5][82] = 16 # Double Jump Boots
     level_map[3][204] = 10 # Frost Walking Boots
     level_map[3][216] = 16 # Double Jump Boots
 
-    # Wait for player to click the button
-    waiting = True
-    while waiting:
-        # Display the background image
-        screen.blit(background, (0, 0))
-
-        # Set fonts for the text
-        title_font = pygame.font.Font('PixelifySans.ttf', 100)
-        menu_font = pygame.font.Font('PixelifySans.ttf', 60)
-        menu_font_hover = pygame.font.Font('PixelifySans.ttf', 65)  # Larger for hover
-
-        # Render hover effect dynamically
-        select_level_hover = False
-
-        # Render the "Level Completed" text
-        level_completed_text = title_font.render("Level Completed", True, WHITE)
-        death_count_text = title_font.render(f"Deaths: {death_count}", True, WHITE)
-        select_level_text = menu_font.render("Back to Select Level", True, WHITE)
-
-        # Position the texts
-        level_completed_rect = level_completed_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-        death_count_rect = death_count_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
-        select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))
-
-        # Check if mouse is hovering
-        if select_level_rect.collidepoint(pygame.mouse.get_pos()):
-            select_level_hover = True
-
-        # If hovering, change text size dynamically
-        if select_level_hover:
-            select_level_text = menu_font_hover.render("Back to Select Level", True, BLUE)
-            select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))  # Recalculate position
-
-        # Create box around the text
-        box_padding = 20
-        level_end_screen_box = pygame.Rect(level_completed_rect.left - box_padding, level_completed_rect.top - box_padding, level_completed_rect.width + box_padding*2, level_completed_rect.height + (box_padding*2) + 200)
-        pygame.draw.rect(screen, BLUE, level_end_screen_box, 10)
-        
-        # Draw the texts
-        screen.blit(level_completed_text, level_completed_rect)
-        screen.blit(death_count_text, death_count_rect)
-        screen.blit(select_level_text, select_level_rect)
-
-        pygame.display.flip()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = event.pos
-                if select_level_rect.collidepoint(mouse_x, mouse_y):
-                    world_select.World_Selector(slot)
-                    sys.exit()  # Go back to level select
+    # Change this 0 for coin increment code
+    show_level_complete_deaths(slot, 0, death_count)
 
 def level_3(slot: int):
+
+    # Stop any previously playing music 
+    pygame.mixer.music.stop()
+    
+    # Load the tutorial music
+    pygame.mixer.music.load("Audio/Level3.mp3")
+    pygame.mixer.music.play(-1)  # -1 loops forever
+
     # Grab the sprite that was customized
     sprite = read_data(slot)
 
@@ -496,6 +503,9 @@ def level_3(slot: int):
     higherJumps = False
     higherJumps_respawns = {}
     up_dash_respawns = {}
+
+    #-----Variable to check which gadget was picked up first
+    double_first = False
 
     running = True
     while running:
@@ -653,7 +663,7 @@ def level_3(slot: int):
                         player_vel_y = jump_power  # Double jump
                         doubleJumped = True  # Mark double jump as used
                     elif bubbleJump:
-                        player_vel_y = jump_power  # jump again
+                        player_vel_y = jump_power * 1.015  # jump again
                         bubbleJump = False
 
 
@@ -731,15 +741,16 @@ def level_3(slot: int):
                             level_map[current_y][current_x] = 21  # Turn the starting tile into ice
                         else:
                             dying = True
+                            death_sound.play()
 
                 # Coin
                 if tile == 12:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         coin_count += 1
                         level_map[row_index][col_index] = 0
+                        coin_sound.play()
 
                 if tile == 21 or tile == 22 or tile == 28:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
@@ -763,7 +774,7 @@ def level_3(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
+                        dash_sound.play()
                         dash_pickup_time = pygame.time.get_ticks()
                         dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
                         dash_duration = dash_pickup_time + 700
@@ -780,13 +791,16 @@ def level_3(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play()
                         frostWalkBoots = True
-                        
+
+                # Double jump boots            
                 if tile == 16:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play()
                         doubleJumpBoots = True
                         doubleJumped = False
 
@@ -795,7 +809,7 @@ def level_3(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
+                        super_speed_sound.play()
                         level_map[row_index][col_index] = 0
                         player_speed *= 2.5  # Double the speed
                         super_speed_effects.append({"end_time": pygame.time.get_ticks() + 1600})  # 1.6 sec effect
@@ -807,6 +821,7 @@ def level_3(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        power_up_sound.play()
                         higherJumps = True
                         higherJumps_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
 
@@ -817,6 +832,7 @@ def level_3(slot: int):
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0 
                         player_vel_y = -30
+                        dash_sound.play()
                         up_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
 
 
@@ -830,6 +846,7 @@ def level_3(slot: int):
 
         if player_y + TILE_SIZE >= level_height * TILE_SIZE:
             dying = True
+            death_sound.play()
 
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
@@ -908,6 +925,30 @@ def level_3(slot: int):
                     
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
+
+        #-----Inventory Fill-up logic
+
+        screen.blit(inventory, (inventory_x, inventory_y))
+
+        if (doubleJumpBoots):
+            if (doubleJumpBoots) and (frostWalkBoots == False):
+                double_first = True
+                screen.blit(inventory_jump_boots, first_slot)
+            elif (doubleJumpBoots) and (frostWalkBoots) and double_first:
+                screen.blit(inventory_jump_boots, first_slot)
+                screen.blit(inventory_frost_boots, second_slot)
+
+
+        if (frostWalkBoots):
+            if  (frostWalkBoots) and (doubleJumpBoots == False):
+                double_first = False
+                screen.blit(inventory_frost_boots, first_slot)
+                print(f"Frostboots: {frostWalkBoots}")
+            elif (doubleJumpBoots) and (frostWalkBoots) and (double_first == False):
+                screen.blit(inventory_frost_boots, first_slot)
+                screen.blit(inventory_jump_boots, second_slot)
+
+
         
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
