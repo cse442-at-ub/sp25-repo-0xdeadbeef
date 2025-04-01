@@ -10,6 +10,7 @@ import world_select
 import json
 from saves_handler import *
 from firework_level_end import show_level_complete
+from saves_handler import update_unlock_state, get_unlock_state
 
 # Initialize PyGame
 pygame.init()
@@ -254,7 +255,12 @@ def show_level_completed_screen(slot: int):
     level_map[SURFACE-1][68] = 0  # Despawn coin
     level_map[SURFACE-2][79:81] = [0] * 2 # Despawn platforms after getting coin
 
+    current_state = get_unlock_state(slot, "map1")
+    current_state[1] = True  # Unlock level 1
+    update_unlock_state(slot, current_state, "map1")
+
     show_level_complete(slot, counter_for_coin_increment)
+    
 
 
 def read_data(slot: int):
@@ -628,9 +634,13 @@ def tutorial_level(slot: int):
             level_map[SURFACE-2][113] = 9
             dash_respawn_time = 0
 
+        
+
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
             show_level_completed_screen(slot)
             running = False
+        
+        
         
 
         if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left

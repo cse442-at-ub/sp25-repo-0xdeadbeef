@@ -9,6 +9,7 @@ from NPCs.level_2_npc_3 import handle_level_2_npc_3_dialogue  # Import the funct
 from NPCs.level_2_npc_4 import handle_level_2_npc_4_dialogue  # Import the functionality of the fourth NPC from level 2
 from saves_handler import *
 from firework_level_end import show_level_complete_deaths
+from saves_handler import update_unlock_state, get_unlock_state
 
 # Initialize PyGame
 pygame.init()
@@ -394,6 +395,10 @@ def show_level_completed_screen(slot: int, death_count: int):
     level_map[SURFACE-14][63] = 11 # Speed Boots
     level_map[SURFACE-5][178] = 3 # Double Jump Boots
     level_map[SURFACE-11][208] = 11 # Super Speed Boots
+
+    current_state = get_unlock_state(slot, "map1")
+    current_state[3] = True  # Unlock level 3
+    update_unlock_state(slot, current_state, "map1")
 
     show_level_complete_deaths(slot, 0, death_count)
 
@@ -843,7 +848,7 @@ def level_2(slot: int):
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
                         player_vel_y = -35
-                        spring_sound.sound() # Play spring sound when making contact
+                        spring_sound.play() # Play spring sound when making contact
 
                 # Left Dash
                 if tile == 22:
@@ -933,6 +938,7 @@ def level_2(slot: int):
         # Remove respawned power-ups from tracking
         for pos in to_remove:
             del super_speed_respawns[pos]
+        
 
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
             show_level_completed_screen(slot, death_count)
