@@ -4,12 +4,14 @@ import json
 import sys
 import world_select
 from collections import deque
+from saves_handler import *
 from NPCs.level_3_npc_1 import handle_level_3_npc_1_dialogue  # Import the functionality of the NPC from level 3
 from NPCs.level_3_npc_2 import handle_level_3_npc_2_dialogue  # Import the functionality of the NPC from level 3
 from NPCs.level_3_npc_3 import handle_level_3_npc_3_dialogue  # Import the functionality of the NPC from level 3
 from NPCs.level_3_npc_4 import handle_level_3_npc_4_dialogue  # Import the functionality of the NPC from level 3
 from firework_level_end import show_level_complete_deaths
 from saves_handler import update_unlock_state, get_unlock_state
+from pause_menu import PauseMenu  # Import the PauseMenu class
 
 # Initialize PyGame
 pygame.init()
@@ -405,11 +407,6 @@ def calculate_row(y):
 def calculate_y_coordinate(row):
     return int(row * TILE_SIZE)
 
-def read_data(slot: int):
-    with open(f"./User Saves/save{str(slot)}.json", "r") as file:
-        data = json.load(file)
-    return data.get("character")
-
 def show_level_completed_screen(slot: int, death_count: int):
 
     # Stop level 3 music
@@ -423,6 +420,10 @@ def show_level_completed_screen(slot: int, death_count: int):
     level_map[SURFACE-5][82] = 16 # Double Jump Boots
     level_map[3][204] = 10 # Frost Walking Boots
     level_map[3][216] = 16 # Double Jump Boots
+
+    respawn_powerups() # Respawn all powerups on the level
+
+    update_save(slot, {"Level 3 Checkpoint": 0}) # Set checkpoint to 0
     
     current_state = get_unlock_state(slot, "map1")
     current_state[4] = True  # Unlock level 4
@@ -430,6 +431,34 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     # Change this 0 for coin increment code
     show_level_complete_deaths(slot, 0, death_count)
+
+def respawn_powerups():
+    row = SURFACE - 3
+    col = 12
+    for i in range(6):
+        level_map[row][col] = 4 # Jump Reset
+        row -= 3
+        col = col - 4 if i % 2 == 0 else col + 4
+    level_map[row][col] = 5
+    level_map[10][36] = 4 # Jump Reset
+    level_map[14][43] = 4 # Jump Reset
+    level_map[SURFACE-2][57] = 4 # Jump Reset
+    level_map[SURFACE-8][61] = 5 # Dash Powerup
+    level_map[SURFACE-7][105] = 4 # Jump Reset
+    level_map[SURFACE-7][115] = 4 # Jump Reset
+    level_map[SURFACE-14][115] = 4 # Jump Reset
+    level_map[SURFACE-3][125] = 4 # Jump Reset
+    level_map[SURFACE-6][130] = 20 # Super Speed Powerup
+    level_map[SURFACE-6][167] = 20 # Super Speed Powerup
+    level_map[SURFACE-6][169] = 23 # High Jump Powerup
+    level_map[SURFACE-3][193] = 4 # Jump Reset
+    level_map[SURFACE-5][198] = 4 # Jump Reset
+    level_map[SURFACE-9][198] = 24 # Up Dash Powerup
+    level_map[11][210] = 23 # High Jump Powerup
+    level_map[SURFACE-8][227] = 4 # Jump Reset
+
+# Initialize the PauseMenu
+pause_menu = PauseMenu(screen)
 
 def level_3(slot: int):
 
@@ -441,7 +470,7 @@ def level_3(slot: int):
     pygame.mixer.music.play(-1)  # -1 loops forever
 
     # Grab the sprite that was customized
-    sprite = read_data(slot)
+    sprite = load_save(slot).get("character")
 
     # Load all the images into their respective variables
     player = pygame.image.load(f"./Assets/Character Sprites/standing/{sprite}")
@@ -459,12 +488,20 @@ def level_3(slot: int):
 
     run_frames = [pygame.transform.scale(frame, (TILE_SIZE, TILE_SIZE)) for frame in run_frames]
 
+    checkpoints = [(calculate_x_coordinate(5), calculate_y_coordinate(SURFACE)), (calculate_x_coordinate(77), calculate_y_coordinate(SURFACE-5)), (calculate_x_coordinate(153), calculate_y_coordinate(SURFACE-4))]
+    checkpoint_bool = [False] * len(checkpoints)
+    checkpoint_bool[0] = True
+    checkpoint_idx = load_save(slot).get("Level 3 Checkpoint")
+    if not checkpoint_idx:
+        checkpoint_idx = 0
+    for i in range(checkpoint_idx+1):
+        checkpoint_bool[i] = True
+
     # Camera position
     camera_x = 0
-
     # (5, SURFACE) should be the starting point
-    player_x = calculate_x_coordinate(5)  # Start position, change this number to spawn in a different place
-    player_y = calculate_y_coordinate(SURFACE)
+    player_x = checkpoints[checkpoint_idx][0]  # Start x position, change this number to spawn in a different place
+    player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
     
     # 8.5 should be standard speed
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
@@ -477,6 +514,14 @@ def level_3(slot: int):
     doubleJumped = False # Track if player double jumped already
     frostWalkBoots = False # Track if player has frost walk boots
 
+    if checkpoint_idx == 0:
+        level_map[5][24] = 10 # Frost Walking Boots
+    elif checkpoint_idx == 1:
+        level_map[SURFACE-5][82] = 16 # Double Jump Boots
+    elif checkpoint_idx == 2:
+        level_map[3][204] = 10 # Frost Walking Boots
+        level_map[3][216] = 16 # Double Jump Boots
+
     animation_index = 0  # Alternates between 0 and 1
     animation_timer = 0  # Tracks when to switch frames
     animation_speed = 4  # Adjust this to control animation speed
@@ -486,12 +531,10 @@ def level_3(slot: int):
     ice_friction = 0.95  # Lower friction for slippery effect
     on_ice = False
 
-    checkpoints = [(player_x, player_y), (calculate_x_coordinate(77), calculate_y_coordinate(SURFACE-5)), (calculate_x_coordinate(153), calculate_y_coordinate(SURFACE-4))]
-    checkpoint_bool = [False] * len(checkpoints)
-    checkpoint_bool[0] = True
-    checkpoint_idx = 0
     dying = False
-    death_count = 0
+    death_count = load_save(slot).get("Level 3 Deaths")
+    if not death_count:
+        death_count = 0
     collidable_tiles = {1, 2, 3, 6, 9, 15, 21, 22}
     dying_tiles = {3, 7, 11, 17, 18, 19}
 
@@ -509,6 +552,8 @@ def level_3(slot: int):
     higherJumps_respawns = {}
     up_dash_respawns = {}
 
+    space_pressed = False
+
     #-----Variable to check which gadget was picked up first
     double_first = False
 
@@ -516,6 +561,15 @@ def level_3(slot: int):
     while running:
         
         screen.blit(background, (0, 0))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            # Pass events to the PauseMenu
+            pause_menu.handle_event(event, slot)
+        if pause_menu.paused:
+            continue
+
         # Draw level using tile images
         for row_index, row in enumerate(level_map):
             for col_index, tile in enumerate(row):
@@ -648,30 +702,26 @@ def level_3(slot: int):
             if animation_timer >= animation_speed:  
                 animation_timer = 0
                 animation_index = 1 - animation_index  # Alternate between 0 and 1
+        # Jumping Logic (Space Pressed)
+        if keys[pygame.K_SPACE] and not space_pressed:
+            if higherJumps:
+                player_vel_y = jump_power * 2
+                higherJumps = False
+            elif on_ground:
+                player_vel_y = jump_power  # Normal jump
+                on_ground = False
+                doubleJumped = False  # Reset double jump when landing
+            elif doubleJumpBoots and not doubleJumped:
+                player_vel_y = jump_power  # Double jump
+                doubleJumped = True  # Mark double jump as used
+            elif bubbleJump:
+                player_vel_y = jump_power  # jump again
+                bubbleJump = False
+            space_pressed = True
+        else:
+            space_pressed = False
+
         player_x += player_vel_x  # Update position
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            
-            # Jumping Logic (Space Pressed)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    if higherJumps:
-                        player_vel_y = jump_power * 2
-                        higherJumps = False
-                    elif on_ground:
-                        player_vel_y = jump_power  # Normal jump
-                        on_ground = False
-                        doubleJumped = False  # Reset double jump when landing
-                    elif doubleJumpBoots and not doubleJumped:
-                        player_vel_y = jump_power  # Double jump
-                        doubleJumped = True  # Mark double jump as used
-                    elif bubbleJump:
-                        player_vel_y = jump_power * 1.015  # jump again
-                        bubbleJump = False
-
-
         current_frame = run_frames[animation_index]
 
         if direction == -1:  # Flip when moving left
@@ -855,6 +905,7 @@ def level_3(slot: int):
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
+            update_save(slot, {"Level 3 Deaths": death_count})
             dying = False
             if checkpoint_idx == 0:
                 frostWalkBoots = False
@@ -873,6 +924,7 @@ def level_3(slot: int):
             if player_x >= x and player_y <= y and not checkpoint_bool[k]:
                 checkpoint_idx += 1
                 checkpoint_bool[k] = True
+                update_save(slot, {"Level 3 Checkpoint": checkpoint_idx})
                 if checkpoint_idx == 1 and frostWalkBoots: # Remove Frost Walk Boots Effect
                     frostWalkBoots = False
                 elif checkpoint_idx == 2 and doubleJumpBoots: # Remove Double Jump Boots Effect

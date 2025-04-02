@@ -10,6 +10,7 @@ from NPCs.level_1_npc_3 import handle_level_1_npc_3_dialogue  # Import the funct
 from saves_handler import *
 from firework_level_end import show_level_complete
 from saves_handler import update_unlock_state, get_unlock_state
+from pause_menu import PauseMenu  # Import the PauseMenu class
 
 # Initialize Pygame
 pygame.init()
@@ -496,7 +497,6 @@ def calculate_row(y):
 def calculate_y_coordinate(row):
     return int(row * TILE_SIZE)
 
-
 def show_level_completed_screen(slot: int):
 
     # Stop level 1 music
@@ -508,6 +508,8 @@ def show_level_completed_screen(slot: int):
     level_map[SURFACE-5][55] = 13  # Respawn speed boots
     level_map[SURFACE-1][68] = 0   # Despawn coin
     level_map[SURFACE-2][79:81] = [0] * 2  # Despawn platforms after getting coin
+
+    update_save(slot, {"Level 1 Checkpoint": 0}) # Set checkpoint to 0
 
     current_state = get_unlock_state(slot, "map1")
     current_state[2] = True  # Unlock level 2
@@ -522,6 +524,9 @@ def read_data(slot: int):
         data = json.load(file)
     return data.get("character")
 
+# Initialize the PauseMenu
+pause_menu = PauseMenu(screen)
+
 # -----------------------------------
 # Level One Game Loop
 # -----------------------------------
@@ -535,9 +540,10 @@ def level_1(slot: int):
     pygame.mixer.music.play(-1)  # -1 loops forever
 
     level_map[SURFACE - 3][39] = 3   # Jump Boots
+    level_map[SURFACE-8][76] = 38 # Jump Reset
 
     # Grab the sprite that was customized
-    sprite = read_data(slot)
+    sprite = load_save(slot).get("character")
 
     # Load all the images into their respective variables
     player = pygame.image.load(f"./Assets/Character Sprites/standing/{sprite}")
@@ -555,10 +561,18 @@ def level_1(slot: int):
 
     run_frames = [pygame.transform.scale(frame, (TILE_SIZE, TILE_SIZE)) for frame in run_frames]
 
+    checkpoints = [(150, HEIGHT-600)]
+    checkpoint_bool = [False] * len(checkpoints)
+    checkpoint_idx = load_save(slot).get("Level 1 Checkpoint")
+    if not checkpoint_idx:
+        checkpoint_idx = 0
+    for i in range(checkpoint_idx+1):
+        checkpoint_bool[i] = True
+
     # Camera position
     camera_x = 0
-    player_x = 150  # Start position, change this number to spawn in a different place
-    player_y = HEIGHT - 560
+    player_x = checkpoints[checkpoint_idx][0]  # Start x position, change this number to spawn in a different place
+    player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
     player_speed = 6.5 * scale_factor # Adjust player speed according to their resolution
 
     player_vel_y = 0 # Vertical velocity for jumping
@@ -586,12 +600,10 @@ def level_1(slot: int):
 
     #-----Variable to check which gadget was picked up first
     double_first = False
-
-    checkpoints = [(150, HEIGHT-600)]
-    checkpoint_bool = [True]
-    checkpoint_idx = 0
     dying = False
-    death_count = 0
+    death_count = load_save(slot).get("Level 1 Deaths")
+    if not death_count:
+        death_count = 0
     coin_count = 0
 
     global counter_for_coin_increment
@@ -603,9 +615,19 @@ def level_1(slot: int):
     bubbleJump = False
     bubbleJump_respawns = {}
 
+    space_pressed = False
+
     running = True
     while running:
         screen.blit(background, (0, 0))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            # Pass events to the PauseMenu
+            pause_menu.handle_event(event, slot)
+        if pause_menu.paused:
+            continue
 
         level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
         level_name_text = level_name_font.render("Level 1", True, (255, 255, 255))  # White text
@@ -705,9 +727,20 @@ def level_1(slot: int):
             player_x -= player_speed        
             moving = True
             direction = -1
-        if keys[pygame.K_SPACE] and on_ground: # If player presses Spacebar
-            player_vel_y = jump_power # Apply jump force
-            on_ground = False # Player is now airborne
+        if keys[pygame.K_SPACE] and not space_pressed:
+            if on_ground:
+                player_vel_y = jump_power  # Normal jump
+                on_ground = False
+                doubleJumped = False  # Reset double jump when landing
+            elif doubleJumpBoots and not doubleJumped:
+                player_vel_y = jump_power  # Double jump
+                doubleJumped = True  # Mark double jump as used
+            elif bubbleJump:
+                player_vel_y = jump_power  # jump again
+                bubbleJump = False
+            space_pressed = True
+        else:
+            space_pressed = False 
         if moving:
             animation_timer += 1
             if animation_timer >= animation_speed:  
@@ -731,24 +764,6 @@ def level_1(slot: int):
                 screen.blit(player, (player_x - camera_x, player_y))
             else: # Left
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            
-            # Jumping Logic (Space Pressed)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    if on_ground:
-                        player_vel_y = jump_power  # Normal jump
-                        on_ground = False
-                        doubleJumped = False  # Reset double jump when landing
-                    elif doubleJumpBoots and not doubleJumped:
-                        player_vel_y = jump_power  # Double jump
-                        doubleJumped = True  # Mark double jump as used
-                    elif bubbleJump:
-                        player_vel_y = jump_power  # jump again
-                        bubbleJump = False
             
         # Apply gravity
         player_vel_y += gravity
@@ -912,6 +927,7 @@ def level_1(slot: int):
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
+            update_save(slot, {"Level 1 Deaths": death_count})
             dying = False
             level_map[SURFACE - 3][39] = 3
             # Reset the player’s flags so re-collect
@@ -929,6 +945,7 @@ def level_1(slot: int):
             if player_x >= x and not checkpoint_bool[k]:
                 checkpoint_idx += 1
                 checkpoint_bool[k] = True
+                update_save(slot, {"Level 1 Checkpoint": checkpoint_idx})
                 if checkpoint_idx == 2:
                     doubleJumpBoots = False 
                     player_speed = player_speed / 1.25 
