@@ -12,6 +12,8 @@ from firework_level_end import show_level_complete_deaths
 # Initialize PyGame
 pygame.init()
 
+counter_for_coin_increment = 0
+
 pygame.mixer.init() # Initialize Pygame Audio Mixer
 
 # Load the level complete sound 
@@ -465,7 +467,9 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     level_map[SURFACE-3][253] = 33 # Balloon
 
-    show_level_complete_deaths(slot, 0, death_count)
+    level_name = "Level Four"
+
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
 
 def show_game_over_screen(slot: int):
 
@@ -647,6 +651,9 @@ def level_4(slot: int):
     dying_tiles = {3, 11, 18, 19, 7, 17} 
 
     coin_count = 0
+
+    global counter_for_coin_increment
+    counter_for_coin_increment = coin_count
 
     start_time = 180  # Timer starts at 180 seconds
     timer = start_time
@@ -905,6 +912,7 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         coin_count += 1
+                        counter_for_coin_increment = coin_count
                         level_map[row_index][col_index] = 0
                         coin_sound.play()
 

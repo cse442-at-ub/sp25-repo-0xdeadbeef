@@ -508,7 +508,9 @@ def show_level_completed_screen(slot: int):
     level_map[SURFACE-1][68] = 0   # Despawn coin
     level_map[SURFACE-2][79:81] = [0] * 2  # Despawn platforms after getting coin
 
-    show_level_complete(slot, 0)
+    level_name = "Level One"
+
+    show_level_complete(slot, counter_for_coin_increment, level_name)
     
 
 

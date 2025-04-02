@@ -395,7 +395,9 @@ def show_level_completed_screen(slot: int, death_count: int):
     level_map[SURFACE-5][178] = 3 # Double Jump Boots
     level_map[SURFACE-11][208] = 11 # Super Speed Boots
 
-    show_level_complete_deaths(slot, 0, death_count)
+    level_name = "Level Two"
+
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
 
 def show_game_over_screen(slot: int):
 
@@ -843,7 +845,7 @@ def level_2(slot: int):
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
                         player_vel_y = -35
-                        spring_sound.sound() # Play spring sound when making contact
+                        spring_sound.play() # Play spring sound when making contact
 
                 # Left Dash
                 if tile == 22:
