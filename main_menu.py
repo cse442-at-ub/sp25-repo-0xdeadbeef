@@ -1,13 +1,13 @@
 import pygame   # type: ignore
-import random   #For random snow positions and speeds
+import random   # For random snow positions and speeds
 import settings_menu 
 import save_slots
 import achievement_menu
 import sys
 
-import pygame_widgets 
-from pygame_widgets.slider import Slider
-from pygame_widgets.textbox import TextBox 
+import pygame_widgets                        # type: ignore
+from pygame_widgets.slider import Slider     # type: ignore
+from pygame_widgets.textbox import TextBox   # type: ignore
 
 pygame.init()   # Initialize Pygame
 pygame.mixer.init() # Initialize Pygame Audio Mixer

@@ -8,13 +8,40 @@ from NPCs.level_4_npc_1 import handle_level_4_npc_1_dialogue  # Import the funct
 from NPCs.level_4_npc_2 import handle_level_4_npc_2_dialogue  # Import the functionality of the second NPC from level 4
 from NPCs.level_4_npc_3 import handle_level_4_npc_3_dialogue  # Import the functionality of the third NPC from level 4
 from NPCs.level_4_npc_4 import handle_level_4_npc_4_dialogue  # Import the functionality of the fourth NPC from level 4
+from firework_level_end import show_level_complete_deaths
+from saves_handler import update_unlock_state, get_unlock_state
 from pause_menu import PauseMenu  # Import the PauseMenu class
 
 # Initialize PyGame
 pygame.init()
 
-# Screen settings
+pygame.mixer.init() # Initialize Pygame Audio Mixer
 
+# Load the level complete sound 
+level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
+
+# Gadget pick up sound 
+gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
+
+# Death sound 
+death_sound = pygame.mixer.Sound("Audio/Death.mp3")
+
+# Super speed power up sound
+super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
+
+# Dash power up sound
+dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
+
+# Power up sound (global)
+power_up_sound = pygame.mixer.Sound("Audio/PowerUpPickUp.mp3") 
+
+# Spring sound 
+spring_sound = pygame.mixer.Sound("Audio/Spring.mp3")
+
+# Coin pick up sound 
+coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
+
+# Screen settings
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
 
@@ -137,6 +164,35 @@ flipped_npc_3 = pygame.transform.flip(npc_3, True, False)  # Flip horizontally (
 npc_4 = pygame.image.load("./Character Combinations/ginger hair_white_yellow shirt_brown pants.png")
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  # Flip horizontally (True), no vertical flip (False)
+
+#-----Gadget inventory images and dictionary
+
+inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.transform.scale(inventory, (250, 70))
+inventory_x = (WIDTH - 250) // 2
+inventory_y = HEIGHT - 100
+
+inventory_jump_boots = pygame.image.load("./images/boots.png")
+inventory_jump_boots = pygame.transform.scale(inventory_jump_boots, (42, 50))
+
+inventory_speed_boots = pygame.image.load("./images/speed_boots.png")
+inventory_speed_boots = pygame.transform.scale(inventory_speed_boots, (42, 50))
+
+inventory_dash_gadget = pygame.image.load("./images/jett_dash.png")
+inventory_dash_gadget = pygame.transform.scale(inventory_dash_gadget, (42, 50))
+
+inventory_frost_boots = pygame.image.load("./images/ice_boots.png")
+inventory_frost_boots = pygame.transform.scale(inventory_frost_boots, (42, 50))
+
+INV_SLOT_WIDTH = 42
+INV_SLOT_HEIGHT = 45
+
+first_slot = (inventory_x + 5, inventory_y + 10)
+second_slot = (inventory_x + INV_SLOT_WIDTH + 10, inventory_y + 10)
+third_slot = (inventory_x + (2*INV_SLOT_WIDTH + 20), inventory_y + 10)
+fourth_slot = (inventory_x + (3*INV_SLOT_WIDTH + 40), inventory_y + 10)
+
+
 
 # Set up the level with a width of 300 and a height of 30 rows
 level_width = 300
@@ -283,6 +339,8 @@ level_map[SURFACE-19][21] = 10 # Frost Walking Boots
 
 #level_map[SURFACE-2][72] = 5 # Dash Powerup
 level_map[SURFACE][75] = 29 # Spring
+level_map[SURFACE - 16][75] = 4 # Spring
+level_map[SURFACE - 18][73] = 4 # Spring
 
 level_map[SURFACE-19][88:90] = [7] * 2 # Thorns
 level_map[SURFACE-19][95:101] = [7] * 6 # Thorns
@@ -339,7 +397,7 @@ level_map[SURFACE-1][250:254] = [22] * 4 # Flipped Ice Tile
 
 level_map[SURFACE-3][253] = 33 # Balloon
 
-level_map[SURFACE-5][35] = 34 # First NPC - (Placed next to the first sign of the map)
+level_map[SURFACE][10] = 34 # First NPC - (Placed next to the dash powerup)
 level_map[SURFACE-19][151] = 35 # Second NPC - (Placed next to the second checkpoint flag of the map)
 level_map[SURFACE-19][202] = 36 # Third NPC - (Placed next to the second speed boots)
 level_map[SURFACE-17][291] = 37 # Fourth NPC - (Placed next to the last sign of the map)
@@ -372,6 +430,11 @@ def calculate_y_coordinate(row):
     return int(row * TILE_SIZE)
 
 def show_level_completed_screen(slot: int, death_count: int):
+    # Stop level 4 music
+    pygame.mixer.music.stop()
+
+    # Play the level complete sound once when this function runs
+    level_complete_sound.play()
 
     level_map[SURFACE-19][39] = 16 # Double Jump Boots
     level_map[SURFACE-19][21] = 10 # Frost Walking Boots
@@ -383,60 +446,11 @@ def show_level_completed_screen(slot: int, death_count: int):
     update_save(slot, {"Level 4 Checkpoint": 0}) # Set checkpoint to 0
     update_save(slot, {"Level 4 Time": 180})
 
-    # Wait for player to click the button
-    waiting = True
-    while waiting:
-        # Display the background image
-        screen.blit(background, (0, 0))
+    # current_state = get_unlock_state(slot, "map2")
+    # current_state[5] = True  # Unlock level 5
+    # update_unlock_state(slot, current_state, "map2")
 
-        # Set fonts for the text
-        title_font = pygame.font.Font('PixelifySans.ttf', 100)
-        menu_font = pygame.font.Font('PixelifySans.ttf', 60)
-        menu_font_hover = pygame.font.Font('PixelifySans.ttf', 65)  # Larger for hover
-
-        # Render hover effect dynamically
-        select_level_hover = False
-
-        # Render the "Level Completed" text
-        level_completed_text = title_font.render("Level Completed", True, WHITE)
-        death_count_text = title_font.render(f"Deaths: {death_count}", True, WHITE)
-        select_level_text = menu_font.render("Back to Select Level", True, WHITE)
-
-        # Position the texts
-        level_completed_rect = level_completed_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-        death_count_rect = death_count_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
-        select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))
-
-        # Check if mouse is hovering
-        if select_level_rect.collidepoint(pygame.mouse.get_pos()):
-            select_level_hover = True
-
-        # If hovering, change text size dynamically
-        if select_level_hover:
-            select_level_text = menu_font_hover.render("Back to Select Level", True, BLUE)
-            select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))  # Recalculate position
-
-        # Create box around the text
-        box_padding = 20
-        level_end_screen_box = pygame.Rect(level_completed_rect.left - box_padding, level_completed_rect.top - box_padding, level_completed_rect.width + box_padding*2, level_completed_rect.height + (box_padding*2) + 200)
-        pygame.draw.rect(screen, BLUE, level_end_screen_box, 10)
-        
-        # Draw the texts
-        screen.blit(level_completed_text, level_completed_rect)
-        screen.blit(death_count_text, death_count_rect)
-        screen.blit(select_level_text, select_level_rect)
-
-        pygame.display.flip()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = event.pos
-                if select_level_rect.collidepoint(mouse_x, mouse_y):
-                    world_select.World_Selector(slot)
-                    sys.exit()  # Go back to level select
+    show_level_complete_deaths(slot, 0, death_count)
 
 def show_game_over_screen(slot: int):
 
@@ -544,6 +558,13 @@ pause_menu = PauseMenu(screen)
 def level_4(slot: int):
 
     respawn_powerups() # Respawn all powerups on the level
+
+    # Stop any previously playing music 
+    pygame.mixer.music.stop()
+    
+    # Load the tutorial music
+    pygame.mixer.music.load("Audio/Level4.mp3")
+    pygame.mixer.music.play(-1)  # -1 loops forever
 
     # Grab the sprite that was customized
     sprite = load_save(slot).get("character")
@@ -714,8 +735,8 @@ def level_4(slot: int):
             pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
 
         # Check if player is near the first NPC
-        npc_x = calculate_x_coordinate(35)  # First NPC's x position
-        npc_y = (SURFACE-5) * TILE_SIZE  # First NPC's y position
+        npc_x = calculate_x_coordinate(10)  # First NPC's x position
+        npc_y = (SURFACE) * TILE_SIZE  # First NPC's y position
         player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
         npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
 
@@ -894,15 +915,16 @@ def level_4(slot: int):
                             level_map[current_y][current_x] = 21  # Turn the starting tile into ice
                         else:
                             dying = True
+                            death_sound.play()
 
                 # Coin
                 if tile == 12:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         coin_count += 1
                         level_map[row_index][col_index] = 0
+                        coin_sound.play()
 
                 if tile == 21 or tile == 22 or tile == 28:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
@@ -927,6 +949,7 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        power_up_sound.play()
                         higherJumps = True
                         higherJumps_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
 
@@ -936,15 +959,17 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                             dashGadget = True
-                            level_map[row_index][col_index] = 0 
+                            level_map[row_index][col_index] = 0
+                            super_speed_sound.play()
 
-                # Super Speed Powerups
+
+                # Super Speed Power ups
                 if tile == 20: 
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         level_map[row_index][col_index] = 0
+                        gadget_sound.play()
                         player_speed *= 4  # Double the speed
                         super_speed_effects.append({"end_time": pygame.time.get_ticks() + 1600})  # 1.6 sec effect
                         super_speed_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000  # 5 sec respawn
@@ -955,6 +980,8 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
                         player_vel_y = -50
+                        spring_sound.play()
+                        
 
                 # Double Jump Boots
                 if tile == 16:
@@ -962,6 +989,7 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play()
                         doubleJumpBoots = True
                         doubleJumped = False
 
@@ -971,6 +999,7 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play()
                         frostWalkBoots = True
 
                 # Dash
@@ -978,13 +1007,17 @@ def level_4(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         dash_pickup_time = pygame.time.get_ticks()
                         dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
                         dash_duration = dash_pickup_time + 500
                         dashed = True
                         level_map[row_index][col_index] = 0 
+
+                        dash_sound.play()
                         player_speed = player_speed * 2 
+
+                        player_speed = player_speed * 2.5 
+
                         direction = 1
                         if player_speed < 0:
                             player_speed *= -1
@@ -996,6 +1029,7 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play()
                         player_speed = player_speed * 1.25 # Up the player speed
                         speedBoots = True
 
@@ -1005,6 +1039,7 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        dash_sound.play()
                         player_vel_y += 15
                         down_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
 
@@ -1012,8 +1047,8 @@ def level_4(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         level_map[row_index][col_index] = 0  # Remove the balloon from the map
+                        power_up_sound.play()
                         hasBalloon = True
                         balloon_vel = -5  # Initial upward speed
                         balloon_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
@@ -1033,6 +1068,8 @@ def level_4(slot: int):
 
         if player_y + TILE_SIZE >= level_height * TILE_SIZE:
             dying = True
+            death_sound.play()
+
 
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
@@ -1146,6 +1183,33 @@ def level_4(slot: int):
             if player_y + TILE_SIZE < 0:  # If the player moves off the top of the screen
                 hasBalloon = False  # Pop the balloon
                 balloon_vel = 0  # Reset velocity
+
+
+        #-----Inventory Fill-up logic
+
+        screen.blit(inventory, (inventory_x, inventory_y))
+
+        inv_slots = []
+
+        inv_slot_dimensions = [first_slot, second_slot, third_slot, fourth_slot]
+
+        if dashGadget:
+            inv_slots.append(inventory_dash_gadget)
+
+        if doubleJumpBoots:
+            inv_slots.append(inventory_jump_boots)
+
+        if frostWalkBoots:
+            inv_slots.append(inventory_frost_boots)
+
+        if speedBoots:
+            inv_slots.append(inventory_speed_boots)
+
+
+        for x, gadget in enumerate(inv_slots):
+            screen.blit(gadget, inv_slot_dimensions[x])
+        
+
 
         pygame.display.flip()  # Update display
 

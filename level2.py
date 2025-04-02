@@ -8,6 +8,8 @@ from NPCs.level_2_npc_2 import handle_level_2_npc_2_dialogue  # Import the funct
 from NPCs.level_2_npc_3 import handle_level_2_npc_3_dialogue  # Import the functionality of the third NPC from level 2
 from NPCs.level_2_npc_4 import handle_level_2_npc_4_dialogue  # Import the functionality of the fourth NPC from level 2
 from saves_handler import *
+from firework_level_end import show_level_complete_deaths
+from saves_handler import update_unlock_state, get_unlock_state
 from pause_menu import PauseMenu  # Import the PauseMenu class
 
 # Initialize PyGame
@@ -29,7 +31,15 @@ super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
 # Dash power up sound
 dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
 
+
+# Spring sound 
+spring_sound = pygame.mixer.Sound("Audio/Spring.mp3")
+
+# Coin pick up sound 
+coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
+
 counter_for_coin_increment = 0
+
 
 
 # Screen settings
@@ -374,9 +384,9 @@ def calculate_row(y):
 def calculate_y_coordinate(row):
     return int(row * TILE_SIZE)
 
-def show_level_completed_screen(slot: int):
+def show_level_completed_screen(slot: int, death_count: int):
 
-    # Stop tutorial music
+    # Stop level 2 music
     pygame.mixer.music.stop()
 
     # Play the level complete sound once when this function runs
@@ -392,60 +402,11 @@ def show_level_completed_screen(slot: int):
     update_save(slot, {"Level 2 Checkpoint": 0}) # Set checkpoint to 0
     update_save(slot, {"Level 2 Time": 180})
 
-    # Wait for player to click the button
-    waiting = True
-    while waiting:
-        # Display the background image
-        screen.blit(background, (0, 0))
+    current_state = get_unlock_state(slot, "map1")
+    current_state[3] = True  # Unlock level 3
+    update_unlock_state(slot, current_state, "map1")
 
-        # Set fonts for the text
-        title_font = pygame.font.Font('PixelifySans.ttf', 100)
-        menu_font = pygame.font.Font('PixelifySans.ttf', 60)
-        menu_font_hover = pygame.font.Font('PixelifySans.ttf', 65)  # Larger for hover
-
-        # Render hover effect dynamically
-        select_level_hover = False
-
-        # Render the "Level Completed" text
-        level_completed_text = title_font.render("Level Completed", True, WHITE)
-        select_level_text = menu_font.render("Back to Select Level", True, WHITE)
-
-        # Position the texts
-        level_completed_rect = level_completed_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-        select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
-
-        # Check if mouse is hovering
-        if select_level_rect.collidepoint(pygame.mouse.get_pos()):
-            select_level_hover = True
-
-        # If hovering, change text size dynamically
-        if select_level_hover:
-            select_level_text = menu_font_hover.render("Back to Select Level", True, BLUE)
-            select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))  # Recalculate position
-
-        # Create box around the text
-        box_padding = 20
-        level_end_screen_box = pygame.Rect(level_completed_rect.left - box_padding, level_completed_rect.top - box_padding, level_completed_rect.width + box_padding*2, level_completed_rect.height + (box_padding*2) + 80)
-        pygame.draw.rect(screen, BLUE, level_end_screen_box, 10)
-        
-        # Draw the texts
-        screen.blit(level_completed_text, level_completed_rect)
-        screen.blit(select_level_text, select_level_rect)
-
-        pygame.display.flip()
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = event.pos
-                if select_level_rect.collidepoint(mouse_x, mouse_y):
-                    level_name = "Level Two"
-                    achievement_counter(slot, level_name)
-                    eclipse_increment(slot, counter_for_coin_increment)
-                    world_select.World_Selector(slot)
-                    sys.exit()  # Go back to level select
+    show_level_complete_deaths(slot, 0, death_count)
 
 def show_game_over_screen(slot: int):
 
@@ -908,8 +869,8 @@ def level_2(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        super_speed_sound.play()
                         level_map[row_index][col_index] = 0
+                        super_speed_sound.play()
                         player_speed *= 2  # Double the speed
                         super_speed_effects.append({"end_time": pygame.time.get_ticks() + 2000})  # 2 sec effect
                         super_speed_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000  # 5 sec respawn
@@ -919,10 +880,10 @@ def level_2(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         coin_count += 1
                         counter_for_coin_increment = coin_count
                         level_map[row_index][col_index] = 0
+                        coin_sound.play()
 
                 # Spring
                 if tile == 23:
@@ -930,6 +891,7 @@ def level_2(slot: int):
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
                         player_vel_y = -35
+                        spring_sound.play() # Play spring sound when making contact
 
                 # Left Dash
                 if tile == 22:
@@ -1019,9 +981,10 @@ def level_2(slot: int):
         # Remove respawned power-ups from tracking
         for pos in to_remove:
             del super_speed_respawns[pos]
+        
 
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
-            show_level_completed_screen(slot)
+            show_level_completed_screen(slot, death_count)
             running = False
         
         if timer <= 0:
