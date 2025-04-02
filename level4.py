@@ -534,7 +534,7 @@ def show_game_over_screen(slot: int):
 def respawn_powerups():
     level_map[SURFACE][13] = 31 # Dash Gadget
     level_map[SURFACE-5][44] = 4 # Jump Reset
-    level_map[SURFACE-19][38] = 20 # Super Speed Powerup
+    # level_map[SURFACE-19][38] = 20 # Super Speed Powerup
     level_map[SURFACE][118] = 23 # High Jump
     level_map[SURFACE-10][114] = 23 # High Jump
     for col_index in range(126, 143, 8):
@@ -660,7 +660,7 @@ def level_4(slot: int):
 
     start_time = load_save(slot).get("Level 4 Time") # Timer resumes from last time they saved
     if not start_time:
-        start_time = 180  # Timer starts at 180 seconds
+        start_time = 200  # Timer starts at 180 seconds
     timer = start_time
     clock = pygame.time.Clock()
 
