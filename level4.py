@@ -119,7 +119,7 @@ dash_gadget = pygame.transform.scale(dash_gadget, (TILE_SIZE, TILE_SIZE))
 balloon = pygame.image.load("./images/dash_powerup.png")
 balloon = pygame.transform.scale(dash_gadget, (TILE_SIZE, TILE_SIZE))
 
-npc_1 = pygame.image.load("./Character Combinations/ginger hair_dark_red shirt_blue pants.png")
+npc_1 = pygame.image.load("./Character Combinations/female ginger hair_white_pink skirt_magenta pants.png")
 npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
 flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  # Flip horizontally (True), no vertical flip (False)
 
@@ -127,7 +127,7 @@ npc_2 = pygame.image.load("./Character Combinations/brown hair_white_yellow shir
 npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
 flipped_npc_2 = pygame.transform.flip(npc_2, True, False)  # Flip horizontally (True), no vertical flip (False)
 
-npc_3 = pygame.image.load("./Character Combinations/black hair_dark_yellow shirt_blue pants.png")
+npc_3 = pygame.image.load("./Character Combinations/female brown hair_white_pink skirt_blue pants.png")
 npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
 flipped_npc_3 = pygame.transform.flip(npc_3, True, False)  # Flip horizontally (True), no vertical flip (False)
 

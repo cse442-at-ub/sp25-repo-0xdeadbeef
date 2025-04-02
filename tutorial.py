@@ -48,7 +48,7 @@ boots = pygame.transform.scale(boots, (TILE_SIZE, TILE_SIZE))
 speed_boots = pygame.image.load("./images/speed_boots.png")
 speed_boots = pygame.transform.scale(speed_boots, (TILE_SIZE, TILE_SIZE))
 
-npc_1 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_black pants.png")
+npc_1 = pygame.image.load("./Character Combinations/female ginger hair_white_brown skirt_blue pants.png")
 npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
 flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  # Flip horizontally (True), no vertical flip (False)
 
@@ -60,7 +60,7 @@ npc_3 = pygame.image.load("./Character Combinations/ginger hair_white_blue shirt
 npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
 flipped_npc_3 = pygame.transform.flip(npc_3, True, False)  # Flip horizontally (True), no vertical flip (False)
 
-npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_brown pants.png")
+npc_4 = pygame.image.load("./Character Combinations/female ginger hair_white_pink skirt_magenta pants.png")
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  # Flip horizontally (True), no vertical flip (False)
 
