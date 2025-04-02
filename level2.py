@@ -138,7 +138,7 @@ npc_1 = pygame.image.load("./Character Combinations/black hair_dark_yellow shirt
 npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
 flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  # Flip horizontally (True), no vertical flip (False)
 
-npc_2 = pygame.image.load("./Character Combinations/brown hair_white_red shirt_brown pants.png")
+npc_2 = pygame.image.load("./Character Combinations/female ginger hair_white_pink skirt_magenta pants.png")
 npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
 flipped_npc_2 = pygame.transform.flip(npc_2, True, False)  # Flip horizontally (True), no vertical flip (False)
 

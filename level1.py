@@ -150,9 +150,9 @@ npc_1 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_b
 npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
 flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  
 
-npc_2 = pygame.image.load("./Character Combinations/brown hair_white_blue shirt_blue pants.png")
+npc_2 = pygame.image.load("./Character Combinations/female brown hair_white_pink skirt_magenta pants.png")
 npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
-flipped_npc_2 = pygame.transform.flip(npc_2, True, False)  
+flipped_npc_2 = pygame.transform.flip(npc_2, True, False)
 
 npc_3 = pygame.image.load("./Character Combinations/ginger hair_white_blue shirt_black pants.png")
 npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
