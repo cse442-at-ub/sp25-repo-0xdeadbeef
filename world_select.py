@@ -10,9 +10,16 @@ import level4
 import save_slots
 import world_select
 import main_menu  
+import tutorial
+from saves_handler import get_unlock_state
 
 pygame.init()  # Initialize Pygame
 pygame.mixer.init() # Initialize Pygame Audio Mixer
+
+# Global unlock state for Map 1: 
+# Index 0: tutorial level (always unlocked) 
+# Index 1-4: initially locked (TBD TO DO: Index 5 and 6 -> Desert map)
+level_unlocks_map1 = [True, False, False, False, False, False]
 
 # Get full screen resolution
 WIDTH, HEIGHT = pygame.display.Info().current_w, pygame.display.Info().current_h
@@ -117,7 +124,8 @@ left_rect = left_arrow_image.get_rect(center=(WIDTH // 4 - 20, HEIGHT // 2))
 right_rect = right_arrow_image.get_rect(center=(3 * WIDTH // 4 + 20, HEIGHT // 2))
 
 # Load mini square images
-unlocked_level_image = pygame.image.load("Accessories/unlocked_level_button.png")
+unlocked_level_image = pygame.image.load("Accessories/locked_level_button.png")
+
 current_level_images = [
     pygame.image.load("Accessories/snow_tutorial_level_button.png"), # tutorial button for snow map
     pygame.image.load("Accessories/snow_level_one_button.png"), # level 1 for snow map
@@ -163,6 +171,7 @@ def World_Selector(slot: int):
         pygame.mixer.music.load("Audio/Background2.mp3")
         pygame.mixer.music.play(-1)  # loop forever
 
+    level_unlocks_map1 = get_unlock_state(slot, "map1")
     current_level = 0
     num_levels = len(background_images)
     running = True
@@ -189,35 +198,41 @@ def World_Selector(slot: int):
                         current_level = (current_level - 1) % num_levels
                     elif right_rect.collidepoint(mouse_pos):
                         current_level = (current_level + 1) % num_levels
+
                     # Check mini squares click
-                    for idx, square in enumerate(mini_squares[current_level]):
-                        rect = square["image"].get_rect(topleft=square["pos"])
-                        if rect.collidepoint(event.pos):
-                            if current_level == 0 and idx == 0:  # Current snow level button
-                                print("Tutorial button clicked. Going to tutorial snow level...")
-                                running = False
-                                tutorial.tutorial_level(slot)
-                                sys.exit()
-                            elif current_level == 0 and idx == 1:  # Level 1 button in Map 1
-                                print("Level 1 button clicked. Going to snow Level 1...")
-                                running = False
-                                level1.level_1(slot)  # Call the Level 1 function
-                                sys.exit()
-                            elif current_level == 0 and idx == 2:  # Level 2 button in Map 1
-                                print("Level 2 button clicked. Going to snow Level 2...")
-                                running = False
-                                level2.level_2(slot)  # Call the Level 2 function
-                                sys.exit()
-                            elif current_level == 0 and idx == 3:  # Level 3 button in Map 1
-                                print("Level 3 button clicked. Going to snow Level 3...")
-                                running = False
-                                level3.level_3(slot)  # Call the Level 3 function
-                                sys.exit()
-                            elif current_level == 0 and idx == 4:  # Level 4 button in Map 1
-                                print("Level 4 button clicked. Going to snow Level 4...")
-                                running = False
-                                level4.level_4(slot)  # Call the Level 4 function
-                                sys.exit()
+                    if current_level == 0:
+                        for idx, square in enumerate(mini_squares[current_level]):
+                            rect = square["image"].get_rect(topleft=square["pos"])
+                            if rect.collidepoint(event.pos):
+                                if not level_unlocks_map1[idx]:
+                                    print("Level is locked!")
+                                else:
+                                    # Depending on which mini square was clicked, navigate to the appropriate level.
+                                    if idx == 0:
+                                        print("Tutorial button clicked. Going to tutorial level...")
+                                        running = False
+                                        tutorial.tutorial_level(slot)  # Pass slot if needed
+                                        sys.exit()
+                                    elif idx == 1:  # Level 1 button in Map 1
+                                        print("Level 1 button clicked. Going to snow Level 1...")
+                                        running = False
+                                        level1.level_1(slot)  # Call the Level 1 function
+                                        sys.exit()
+                                    elif idx == 2:  # Level 2 button in Map 1
+                                        print("Level 2 button clicked. Going to snow Level 2...")
+                                        running = False
+                                        level2.level_2(slot)  # Call the Level 2 function
+                                        sys.exit()
+                                    elif idx == 3:  # Level 3 button in Map 1
+                                        print("Level 3 button clicked. Going to snow Level 3...")
+                                        running = False
+                                        level3.level_3(slot)  # Call the Level 3 function
+                                        sys.exit()
+                                    elif idx == 4:  # Level 4 button in Map 1
+                                        print("Level 4 button clicked. Going to snow Level 4...")
+                                        running = False
+                                        level4.level_4(slot)  # Call the Level 4 function
+                                        sys.exit()
 
                             # SOON TO DOx2 : 
                             # elif current_level == 0 and idx == 5:  # Level 5 button in Map 2
@@ -261,15 +276,21 @@ def World_Selector(slot: int):
         back_button.check_hover(mouse_pos)
         back_button.draw(screen)
         
-        # Draw mini squares with hover effect
+        # Draw mini squares with lock/unlock hover effect for Map 1
         for idx, square in enumerate(mini_squares[current_level]):
             rect = square["image"].get_rect(topleft=square["pos"])
-            if rect.collidepoint(mouse_pos):
-                scaled_img = pygame.transform.scale(square["image"], (int(rect.width * 1.1), int(rect.height * 1.1)))
-                scaled_rect = scaled_img.get_rect(center=rect.center)
-                screen.blit(scaled_img, scaled_rect)
+            # If we are on Map 1 and this level is locked, draw the locked level image
+            if current_level == 0 and not level_unlocks_map1[idx]:
+                # Draw locked level image instead of the regular image if level is locked
+                screen.blit(locked_level_image, square["pos"])
             else:
-                screen.blit(square["image"], square["pos"])
+                # Apply hover effect to mini square
+                if rect.collidepoint(mouse_pos):
+                    scaled_img = pygame.transform.scale(square["image"], (int(rect.width * 1.1), int(rect.height * 1.1)))
+                    scaled_rect = scaled_img.get_rect(center=rect.center)
+                    screen.blit(scaled_img, scaled_rect)
+                else:
+                    screen.blit(square["image"], square["pos"])
         
         pygame.display.flip()
 
