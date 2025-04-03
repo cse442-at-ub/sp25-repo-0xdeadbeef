@@ -192,8 +192,6 @@ second_slot = (inventory_x + INV_SLOT_WIDTH + 10, inventory_y + 10)
 third_slot = (inventory_x + (2*INV_SLOT_WIDTH + 20), inventory_y + 10)
 fourth_slot = (inventory_x + (3*INV_SLOT_WIDTH + 40), inventory_y + 10)
 
-
-
 # Set up the level with a width of 300 and a height of 30 rows
 level_width = 300
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
