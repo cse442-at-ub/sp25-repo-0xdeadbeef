@@ -561,7 +561,7 @@ def level_1(slot: int):
 
     run_frames = [pygame.transform.scale(frame, (TILE_SIZE, TILE_SIZE)) for frame in run_frames]
 
-    checkpoints = [(150, HEIGHT-600)]
+    checkpoints = [(calculate_x_coordinate(3), calculate_y_coordinate(SURFACE-9))]
     checkpoint_bool = [False] * len(checkpoints)
     checkpoint_idx = load_save(slot).get("Level 1 Checkpoint")
     if not checkpoint_idx:
@@ -575,6 +575,7 @@ def level_1(slot: int):
     player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
     player_speed = 6.5 * scale_factor # Adjust player speed according to their resolution
 
+    player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.0 / scale_factor # Gravity effect (Greater number means stronger gravity)
     jump_power = -21 / scale_factor # Jump strength (Bigger negative number means higher jump)
@@ -598,6 +599,10 @@ def level_1(slot: int):
     dash_duration = 0
     dashing = False
 
+    normal_friction = 0.25
+    ice_friction = 0.95  # Lower friction for slippery effect
+    on_ice = False
+
     #-----Variable to check which gadget was picked up first
     double_first = False
     dying = False
@@ -615,17 +620,26 @@ def level_1(slot: int):
     bubbleJump = False
     bubbleJump_respawns = {}
 
-    space_pressed = False
+    jump_buffer_time = 5  # Allow jump input to be stored for 5 frames
+    jump_buffer_counter = 0
 
     running = True
     while running:
         screen.blit(background, (0, 0))
 
+        jump_pressed = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
             pause_menu.handle_event(event, slot)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                if bubbleJump and doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    bubbleJump = False
+                elif doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    doubleJumped = True  # Mark double jump as used
         if pause_menu.paused:
             continue
 
@@ -716,37 +730,51 @@ def level_1(slot: int):
         current_time = pygame.time.get_ticks()  # Get current time in milliseconds
         handle_level_1_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
 
+        acceleration = 0.5  # Slower acceleration on ice
+        friction = normal_friction if not on_ice else ice_friction
+
         # Handle events
         keys = pygame.key.get_pressed()
         moving = False
         if keys[pygame.K_d]: # If player presses D
-            player_x += player_speed
+            if on_ice:
+                player_vel_x += acceleration
+            else:
+                player_vel_x = player_speed
             moving = True
             direction = 1
         if keys[pygame.K_a]: # If player presses A
-            player_x -= player_speed        
+            if on_ice:
+                player_vel_x -= acceleration
+            else:
+                player_vel_x = -player_speed
             moving = True
             direction = -1
-        if keys[pygame.K_SPACE] and not space_pressed:
+        # Jumping Logic (Space Pressed)
+        if keys[pygame.K_SPACE]:
             if on_ground:
                 player_vel_y = jump_power  # Normal jump
                 on_ground = False
-                doubleJumped = False  # Reset double jump when landing
-            elif doubleJumpBoots and not doubleJumped:
-                player_vel_y = jump_power  # Double jump
-                doubleJumped = True  # Mark double jump as used
+                doubleJumped = False  # Reset double jump when jumping once
             elif bubbleJump:
                 player_vel_y = jump_power  # jump again
                 bubbleJump = False
-            space_pressed = True
-        else:
-            space_pressed = False 
+        if not moving:
+            player_vel_x *= friction
+            if abs(player_vel_x) < 0.1:
+                player_vel_x = 0
         if moving:
+            # Clamp velocity to max speed
+            if abs(player_vel_x) > player_speed:
+                player_vel_x = player_speed * (1 if player_vel_x > 0 else -1)
+            if abs(player_vel_x) < 0.1:
+                player_vel_x = 0
             animation_timer += 1
             if animation_timer >= animation_speed:  
                 animation_timer = 0
                 animation_index = 1 - animation_index  # Alternate between 0 and 1
 
+        player_x += player_vel_x  # Update position
         current_frame = run_frames[animation_index]
 
         if direction == -1:  # Flip when moving left
@@ -770,6 +798,7 @@ def level_1(slot: int):
         player_y += player_vel_y
 
         on_ground = False
+        on_ice = False
         for row_index, row in enumerate(level_map):
             for col_index, tile in enumerate(row):
                 if tile in collidable_tiles:  # Ground, platform, floating ground, invisible platform tiles, Dirt
