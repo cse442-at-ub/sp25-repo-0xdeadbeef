@@ -142,7 +142,7 @@ def run_achievements_menu():
         with open(saveslotthree, "r") as file:
             save_data_three = json.load(file)
 
-    level_names = ["Tutorial", "Level One", "Level Two", "Level Four", "Level Five", "Level Six", "Level Seven"]
+    level_names = ["Tutorial", "Level One", "Level Two", "Level Three", "Level Four", "Level Five", "Level Six"]
     level_clears = {level: [0,0,0,] for level in level_names}
 
     for level in level_names:

@@ -10,13 +10,21 @@ from NPCs.level_3_npc_2 import handle_level_3_npc_2_dialogue  # Import the funct
 from NPCs.level_3_npc_3 import handle_level_3_npc_3_dialogue  # Import the functionality of the NPC from level 3
 from NPCs.level_3_npc_4 import handle_level_3_npc_4_dialogue  # Import the functionality of the NPC from level 3
 from firework_level_end import show_level_complete_deaths
+
 from saves_handler import update_unlock_state, get_unlock_state
 from pause_menu import PauseMenu  # Import the PauseMenu class
+
+from saves_handler import *
+
 
 # Initialize PyGame
 pygame.init()
 
 pygame.mixer.init() # Initialize Pygame Audio Mixer
+
+
+counter_for_coin_increment = 0
+
 
 # Load the level complete sound 
 level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
@@ -421,6 +429,7 @@ def show_level_completed_screen(slot: int, death_count: int):
     level_map[3][204] = 10 # Frost Walking Boots
     level_map[3][216] = 16 # Double Jump Boots
 
+
     respawn_powerups() # Respawn all powerups on the level
 
     update_save(slot, {"Level 3 Checkpoint": 0}) # Set checkpoint to 0
@@ -429,8 +438,11 @@ def show_level_completed_screen(slot: int, death_count: int):
     current_state[4] = True  # Unlock level 4
     update_unlock_state(slot, current_state, "map1")
 
+    level_name = "Level Three"
+
+
     # Change this 0 for coin increment code
-    show_level_complete_deaths(slot, 0, death_count)
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
 
 def respawn_powerups():
     row = SURFACE - 3
@@ -505,6 +517,7 @@ def level_3(slot: int):
     
     # 8.5 should be standard speed
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
+    
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.25 * scale_factor # Gravity effect (Greater number means stronger gravity)
@@ -539,6 +552,9 @@ def level_3(slot: int):
     dying_tiles = {3, 7, 11, 17, 18, 19}
 
     coin_count = 0
+
+    global counter_for_coin_increment
+    counter_for_coin_increment = coin_count
 
     # State Variables for Gadgets
     bubbleJump = False
@@ -803,6 +819,7 @@ def level_3(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         coin_count += 1
+                        counter_for_coin_increment = coin_count
                         level_map[row_index][col_index] = 0
                         coin_sound.play()
 

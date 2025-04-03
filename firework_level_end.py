@@ -78,7 +78,7 @@ LIGHT_BLUE = (173, 216, 230)  # Light blue color
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 
-def show_level_complete(slot: int, coin: int):
+def show_level_complete(slot: int, coin: int, level_name):
     global fireworks
     # Stop tutorial music
     pygame.mixer.music.stop()
@@ -132,13 +132,13 @@ def show_level_complete(slot: int, coin: int):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
-                    level_name = "Level One"
+                    # level_name = "Level One"
                     achievement_counter(slot, level_name)
                     eclipse_increment(slot, coin)
                     world_select.World_Selector(slot)
                     sys.exit()
 
-def show_level_complete_deaths(slot: int, coin: int, death_counter: int):
+def show_level_complete_deaths(slot: int, coin: int, death_counter: int, level_name):
     global fireworks
     # Stop tutorial music
     pygame.mixer.music.stop()
@@ -210,7 +210,7 @@ def show_level_complete_deaths(slot: int, coin: int, death_counter: int):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
-                    level_name = "Level One"
+                    # level_name = "Level One"
                     achievement_counter(slot, level_name)
                     eclipse_increment(slot, coin)
                     world_select.World_Selector(slot)

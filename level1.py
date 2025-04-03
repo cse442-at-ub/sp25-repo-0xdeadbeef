@@ -509,6 +509,7 @@ def show_level_completed_screen(slot: int):
     level_map[SURFACE-1][68] = 0   # Despawn coin
     level_map[SURFACE-2][79:81] = [0] * 2  # Despawn platforms after getting coin
 
+
     update_save(slot, {"Level 1 Checkpoint": 0}) # Set checkpoint to 0
 
     current_state = get_unlock_state(slot, "map1")
@@ -516,6 +517,11 @@ def show_level_completed_screen(slot: int):
     update_unlock_state(slot, current_state, "map1")
 
     show_level_complete(slot, 0)
+
+    level_name = "Level One"
+
+    show_level_complete(slot, counter_for_coin_increment, level_name)
+
     
 
 

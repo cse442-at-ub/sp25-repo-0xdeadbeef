@@ -15,6 +15,8 @@ from pause_menu import PauseMenu  # Import the PauseMenu class
 # Initialize PyGame
 pygame.init()
 
+counter_for_coin_increment = 0
+
 pygame.mixer.init() # Initialize Pygame Audio Mixer
 
 # Load the level complete sound 
@@ -450,7 +452,9 @@ def show_level_completed_screen(slot: int, death_count: int):
     # current_state[5] = True  # Unlock level 5
     # update_unlock_state(slot, current_state, "map2")
 
-    show_level_complete_deaths(slot, 0, death_count)
+    level_name = "Level Four"
+
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
 
 def show_game_over_screen(slot: int):
 
@@ -658,9 +662,15 @@ def level_4(slot: int):
 
     coin_count = 0
 
+
     start_time = load_save(slot).get("Level 4 Time") # Timer resumes from last time they saved
     if not start_time:
         start_time = 200  # Timer starts at 180 seconds
+
+    global counter_for_coin_increment
+    counter_for_coin_increment = coin_count
+
+    start_time = 180  # Timer starts at 180 seconds
     timer = start_time
     clock = pygame.time.Clock()
 
@@ -923,6 +933,7 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         coin_count += 1
+                        counter_for_coin_increment = coin_count
                         level_map[row_index][col_index] = 0
                         coin_sound.play()
 

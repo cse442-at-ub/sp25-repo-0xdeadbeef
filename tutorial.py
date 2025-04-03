@@ -255,6 +255,7 @@ def show_level_completed_screen(slot: int):
     level_map[SURFACE-1][68] = 0  # Despawn coin
     level_map[SURFACE-2][79:81] = [0] * 2 # Despawn platforms after getting coin
 
+
     respawn_powerups() # Respawn all powerups on the level
 
     update_save(slot, {"Tutorial Checkpoint": 0}) # Set checkpoint to 0
@@ -262,9 +263,10 @@ def show_level_completed_screen(slot: int):
     current_state = get_unlock_state(slot, "map1")
     current_state[1] = True  # Unlock level 1
     update_unlock_state(slot, current_state, "map1")
-
-    show_level_complete(slot, counter_for_coin_increment)
     
+    level_name = "Tutorial"
+
+    show_level_complete(slot, counter_for_coin_increment, level_name)
 
 def respawn_powerups():
     level_map[SURFACE][95] = 8 # Super speed powerup

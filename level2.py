@@ -397,6 +397,7 @@ def show_level_completed_screen(slot: int, death_count: int):
     level_map[SURFACE-5][178] = 3 # Double Jump Boots
     level_map[SURFACE-11][208] = 11 # Super Speed Boots
 
+
     respawn_powerups() # Respawn all powerups on the level
 
     update_save(slot, {"Level 2 Checkpoint": 0}) # Set checkpoint to 0
@@ -407,6 +408,11 @@ def show_level_completed_screen(slot: int, death_count: int):
     update_unlock_state(slot, current_state, "map1")
 
     show_level_complete_deaths(slot, 0, death_count)
+
+    level_name = "Level Two"
+
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
+
 
 def show_game_over_screen(slot: int):
 
