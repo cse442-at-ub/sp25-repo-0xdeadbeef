@@ -360,8 +360,6 @@ def tutorial_level(slot: int):
     global counter_for_coin_increment
     counter_for_coin_increment = coin_count
 
-    space_pressed = False
-
     running = True
     while running:
         screen.blit(background, (0, 0))
@@ -371,6 +369,14 @@ def tutorial_level(slot: int):
                 running = False
             # Pass events to the PauseMenu
             pause_menu.handle_event(event, slot)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                if on_ground:
+                    player_vel_y = jump_power  # Normal jump
+                    on_ground = False
+                    doubleJumped = False  # Reset double jump when landing
+                elif doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    doubleJumped = True  # Mark double jump as used
         if pause_menu.paused:
             continue
 
@@ -433,9 +439,6 @@ def tutorial_level(slot: int):
 
             # Draw snowflake
             pygame.draw.circle(screen, WHITE, (int(x), int(y)), size)
-
-        # screen.blit(inventory, (inventory_x, inventory_y))
-
         
         # Check if player is near the NPC
         npc_x = calculate_x_coordinate(60)  # NPC's x position
@@ -493,17 +496,11 @@ def tutorial_level(slot: int):
             moving = True
             direction = -1
         # Jumping Logic (Space Pressed)
-        if keys[pygame.K_SPACE] and not space_pressed:
+        if keys[pygame.K_SPACE]:
             if on_ground:
                 player_vel_y = jump_power  # Normal jump
                 on_ground = False
-                doubleJumped = False  # Reset double jump when landing
-            elif doubleJumpBoots and not doubleJumped:
-                player_vel_y = jump_power  # Double jump
-                doubleJumped = True  # Mark double jump as used
-            space_pressed = True
-        else:
-            space_pressed = False 
+                doubleJumped = False  # Reset double jump when jumping once
         if moving:
             animation_timer += 1
             if animation_timer >= animation_speed:  

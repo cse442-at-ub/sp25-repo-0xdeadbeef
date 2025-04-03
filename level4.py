@@ -664,8 +664,6 @@ def level_4(slot: int):
     timer = start_time
     clock = pygame.time.Clock()
 
-    space_pressed = False
-
     running = True
     while running:
         
@@ -676,6 +674,13 @@ def level_4(slot: int):
                 running = False
             # Pass events to the PauseMenu
             pause_menu.handle_event(event, slot)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                if bubbleJump and doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    bubbleJump = False
+                elif doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    doubleJumped = True  # Mark double jump as used
         if pause_menu.paused:
             clock.tick(60)
             continue
@@ -798,6 +803,18 @@ def level_4(slot: int):
                 player_vel_x = -player_speed
             moving = True
             direction = -1
+        # Jumping Logic (Space Pressed)
+        if keys[pygame.K_SPACE]:
+            if higherJumps:
+                player_vel_y = jump_power * 2
+                higherJumps = False
+            elif on_ground:
+                player_vel_y = jump_power  # Normal jump
+                on_ground = False
+                doubleJumped = False  # Reset double jump when jumping once
+            elif bubbleJump:
+                player_vel_y = jump_power  # jump again
+                bubbleJump = False
         if not moving:
             player_vel_x *= friction
             if abs(player_vel_x) < 0.1:
@@ -812,23 +829,6 @@ def level_4(slot: int):
             if animation_timer >= animation_speed:  
                 animation_timer = 0
                 animation_index = 1 - animation_index  # Alternate between 0 and 1
-        if keys[pygame.K_SPACE] and not space_pressed:
-            if higherJumps:
-                player_vel_y = jump_power * 2
-                higherJumps = False
-            elif on_ground:
-                player_vel_y = jump_power  # Normal jump
-                on_ground = False
-                doubleJumped = False  # Reset double jump when landing
-            elif doubleJumpBoots and not doubleJumped:
-                player_vel_y = jump_power  # Double jump
-                doubleJumped = True  # Mark double jump as used
-            elif bubbleJump:
-                player_vel_y = jump_power  # jump again
-                bubbleJump = False
-            space_pressed = True
-        else:
-            space_pressed = False
         if keys[pygame.K_e] and dashGadget:
             dashing = True
             dash_duration = 15  # Dash lasts for 15 frames
