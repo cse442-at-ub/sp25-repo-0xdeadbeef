@@ -407,8 +407,6 @@ def show_level_completed_screen(slot: int, death_count: int):
     current_state[3] = True  # Unlock level 3
     update_unlock_state(slot, current_state, "map1")
 
-    show_level_complete_deaths(slot, 0, death_count)
-
     level_name = "Level Two"
 
     show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)

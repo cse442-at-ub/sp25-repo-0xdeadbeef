@@ -670,7 +670,6 @@ def level_4(slot: int):
     global counter_for_coin_increment
     counter_for_coin_increment = coin_count
 
-    start_time = 180  # Timer starts at 180 seconds
     timer = start_time
     clock = pygame.time.Clock()
 

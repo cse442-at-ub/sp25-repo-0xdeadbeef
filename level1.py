@@ -516,8 +516,6 @@ def show_level_completed_screen(slot: int):
     current_state[2] = True  # Unlock level 2
     update_unlock_state(slot, current_state, "map1")
 
-    show_level_complete(slot, 0)
-
     level_name = "Level One"
 
     show_level_complete(slot, counter_for_coin_increment, level_name)
