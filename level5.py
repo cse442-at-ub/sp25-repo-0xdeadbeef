@@ -400,10 +400,10 @@ def level_5(slot: int):
         # Handle events
         keys = pygame.key.get_pressed()
         moving = False
-        if keys[pygame.K_w]:
-            player_y -= player_speed
-        if keys[pygame.K_s]:
-            player_y += player_speed
+        # if keys[pygame.K_w]:
+        #     player_y -= player_speed
+        # if keys[pygame.K_s]:
+        #     player_y += player_speed
         if keys[pygame.K_d]: # If player presses D
             if on_ice:
                 player_vel_x += acceleration
@@ -465,9 +465,9 @@ def level_5(slot: int):
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
 
         # Apply gravity
-        # if not hasBalloon:
-        #     player_vel_y += gravity
-        #     player_y += player_vel_y
+        if not hasBalloon:
+            player_vel_y += gravity
+            player_y += player_vel_y
 
         on_ground = False
         on_ice = False
