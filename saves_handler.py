@@ -25,11 +25,39 @@ def create_new_save(slot):
     default_data = {
         "slot": slot,
         "character": "directory",
+        "map1_unlocks": [True, False, False, False, False]
     }
     with open(file_path, "w") as file:
         json.dump(default_data, file, indent=4)
     
     return default_data  # Return newly created data
+
+
+def get_unlock_state(slot, map_id="map1"):
+    file_path = os.path.join(SAVE_DIR, f"save{slot}.json")
+    if os.path.exists(file_path):
+        with open(file_path, "r") as file:
+            data = json.load(file)
+        return data.get(f"{map_id}_unlocks", [])
+    else:
+        # If the save doesn't exist, return default state.
+        return [True, False, False, False, False]
+
+def update_unlock_state(slot, new_state, map_id="map1"):
+    file_path = os.path.join(SAVE_DIR, f"save{slot}.json")
+    if os.path.exists(file_path):
+        with open(file_path, "r") as file:
+            data = json.load(file)
+    else:
+        data = create_new_save(slot)
+    
+    data[f"{map_id}_unlocks"] = new_state
+    
+    with open(file_path, "w") as file:
+        json.dump(data, file, indent=4)
+    
+    print(f"Unlock state for {map_id} updated successfully!")
+
 
 def update_save(slot, new_data):
     """Update the save file with new data for the given slot."""

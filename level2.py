@@ -9,6 +9,8 @@ from NPCs.level_2_npc_3 import handle_level_2_npc_3_dialogue  # Import the funct
 from NPCs.level_2_npc_4 import handle_level_2_npc_4_dialogue  # Import the functionality of the fourth NPC from level 2
 from saves_handler import *
 from firework_level_end import show_level_complete_deaths
+from saves_handler import update_unlock_state, get_unlock_state
+from pause_menu import PauseMenu  # Import the PauseMenu class
 
 # Initialize PyGame
 pygame.init()
@@ -136,7 +138,7 @@ npc_1 = pygame.image.load("./Character Combinations/black hair_dark_yellow shirt
 npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
 flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  # Flip horizontally (True), no vertical flip (False)
 
-npc_2 = pygame.image.load("./Character Combinations/brown hair_white_red shirt_brown pants.png")
+npc_2 = pygame.image.load("./Character Combinations/female ginger hair_white_pink skirt_magenta pants.png")
 npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
 flipped_npc_2 = pygame.transform.flip(npc_2, True, False)  # Flip horizontally (True), no vertical flip (False)
 
@@ -395,7 +397,20 @@ def show_level_completed_screen(slot: int, death_count: int):
     level_map[SURFACE-5][178] = 3 # Double Jump Boots
     level_map[SURFACE-11][208] = 11 # Super Speed Boots
 
-    show_level_complete_deaths(slot, 0, death_count)
+
+    respawn_powerups() # Respawn all powerups on the level
+
+    update_save(slot, {"Level 2 Checkpoint": 0}) # Set checkpoint to 0
+    update_save(slot, {"Level 2 Time": 180})
+
+    current_state = get_unlock_state(slot, "map1")
+    current_state[3] = True  # Unlock level 3
+    update_unlock_state(slot, current_state, "map1")
+
+    level_name = "Level Two"
+
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
+
 
 def show_game_over_screen(slot: int):
 
@@ -406,6 +421,11 @@ def show_game_over_screen(slot: int):
 
     level_map[SURFACE-18][1] = 12 # Respawn Coin
     level_map[10][135] = 12 # Respawn Coin
+
+    respawn_powerups() # Respawn all powerups on the level
+
+    update_save(slot, {"Level 2 Checkpoint": 0}) # Set checkpoint to 0
+    update_save(slot, {"Level 2 Time": 180})
 
     # Wait for player to click the button
     waiting = True
@@ -471,15 +491,24 @@ def show_game_over_screen(slot: int):
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
 
-def read_data(slot: int):
-    with open(f"./User Saves/save{str(slot)}.json", "r") as file:
-        data = json.load(file)
-    return data.get("character")
+def respawn_powerups():
+    level_map[SURFACE-2][12] = 20 # Jump Reset
+    level_map[SURFACE-5][23] = 13 # Super Speed Powerup
+    level_map[SURFACE-2][39] = 13 # Super Speed Powerup
+    level_map[SURFACE-3][118] = 21 # Upwards Dash Powerup
+    level_map[6][145] = 22 #Left Dash Powerup
+    level_map[SURFACE-5][197] = 20 # Jump Reset
+    level_map[SURFACE-10][242] = 20 # Jump Reset
+    level_map[SURFACE-10][252] = 20 # Jump Reset
 
+# Initialize the PauseMenu
+pause_menu = PauseMenu(screen)
 
 # Function to run the tutorial level
 def level_2(slot: int):
     
+    respawn_powerups() # Respawn all powerups on the level
+
     # Stop any previously playing music 
     pygame.mixer.music.stop()
     
@@ -488,7 +517,7 @@ def level_2(slot: int):
     pygame.mixer.music.play(-1)  # -1 loops forever
 
     # Grab the sprite that was customized
-    sprite = read_data(slot)
+    sprite = load_save(slot).get("character")
 
     # Load all the images into their respective variables
     player = pygame.image.load(f"./Assets/Character Sprites/standing/{sprite}")
@@ -506,11 +535,20 @@ def level_2(slot: int):
 
     run_frames = [pygame.transform.scale(frame, (TILE_SIZE, TILE_SIZE)) for frame in run_frames]
 
+    checkpoints = [(calculate_x_coordinate(5), calculate_y_coordinate(SURFACE)), (calculate_x_coordinate(55), calculate_y_coordinate(SURFACE-14)), (calculate_x_coordinate(122), calculate_y_coordinate(SURFACE-9)),
+                   (calculate_x_coordinate(206), calculate_y_coordinate(SURFACE-11))]
+    checkpoint_bool = [False] * len(checkpoints)
+    checkpoint_idx = load_save(slot).get("Level 2 Checkpoint")
+    if not checkpoint_idx:
+        checkpoint_idx = 0
+    for i in range(checkpoint_idx+1):
+        checkpoint_bool[i] = True
+
     # Camera position
     camera_x = 0
     # (5, SURFACE) should be the starting point
-    player_x = calculate_x_coordinate(5)  # Start position, change this number to spawn in a different place
-    player_y = calculate_y_coordinate(SURFACE)
+    player_x = checkpoints[checkpoint_idx][0]  # Start x position, change this number to spawn in a different place
+    player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
 
     player_vel_x = 0 # Horizontal velocity for friction/sliding
@@ -521,6 +559,16 @@ def level_2(slot: int):
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
     speedBoots = False
+
+    if checkpoint_idx == 0:
+        level_map[SURFACE-8][62] = 3 # Double Jump Boots
+    elif checkpoint_idx == 1:
+        doubleJumpBoots = True
+        level_map[SURFACE-14][63] = 11 # Speed Boots
+    elif checkpoint_idx == 2:
+        level_map[SURFACE-5][178] = 3 # Double Jump Boots
+    elif checkpoint_idx == 3:
+        level_map[SURFACE-11][208] = 11 # Super Speed Boots
 
     animation_index = 0  # Alternates between 0 and 1
     animation_timer = 0  # Tracks when to switch frames
@@ -548,13 +596,10 @@ def level_2(slot: int):
     ice_friction = 0.95  # Lower friction for slippery effect
     on_ice = False
 
-    checkpoints = [(player_x, player_y), (calculate_x_coordinate(55), calculate_y_coordinate(SURFACE-14)), (calculate_x_coordinate(122), calculate_y_coordinate(SURFACE-9)),
-                   (calculate_x_coordinate(206), calculate_y_coordinate(SURFACE-11))]
-    checkpoint_bool = [False] * len(checkpoints)
-    checkpoint_bool[0] = True
-    checkpoint_idx = 0
     dying = False
-    death_count = 0
+    death_count = load_save(slot).get("Level 2 Deaths")
+    if not death_count:
+        death_count = 0
     collidable_tiles = {1, 2, 5, 10, 14, 16, 17, 23}
 
     coin_count = 0
@@ -562,13 +607,31 @@ def level_2(slot: int):
     global counter_for_coin_increment
     counter_for_coin_increment = coin_count
 
-    start_time = 180  # Timer starts at 180 seconds
+    start_time = load_save(slot).get("Level 2 Time") # Timer resumes from last time they saved
+    if not start_time:
+        start_time = 180  # Timer starts at 180 seconds
     timer = start_time
     clock = pygame.time.Clock()
 
     running = True
     while running:
         screen.blit(background, (0, 0))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            # Pass events to the PauseMenu
+            pause_menu.handle_event(event, slot)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                if bubbleJump and doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    bubbleJump = False
+                elif doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    doubleJumped = True  # Mark double jump as used
+        if pause_menu.paused:
+            clock.tick(60)
+            continue
 
         # Draw level using tile images
         for row_index, row in enumerate(level_map):
@@ -684,13 +747,19 @@ def level_2(slot: int):
                 player_vel_x = -player_speed
             moving = True
             direction = -1
+         # Jumping Logic (Space Pressed)
+        if keys[pygame.K_SPACE]:
+            if on_ground:
+                player_vel_y = jump_power  # Normal jump
+                on_ground = False
+                doubleJumped = False  # Reset double jump when jumping once
+            elif bubbleJump:
+                player_vel_y = jump_power  # jump again
+                bubbleJump = False
         if not moving:
             player_vel_x *= friction
             if abs(player_vel_x) < 0.1:
                 player_vel_x = 0
-        if keys[pygame.K_SPACE] and on_ground: # If player presses Spacebar
-            player_vel_y = jump_power # Apply jump force
-            on_ground = False # Player is now airborne
         if moving:
             # Clamp velocity to max speed
             if abs(player_vel_x) > player_speed:
@@ -701,8 +770,8 @@ def level_2(slot: int):
             if animation_timer >= animation_speed:  
                 animation_timer = 0
                 animation_index = 1 - animation_index  # Alternate between 0 and 1
+        
         player_x += player_vel_x  # Update position
-
         current_frame = run_frames[animation_index]
 
         if direction == -1:  # Flip when moving left
@@ -731,24 +800,6 @@ def level_2(slot: int):
 
         timer_text = level_name_font.render(f"Time: {int(timer)}", True, RED if timer <= 30 else WHITE)
         screen.blit(timer_text, (WIDTH // 2 - 50, 20))
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            
-            # Jumping Logic (Space Pressed)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    if on_ground:
-                        player_vel_y = jump_power  # Normal jump
-                        on_ground = False
-                        doubleJumped = False  # Reset double jump when landing
-                    elif doubleJumpBoots and not doubleJumped:
-                        player_vel_y = jump_power  # Double jump
-                        doubleJumped = True  # Mark double jump as used
-                    elif bubbleJump:
-                        player_vel_y = jump_power  # jump again
-                        bubbleJump = False
             
         # Apply gravity
         player_vel_y += gravity
@@ -843,7 +894,7 @@ def level_2(slot: int):
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
                         player_vel_y = -35
-                        spring_sound.sound() # Play spring sound when making contact
+                        spring_sound.play() # Play spring sound when making contact
 
                 # Left Dash
                 if tile == 22:
@@ -933,6 +984,7 @@ def level_2(slot: int):
         # Remove respawned power-ups from tracking
         for pos in to_remove:
             del super_speed_respawns[pos]
+        
 
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
             show_level_completed_screen(slot, death_count)
@@ -954,6 +1006,7 @@ def level_2(slot: int):
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
+            update_save(slot, {"Level 2 Deaths": death_count})
             dying = False
             if checkpoint_idx == 0 and doubleJumpBoots:
                 doubleJumpBoots = False
@@ -975,6 +1028,8 @@ def level_2(slot: int):
             if player_x >= x and player_y <= y and not checkpoint_bool[k]:
                 checkpoint_idx += 1
                 checkpoint_bool[k] = True
+                update_save(slot, {"Level 2 Checkpoint": checkpoint_idx})
+                update_save(slot, {"Level 2 Time": timer})
                 if checkpoint_idx == 2:
                     doubleJumpBoots = False # Remove their double jump boots
                     speedBoots = False
@@ -1002,7 +1057,6 @@ def level_2(slot: int):
             if  (speedBoots) and (doubleJumpBoots == False):
                 double_first == False
                 screen.blit(inventory_speed_boots, first_slot)
-                print(f"SpeedBoots: {speedBoots}")
             elif (doubleJumpBoots) and (speedBoots) and (double_first == False):
                 screen.blit(inventory_speed_boots, first_slot)
                 screen.blit(inventory_jump_boots, second_slot)

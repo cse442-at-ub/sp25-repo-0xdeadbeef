@@ -3,14 +3,19 @@ import random
 import json
 import sys
 import world_select
+from saves_handler import *
 from NPCs.level_4_npc_1 import handle_level_4_npc_1_dialogue  # Import the functionality of the first NPC from level 4
 from NPCs.level_4_npc_2 import handle_level_4_npc_2_dialogue  # Import the functionality of the second NPC from level 4
 from NPCs.level_4_npc_3 import handle_level_4_npc_3_dialogue  # Import the functionality of the third NPC from level 4
 from NPCs.level_4_npc_4 import handle_level_4_npc_4_dialogue  # Import the functionality of the fourth NPC from level 4
 from firework_level_end import show_level_complete_deaths
+from saves_handler import update_unlock_state, get_unlock_state
+from pause_menu import PauseMenu  # Import the PauseMenu class
 
 # Initialize PyGame
 pygame.init()
+
+counter_for_coin_increment = 0
 
 pygame.mixer.init() # Initialize Pygame Audio Mixer
 
@@ -41,6 +46,8 @@ coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
 # Screen settings
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
+
+SAVE_DIR = "User Saves"
 
 info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h # Will only work with resolutions 1920 x 1080 or better
@@ -144,7 +151,7 @@ dash_gadget = pygame.transform.scale(dash_gadget, (TILE_SIZE, TILE_SIZE))
 balloon = pygame.image.load("./images/balloon.png")
 balloon = pygame.transform.scale(balloon, (TILE_SIZE, TILE_SIZE))
 
-npc_1 = pygame.image.load("./Character Combinations/ginger hair_dark_red shirt_blue pants.png")
+npc_1 = pygame.image.load("./Character Combinations/female ginger hair_white_pink skirt_magenta pants.png")
 npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
 flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  # Flip horizontally (True), no vertical flip (False)
 
@@ -152,7 +159,7 @@ npc_2 = pygame.image.load("./Character Combinations/brown hair_white_yellow shir
 npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
 flipped_npc_2 = pygame.transform.flip(npc_2, True, False)  # Flip horizontally (True), no vertical flip (False)
 
-npc_3 = pygame.image.load("./Character Combinations/black hair_dark_yellow shirt_blue pants.png")
+npc_3 = pygame.image.load("./Character Combinations/female brown hair_white_pink skirt_blue pants.png")
 npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
 flipped_npc_3 = pygame.transform.flip(npc_3, True, False)  # Flip horizontally (True), no vertical flip (False)
 
@@ -424,80 +431,45 @@ def calculate_row(y):
 def calculate_y_coordinate(row):
     return int(row * TILE_SIZE)
 
-def read_data(slot: int):
-    with open(f"./User Saves/save{str(slot)}.json", "r") as file:
-        data = json.load(file)
-    return data.get("character")
-
 def show_level_completed_screen(slot: int, death_count: int):
-
     # Stop level 4 music
     pygame.mixer.music.stop()
 
     # Play the level complete sound once when this function runs
     level_complete_sound.play()
 
-    level_map[SURFACE][13] = 31 # Dash Gadget
-    level_map[SURFACE-5][44] = 4 # Jump Reset
-    level_map[SURFACE-8][54] = 4 # Jump Reset
     level_map[SURFACE-19][39] = 16 # Double Jump Boots
     level_map[SURFACE-19][21] = 10 # Frost Walking Boots
-
     level_map[SURFACE][107] = 30 # Speed Boots
-
-    level_map[SURFACE][118] = 23 # High Jump
-    level_map[SURFACE-10][114] = 23 # High Jump
-
-    for col_index in range(126, 143, 8):
-        level_map[4][col_index] = 32 # Down Dash
-    for col_index in range(130, 139, 8):
-        level_map[SURFACE-16][col_index] = 5 # Right Dash
-    for col_index in range(126, 143, 8):
-        level_map[SURFACE-8][col_index] = 4 # Jump Reset
-    level_map[SURFACE-12][122] = 4 # Jump Reset
-    level_map[SURFACE-16][142] = 4 # Jump Reset
-
-    level_map[SURFACE-10][168] = 33 # Balloon
-    level_map[SURFACE-12][191] = 33 # Balloon
-    level_map[SURFACE-3][187] = 4 # Jump Reset
-    level_map[SURFACE-1][193] = 33 # Balloon
     level_map[SURFACE-19][205] = 30 # Speed Boots
 
-    level_map[SURFACE-3][253] = 33 # Balloon
+    respawn_powerups() # Respawn all powerups on the level
 
-    show_level_complete_deaths(slot, 0, death_count)
+    update_save(slot, {"Level 4 Checkpoint": 0}) # Set checkpoint to 0
+    update_save(slot, {"Level 4 Time": 180})
+
+    # current_state = get_unlock_state(slot, "map2")
+    # current_state[5] = True  # Unlock level 5
+    # update_unlock_state(slot, current_state, "map2")
+
+    level_name = "Level Four"
+
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
 
 def show_game_over_screen(slot: int):
 
     level_map[5][110] = 12 # Coin
     level_map[SURFACE-11][146] = 12 # Coin
-    level_map[SURFACE-8][54] = 4 # Jump reset
-    level_map[SURFACE-5][44] = 4 # Jump Reset
 
     level_map[SURFACE-19][39] = 16 # Double Jump Boots
     level_map[SURFACE-19][21] = 10 # Frost Walking Boots
-
     level_map[SURFACE][107] = 30 # Speed Boots
-
-    level_map[SURFACE][118] = 23 # High Jump
-    level_map[SURFACE-10][114] = 23 # High Jump
-
-    for col_index in range(126, 143, 8):
-        level_map[4][col_index] = 32 # Down Dash
-    for col_index in range(130, 139, 8):
-        level_map[SURFACE-16][col_index] = 5 # Right Dash
-    for col_index in range(126, 143, 8):
-        level_map[SURFACE-8][col_index] = 4 # Jump Reset
-    level_map[SURFACE-12][122] = 4 # Jump Reset
-    level_map[SURFACE-16][142] = 4 # Jump Reset
-
-    level_map[SURFACE-10][168] = 33 # Balloon
-    level_map[SURFACE-12][191] = 33 # Balloon
-    level_map[SURFACE-3][187] = 4 # Jump Reset
-    level_map[SURFACE-1][193] = 33 # Balloon
     level_map[SURFACE-19][205] = 30 # Speed Boots
 
-    level_map[SURFACE-3][253] = 33 # Balloon
+    respawn_powerups() # Respawn all powerups on the level
+
+    update_save(slot, {"Level 4 Checkpoint": 0}) # Set checkpoint to 0
+    update_save(slot, {"Level 4 Time": 180})
 
     # Wait for player to click the button
     waiting = True
@@ -563,7 +535,33 @@ def show_game_over_screen(slot: int):
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
 
+def respawn_powerups():
+    level_map[SURFACE][13] = 31 # Dash Gadget
+    level_map[SURFACE-5][44] = 4 # Jump Reset
+    # level_map[SURFACE-19][38] = 20 # Super Speed Powerup
+    level_map[SURFACE][118] = 23 # High Jump
+    level_map[SURFACE-10][114] = 23 # High Jump
+    for col_index in range(126, 143, 8):
+        level_map[4][col_index] = 32 # Down Dash
+    for col_index in range(130, 139, 8):
+        level_map[SURFACE-16][col_index] = 5 # Right Dash
+    for col_index in range(126, 143, 8):
+        level_map[SURFACE-8][col_index] = 4 # Jump Reset
+    level_map[SURFACE-12][122] = 4 # Jump Reset
+    level_map[SURFACE-16][142] = 4 # Jump Reset
+
+    level_map[SURFACE-10][168] = 33 # Balloon
+    level_map[SURFACE-12][191] = 33 # Balloon
+    level_map[SURFACE-3][187] = 4 # Jump Reset
+    level_map[SURFACE-1][193] = 33 # Balloon
+    level_map[SURFACE-3][253] = 33 # Balloon
+
+# Initialize the PauseMenu
+pause_menu = PauseMenu(screen)
+
 def level_4(slot: int):
+
+    respawn_powerups() # Respawn all powerups on the level
 
     # Stop any previously playing music 
     pygame.mixer.music.stop()
@@ -573,7 +571,7 @@ def level_4(slot: int):
     pygame.mixer.music.play(-1)  # -1 loops forever
 
     # Grab the sprite that was customized
-    sprite = read_data(slot)
+    sprite = load_save(slot).get("character")
 
     # Load all the images into their respective variables
     player = pygame.image.load(f"./Assets/Character Sprites/standing/{sprite}")
@@ -591,12 +589,20 @@ def level_4(slot: int):
 
     run_frames = [pygame.transform.scale(frame, (TILE_SIZE, TILE_SIZE)) for frame in run_frames]
 
+    checkpoints = [(calculate_x_coordinate(5), calculate_y_coordinate(SURFACE)), (calculate_x_coordinate(102), calculate_y_coordinate(SURFACE)), (calculate_x_coordinate(152), calculate_y_coordinate(SURFACE-19))]
+    checkpoint_bool = [False] * len(checkpoints)
+    checkpoint_bool[0] = True
+    checkpoint_idx = load_save(slot).get("Level 4 Checkpoint")
+    if not checkpoint_idx:
+        checkpoint_idx = 0
+    for i in range(checkpoint_idx+1):
+        checkpoint_bool[i] = True
+
     # Camera position
     camera_x = 0
-
     # (5, SURFACE) should be the starting point
-    player_x = calculate_x_coordinate(5)  # Start position, change this number to spawn in a different place
-    player_y = calculate_y_coordinate(SURFACE)
+    player_x = checkpoints[checkpoint_idx][0]  # Start x position, change this number to spawn in a different place
+    player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
     
     # 8.5 should be standard speed
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
@@ -610,6 +616,16 @@ def level_4(slot: int):
     frostWalkBoots = False # Track if player has frost walk boots
     speedBoots = False # Track if player has speed boots
     dashGadget = False # Track if player has the dash gadget
+
+    if checkpoint_idx == 0:
+        level_map[SURFACE-19][21] = 10 # Frost Walking Boots
+        level_map[SURFACE-19][39] = 16 # Double Jump Boots
+        level_map[SURFACE][13] = 31 # Dash Gadget
+    elif checkpoint_idx == 1:
+        frostWalkBoots = True
+        level_map[SURFACE][107] = 30 # Speed Boots
+    elif checkpoint_idx == 2:
+        level_map[SURFACE-19][205] = 30 # Speed Boots
 
     # State Variables for Gadgets
     bubbleJump = False
@@ -637,18 +653,23 @@ def level_4(slot: int):
     ice_friction = 0.95  # Lower friction for slippery effect
     on_ice = False
 
-    checkpoints = [(player_x, player_y), (calculate_x_coordinate(102), calculate_y_coordinate(SURFACE)), (calculate_x_coordinate(152), calculate_y_coordinate(SURFACE-19))]
-    checkpoint_bool = [False] * len(checkpoints)
-    checkpoint_bool[0] = True
-    checkpoint_idx = 0
     dying = False
-    death_count = 0
+    death_count = load_save(slot).get("Level 4 Deaths")
+    if not death_count:
+        death_count = 0
     collidable_tiles = {1, 2, 3, 6, 9, 15, 21, 22, 28}
     dying_tiles = {3, 11, 18, 19, 7, 17} 
 
     coin_count = 0
 
-    start_time = 180  # Timer starts at 180 seconds
+
+    start_time = load_save(slot).get("Level 4 Time") # Timer resumes from last time they saved
+    if not start_time:
+        start_time = 200  # Timer starts at 180 seconds
+
+    global counter_for_coin_increment
+    counter_for_coin_increment = coin_count
+
     timer = start_time
     clock = pygame.time.Clock()
 
@@ -656,6 +677,22 @@ def level_4(slot: int):
     while running:
         
         screen.blit(background, (0, 0))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            # Pass events to the PauseMenu
+            pause_menu.handle_event(event, slot)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                if bubbleJump and doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    bubbleJump = False
+                elif doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    doubleJumped = True  # Mark double jump as used
+        if pause_menu.paused:
+            clock.tick(60)
+            continue
 
         # Draw level using tile images
         for row_index, row in enumerate(level_map):
@@ -775,6 +812,18 @@ def level_4(slot: int):
                 player_vel_x = -player_speed
             moving = True
             direction = -1
+        # Jumping Logic (Space Pressed)
+        if keys[pygame.K_SPACE]:
+            if higherJumps:
+                player_vel_y = jump_power * 2
+                higherJumps = False
+            elif on_ground:
+                player_vel_y = jump_power  # Normal jump
+                on_ground = False
+                doubleJumped = False  # Reset double jump when jumping once
+            elif bubbleJump:
+                player_vel_y = jump_power  # jump again
+                bubbleJump = False
         if not moving:
             player_vel_x *= friction
             if abs(player_vel_x) < 0.1:
@@ -789,34 +838,13 @@ def level_4(slot: int):
             if animation_timer >= animation_speed:  
                 animation_timer = 0
                 animation_index = 1 - animation_index  # Alternate between 0 and 1
-        player_x += player_vel_x  # Update position
+        if keys[pygame.K_e] and dashGadget:
+            dashing = True
+            dash_duration = 15  # Dash lasts for 15 frames
+            dash_velocity = player_vel_x * 2  # Boost speed temporarily
+            dash_timer = dash_duration
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            
-            # Jumping Logic (Space Pressed)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    if higherJumps:
-                        player_vel_y = jump_power * 2
-                        higherJumps = False
-                    elif on_ground:
-                        player_vel_y = jump_power  # Normal jump
-                        on_ground = False
-                        doubleJumped = False  # Reset double jump when landing
-                    elif doubleJumpBoots and not doubleJumped:
-                        player_vel_y = jump_power  # Double jump
-                        doubleJumped = True  # Mark double jump as used
-                    elif bubbleJump:
-                        player_vel_y = jump_power  # jump again
-                        bubbleJump = False
-                elif event.key == pygame.K_e:
-                    if dashGadget:
-                        dashing = True
-                        dash_duration = 15  # Dash lasts for 15 frames
-                        dash_velocity = player_vel_x * 2  # Boost speed temporarily
-                        dash_timer = dash_duration
+        player_x += player_vel_x  # Update position
         current_frame = run_frames[animation_index]
 
         if direction == -1:  # Flip when moving left
@@ -842,7 +870,6 @@ def level_4(slot: int):
 
         dt = clock.tick(60) / 1000  # Time elapsed per frame in seconds
         timer -= dt  # Decrease timer
-
         timer_text = level_name_font.render(f"Time: {int(timer)}", True, RED if timer <= 30 else WHITE)
         screen.blit(timer_text, (WIDTH // 2 - 50, 20))
 
@@ -905,6 +932,7 @@ def level_4(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         coin_count += 1
+                        counter_for_coin_increment = coin_count
                         level_map[row_index][col_index] = 0
                         coin_sound.play()
 
@@ -1056,6 +1084,7 @@ def level_4(slot: int):
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
+            update_save(slot, {"Level 4 Deaths": death_count})
             dying = False
             if checkpoint_idx == 0:
                 frostWalkBoots = False
@@ -1077,6 +1106,8 @@ def level_4(slot: int):
             if player_x >= x and player_y <= y and player_y >= (y - (TILE_SIZE * 4)) and not checkpoint_bool[k]:
                 checkpoint_idx += 1
                 checkpoint_bool[k] = True
+                update_save(slot, {"Level 4 Checkpoint": checkpoint_idx})
+                update_save(slot, {"Level 4 Time": timer})
                 if checkpoint_idx == 1:
                     frostWalkBoots = False
                     doubleJumpBoots = False
@@ -1086,10 +1117,6 @@ def level_4(slot: int):
                     
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
-        
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
 
         # ------------------------------- Power-up Respawns ---------------------------------- #
         current_time = pygame.time.get_ticks()
