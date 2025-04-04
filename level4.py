@@ -332,10 +332,8 @@ level_map[SURFACE-4][69] = 7 # Thorn
 
 level_map[SURFACE-19][65:70] = [7] * 5 # Thorns on top
 level_map[SURFACE-19][39] = 16 # Double Jump Boots
-# level_map[SURFACE-19][38] = 20 # Super Speed Powerup
 level_map[SURFACE-19][21] = 10 # Frost Walking Boots
 
-#level_map[SURFACE-2][72] = 5 # Dash Powerup
 level_map[SURFACE][75] = 29 # Spring
 level_map[SURFACE - 16][75] = 4 # Spring
 level_map[SURFACE - 18][73] = 4 # Spring
@@ -442,7 +440,7 @@ def show_level_completed_screen(slot: int, death_count: int):
     respawn_powerups() # Respawn all powerups on the level
 
     update_save(slot, {"Level 4 Checkpoint": 0}) # Set checkpoint to 0
-    update_save(slot, {"Level 4 Time": 180})
+    update_save(slot, {"Level 4 Time": 200})
 
     # current_state = get_unlock_state(slot, "map2")
     # current_state[5] = True  # Unlock level 5
@@ -463,7 +461,7 @@ def show_game_over_screen(slot: int):
     respawn_powerups() # Respawn all powerups on the level
 
     update_save(slot, {"Level 4 Checkpoint": 0}) # Set checkpoint to 0
-    update_save(slot, {"Level 4 Time": 180})
+    update_save(slot, {"Level 4 Time": 200})
 
     # Wait for player to click the button
     waiting = True
@@ -1068,7 +1066,6 @@ def level_4(slot: int):
             dying = True
             death_sound.play()
 
-
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
@@ -1182,7 +1179,6 @@ def level_4(slot: int):
                 hasBalloon = False  # Pop the balloon
                 balloon_vel = 0  # Reset velocity
 
-
         #-----Inventory Fill-up logic
 
         screen.blit(inventory, (inventory_x, inventory_y))
@@ -1203,12 +1199,9 @@ def level_4(slot: int):
         if speedBoots:
             inv_slots.append(inventory_speed_boots)
 
-
         for x, gadget in enumerate(inv_slots):
             screen.blit(gadget, inv_slot_dimensions[x])
         
-
-
         pygame.display.flip()  # Update display
 
 if __name__ == "__main__":
