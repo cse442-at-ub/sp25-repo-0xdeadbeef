@@ -465,7 +465,7 @@ def show_game_over_screen(slot: int):
     respawn_powerups() # Respawn all powerups on the level
 
     update_save(slot, {"Level 4 Checkpoint": 0}) # Set checkpoint to 0
-    update_save(slot, {"Level 4 Time": 180})
+    update_save(slot, {"Level 4 Time": 200})
 
     # Wait for player to click the button
     waiting = True
