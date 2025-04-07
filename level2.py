@@ -132,7 +132,7 @@ jump_reset = pygame.image.load("./images/bubble.png")
 jump_reset = pygame.transform.scale(jump_reset, (TILE_SIZE, TILE_SIZE))
 
 spring = pygame.image.load("./images/spring.png")
-spring= pygame.transform.scale(spring, (TILE_SIZE, TILE_SIZE))
+spring = pygame.transform.scale(spring, (TILE_SIZE, TILE_SIZE))
 
 npc_1 = pygame.image.load("./Character Combinations/black hair_dark_yellow shirt_black pants.png")
 npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))

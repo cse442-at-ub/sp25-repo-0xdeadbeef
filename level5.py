@@ -119,6 +119,19 @@ balloon = pygame.transform.scale(balloon, (TILE_SIZE, TILE_SIZE))
 glider = pygame.image.load("./images/balloon.png")
 glider = pygame.transform.scale(glider, (TILE_SIZE, TILE_SIZE))
 
+double_jump_boots = pygame.image.load("./images/boots.png")
+double_jump_boots = pygame.transform.scale(double_jump_boots, (TILE_SIZE, TILE_SIZE))
+
+spring = pygame.image.load("./images/spring.png")
+spring = pygame.transform.scale(spring, (TILE_SIZE, TILE_SIZE))
+
+dash_powerup = pygame.image.load("./images/dash_powerup.png")
+dash_powerup = pygame.transform.scale(dash_powerup, (TILE_SIZE, TILE_SIZE))
+left_dash = pygame.transform.flip(dash_powerup, True, False)
+
+jump_reset = pygame.image.load("./images/bubble.png")
+jump_reset = pygame.transform.scale(jump_reset, (TILE_SIZE, TILE_SIZE))
+
 # Set up the level with a width of 300 and a height of 30 rows
 level_width = 300
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
@@ -137,10 +150,12 @@ BLUE = (0, 0, 255) # For hover
 pause_menu = PauseMenu(screen)
 
 level_map[5][13] = 12  # Coin
+level_map[6][133] = 12 # Coin
 
 # Dictionary containing which tile corresponds to what
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: dirt_tile,  4: thorns, 5: water, 6: water_block, 7: flag, 8: sand, 9: flipped_thorn, 10: left_thorn,
-         11: right_thorn, 12: coin, 13: high_jump, 14: speed_boots, 15: balloon, 16: full_cactus, 17: glider}
+         11: right_thorn, 12: coin, 13: high_jump, 14: speed_boots, 15: balloon, 16: full_cactus, 17: glider, 18: double_jump_boots, 19: spring, 20: dash_powerup,
+         21: left_dash, 22: jump_reset}
 
 rocks = {13, 55, 106} # Column numbers for all the rocks
 cacti = {11, 53, 107} # Column number for the cactuses
@@ -186,16 +201,20 @@ def show_game_over_screen(slot: int):
 def respawn_terrain():
     for row_index in range(GROUND, level_height):
         row = [1] * level_width  # Default to full ground row
-        for col_index in range(25, 30):  # Remove ground in columns 25-34
+        for col_index in range(25, 30):  # Remove ground in columns [25-30)
             row[col_index] = 0  # Set to air (pit)
         level_map[row_index] = row  # Add row to level map
-        for col_index in range(45, 50):  # Remove ground in columns 45-49
+        for col_index in range(45, 50):  # Remove ground in columns [45-50)
             row[col_index] = 0  # Set to air (pit)
-        for col_index in range(60, 80):  # Remove ground in columns 60-79
+        for col_index in range(60, 80):  # Remove ground in columns [60-80)
             row[col_index] = 0  # Set to air (pit)
-        for col_index in range(85, 105):  # Remove ground in columns 85-104
+        for col_index in range(85, 105):  # Remove ground in columns [85-105)
             row[col_index] = 0  # Set to air (pit)
-        for col_index in range(116, 145):  # Remove ground in columns 116-144
+        for col_index in range(116, 145):  # Remove ground in columns [116-145)
+            row[col_index] = 0  # Set to air (pit)
+        for col_index in range(160, 190):  # Remove ground in columns [160-190)
+            row[col_index] = 0  # Set to air (pit)
+        for col_index in range(230, 235):  # Remove ground in columns [230-235)
             row[col_index] = 0  # Set to air (pit)
         level_map[row_index] = row  # Add row to level map
 
@@ -212,6 +231,12 @@ def respawn_terrain():
         level_map[row_index][113:116] = [1] * 3
     for row_index in range(GROUND, level_height): # Sand
         level_map[row_index][136:145] = [8] * 9
+    for row_index in range(SURFACE, level_height): # Sand
+        level_map[row_index][145:160] = [8] * 15
+    for row_index in range(GROUND, level_height): # Sand
+        level_map[row_index][210:225] = [8] * 15
+    for row_index in range(SURFACE-2, level_height): # Sand
+        level_map[row_index][225:230] = [8] * 5
 
     # Make terrain before this line (unless it's floating). The next code block calculates the ground levels.
 
@@ -256,14 +281,38 @@ def respawn_terrain():
         level_map[row_index][124] = 10
         level_map[row_index][125] = 3
         level_map[row_index][126] = 11
+    
+    level_map[level_height-2][160:190] = [5] * 30 # Water Block
+    level_map[level_height-1][160:190] = [6] * 30 # Water Block
+
+    level_map[SURFACE][190:210] = [4] * 20 # Thorns
+
+    level_map[8][133] = 2 # Platform Tile of Coin
+
+    level_map[7][168] = 2 # Platform Tile
+    level_map[SURFACE-12][174] = 2 # Platform Tile
+    level_map[7][180] = 2 # Platform Tile
+
+    level_map[SURFACE-1][158] = 19 # Spring
 
 def respawn_gadgets():
     level_map[3][82] = 14 # Speed Boots
     level_map[SURFACE][58] = 17 # Glider
 
+    level_map[SURFACE-13][174] = 18 # Double Jump Boots
+
 def respawn_powerups():
     level_map[SURFACE-2][18] = 13 # High Jump
     level_map[SURFACE-6][114] = 15 # Balloon
+
+    level_map[SURFACE-3][147] = 20 # Dash Powerup
+
+    level_map[9][139] = 22 # Jump Reset
+
+    level_map[3][152] = 21 # Left Dash Powerup
+
+    level_map[SURFACE-10][197] = 22 # Jump Reset
+    level_map[SURFACE-5][232] = 22 # Jump Reset
 
 def level_5(slot: int):
 
@@ -306,7 +355,7 @@ def level_5(slot: int):
     player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
 
     # 8.5 should be standard speed
-    player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
+    player_speed = 30 * scale_factor # Adjust player speed according to their resolution
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.25 * scale_factor # Gravity effect (Greater number means stronger gravity)
@@ -400,10 +449,10 @@ def level_5(slot: int):
         # Handle events
         keys = pygame.key.get_pressed()
         moving = False
-        # if keys[pygame.K_w]:
-        #     player_y -= player_speed
-        # if keys[pygame.K_s]:
-        #     player_y += player_speed
+        if keys[pygame.K_w]:
+            player_y -= player_speed
+        if keys[pygame.K_s]:
+            player_y += player_speed
         if keys[pygame.K_d]: # If player presses D
             if on_ice:
                 player_vel_x += acceleration
@@ -465,9 +514,9 @@ def level_5(slot: int):
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
 
         # Apply gravity
-        if not hasBalloon:
-            player_vel_y += gravity
-            player_y += player_vel_y
+        # if not hasBalloon:
+        #     player_vel_y += gravity
+        #     player_y += player_vel_y
 
         on_ground = False
         on_ice = False
