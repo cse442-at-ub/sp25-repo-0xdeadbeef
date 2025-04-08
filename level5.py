@@ -352,6 +352,9 @@ def respawn_powerups():
 
     level_map[SURFACE-3][147] = 20 # Dash Powerup
 
+    level_map[SURFACE][126] = 22 # Jump Reset
+    level_map[SURFACE][132] = 22 # Jump Reset
+
     level_map[9][139] = 22 # Jump Reset
 
     level_map[3][152] = 21 # Left Dash Powerup
