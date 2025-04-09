@@ -8,6 +8,7 @@ import level2
 import level3
 import level4
 import level5
+import level6
 import save_slots
 import world_select
 import main_menu  
@@ -157,8 +158,8 @@ mini_squares = [
     ],
     [  # Map 2
         {"pos": (WIDTH // 2 - 250, HEIGHT // 2 - 20), "image": current_level_images[5]},
+        {"pos": (WIDTH // 2 - 30, HEIGHT // 2 - 40), "image": current_level_images[5]},
         {"pos": (WIDTH // 2 - 200, HEIGHT // 2 - 180), "image": unlocked_level_image},
-        {"pos": (WIDTH // 2 - 30, HEIGHT // 2 - 40), "image": unlocked_level_image},
         {"pos": (WIDTH // 2 + 110, HEIGHT // 2 + 40), "image": unlocked_level_image},
         {"pos": (WIDTH // 2 - 20, HEIGHT // 2 + 140), "image": locked_level_image},
     ],
@@ -243,6 +244,11 @@ def World_Selector(slot: int):
                                     print("Desert level button clicked. Going to Level 5...")
                                     running = False
                                     level5.level_5(slot)
+                                    sys.exit()
+                                if idx == 1:  # Desert level 6 button is at index 1 in Map 2
+                                    print("Desert level button clicked. Going to Level 6...")
+                                    running = False
+                                    level6.level_6(slot)
                                     sys.exit()
 
                         
