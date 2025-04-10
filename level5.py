@@ -5,6 +5,11 @@ from saves_handler import *
 from firework_level_end import show_level_complete_deaths
 from pause_menu import PauseMenu  # Import the PauseMenu class
 
+from NPCs.level_5_npc_1 import handle_level_5_npc_1_dialogue  # Import the functionality of the first NPC from level 5
+from NPCs.level_5_npc_2 import handle_level_5_npc_2_dialogue  # Import the functionality of the second NPC from level 5
+from NPCs.level_5_npc_3 import handle_level_5_npc_3_dialogue  # Import the functionality of the third NPC from level 5
+from NPCs.level_5_npc_4 import handle_level_5_npc_4_dialogue  # Import the functionality of the fourth NPC from level 5
+
 # Initialize PyGame
 pygame.init()
 
@@ -141,6 +146,18 @@ iron_boots = pygame.transform.scale(iron_boots, (TILE_SIZE, TILE_SIZE))
 sign = pygame.image.load("./desert_images/sign.png")
 sign = pygame.transform.scale(sign, (TILE_SIZE, TILE_SIZE))
 
+npc_1 = pygame.image.load("./Character Combinations/black hair_dark_red shirt_brown pants.png")
+npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
+
+npc_2 = pygame.image.load("./Character Combinations/female ginger hair_white_brown skirt_magenta pants.png")
+npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
+
+npc_3 = pygame.image.load("./Character Combinations/female brown hair_white_pink skirt_blue pants.png")
+npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
+
+npc_4 = pygame.image.load("./Character Combinations/ginger hair_white_yellow shirt_brown pants.png")
+npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
+
 # Set up the level with a width of 290 and a height of 30 rows
 level_width = 290
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
@@ -164,7 +181,7 @@ level_map[6][133] = 12 # Coin
 # Dictionary containing which tile corresponds to what
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: dirt_tile,  4: thorns, 5: water, 6: water_block, 7: flag, 8: sand, 9: flipped_thorn, 10: left_thorn,
          11: right_thorn, 12: coin, 13: high_jump, 14: speed_boots, 15: balloon, 16: full_cactus, 17: glider, 18: double_jump_boots, 19: spring, 20: dash_powerup,
-         21: left_dash, 22: jump_reset, 23: full_walkway, 24: iron_boots, 25: pyramids, 26: sign}
+         21: left_dash, 22: jump_reset, 23: full_walkway, 24: iron_boots, 25: pyramids, 26: sign, 27: npc_1, 28: npc_2, 29: npc_3, 30: npc_4}
 
 rocks = {13, 55, 106, 149, 218, 240, 247} # Column numbers for all the rocks
 cacti = {11, 53, 107, 228, 255, 280} # Column numbers for the cactuses
@@ -202,6 +219,12 @@ def show_level_completed_screen(slot: int, death_count: int):
     update_save(slot, {"Level 5 Time": 150}) # Reset the time
 
     show_level_complete_deaths(slot, 0, death_count)
+    
+def npc_spawn():
+    level_map[SURFACE][6] = 27 # First NPC
+    level_map[SURFACE][54] = 28 # Second NPC
+    level_map[SURFACE][84] = 29 # Third NPC
+    level_map[SURFACE][243] = 30 # Fourth NPC
 
 def show_game_over_screen(slot: int):
 
@@ -367,6 +390,7 @@ def level_5(slot: int):
     respawn_terrain()
     respawn_gadgets()
     respawn_powerups()
+    npc_spawn()
 
     # Grab the sprite that was customized
     sprite = load_save(slot).get("character")
@@ -504,6 +528,50 @@ def level_5(slot: int):
 
         acceleration = 0.5  # Slower acceleration on ice
         friction = normal_friction if not on_ice else ice_friction
+
+                # Check if player is near the first NPC
+        npc_x = calculate_x_coordinate(6)  # First NPC's x position
+        npc_y = (SURFACE) * TILE_SIZE  # First NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle first NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_5_npc_1_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the second NPC
+        npc_x = calculate_x_coordinate(54)  # Second NPC's x position
+        npc_y = (SURFACE) * TILE_SIZE  # Second NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle second NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_5_npc_2_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the third NPC
+        npc_x = calculate_x_coordinate(84)  # Third NPC's x position
+        npc_y = (SURFACE) * TILE_SIZE  # Third NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle third NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_5_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the fourth NPC
+        npc_x = calculate_x_coordinate(243)  # Fourth NPC's x position
+        npc_y = (SURFACE) * TILE_SIZE  # Fourth NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle fourth NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_5_npc_4_dialogue(screen, player_rect, npc_rect, keys, current_time)  
 
         # Handle events
         keys = pygame.key.get_pressed()
