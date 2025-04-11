@@ -652,14 +652,18 @@ def level_5(slot: int):
             else: # Left
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
 
-        # Apply gravity
-        if not keys[pygame.K_e]:
-            if not hasBalloon:
-                # print("gravity")
-                player_vel_y += gravity
-                player_y += player_vel_y
-        else:
+        # Pop balloon mechanic
+        if keys[pygame.K_r]:
+            hasBalloon = False
+
+        # Apply gravity when needed
+        player_vel_y += gravity
+        if keys[pygame.K_e] and glider:
+            player_vel_y = gravity
+        if hasBalloon:
             player_vel_y = 0
+        player_y += player_vel_y
+
 
         on_ground = False
         on_ice = False
