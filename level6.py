@@ -511,7 +511,8 @@ def level_6(slot: int):
     current_x = 0
     current_y = 0
     latestTile = 0
-    dash_counter = 0
+    dashed = False
+    dash_duration = 0
 
     animation_index = 0  # Alternates between 0 and 1
     animation_timer = 0  # Tracks when to switch frames
@@ -809,19 +810,29 @@ def level_6(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        level_map[row_index][col_index] = 0 
+                        dash_pickup_time = pygame.time.get_ticks()
                         powerup_respawns[(row_index, col_index)] = [26, pygame.time.get_ticks() + 5000]
-                        dash_counter = 100
+                        dash_duration = dash_pickup_time + 500
+                        dashed = True
+                        level_map[row_index][col_index] = 0 
+                        player_speed = player_speed * 2 
                         direction = 1
+                        if player_speed < 0:
+                            player_speed *= -1
 
                 if tile == 28:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        level_map[row_index][col_index] = 0 
+                        dash_pickup_time = pygame.time.get_ticks()
                         powerup_respawns[(row_index, col_index)] = [28, pygame.time.get_ticks() + 5000]
-                        dash_counter = -100
+                        dash_duration = dash_pickup_time + 750
+                        dashed = True
+                        level_map[row_index][col_index] = 0 
+                        player_speed = player_speed * 3.05
                         direction = -1
+                        if player_speed < 0:
+                            player_speed *= -1
 
         level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
         level_name_text = level_name_font.render("Level 6", True, WHITE)  # White text
@@ -842,7 +853,6 @@ def level_6(slot: int):
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
-            dash_counter = 0
             update_save(slot, {"Level 6 Deaths": death_count})
             dying = False
             if checkpoint_idx == 0:
@@ -889,11 +899,12 @@ def level_6(slot: int):
                 powerup_remove.append(position) # mark for removal
 
         # This creates the dashing affect on the player
-        player_vel_x = dash_counter
-        if dash_counter > 0:
-            dash_counter -= 1
-        elif dash_counter < 0: 
-            dash_counter += 1
+        if dashed:
+            # print("Player speed: " + str(player_speed))
+            if (current_time >= dash_duration) and (dash_duration != 0):
+                player_speed = 8.5 * scale_factor
+                dashed = False
+                dash_duration = 0
 
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
