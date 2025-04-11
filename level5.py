@@ -121,7 +121,7 @@ speed_boots = pygame.transform.scale(speed_boots, (TILE_SIZE, TILE_SIZE))
 balloon = pygame.image.load("./images/balloon.png")
 balloon = pygame.transform.scale(balloon, (TILE_SIZE, TILE_SIZE))
 
-glider = pygame.image.load("./images/balloon.png")
+glider = pygame.image.load("./images/glider.png")
 glider = pygame.transform.scale(glider, (TILE_SIZE, TILE_SIZE))
 
 double_jump_boots = pygame.image.load("./images/boots.png")
@@ -140,7 +140,7 @@ jump_reset = pygame.transform.scale(jump_reset, (TILE_SIZE, TILE_SIZE))
 full_walkway = pygame.image.load("./desert_images/full_walkway.png")
 full_walkway = pygame.transform.scale(full_walkway, (TILE_SIZE * 8, TILE_SIZE * 2))
 
-iron_boots = pygame.image.load("./images/boots.png")
+iron_boots = pygame.image.load("./images/iron_boots.png")
 iron_boots = pygame.transform.scale(iron_boots, (TILE_SIZE, TILE_SIZE))
 
 sign = pygame.image.load("./desert_images/sign.png")
@@ -444,6 +444,11 @@ def level_5(slot: int):
     speedBoots = False
     ironBoots = False
     glider = False
+    gliderActive = False
+    dashed = False
+    dash_duration = 0
+    balloon_vel = 0
+    powerup_respawns = {}
 
     animation_index = 0  # Alternates between 0 and 1
     animation_timer = 0  # Tracks when to switch frames
@@ -482,7 +487,12 @@ def level_5(slot: int):
             # Pass events to the PauseMenu
             pause_menu.handle_event(event, slot)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                pass
+                if bubbleJump and doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    bubbleJump = False
+                elif doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    doubleJumped = True  # Mark double jump as used
         if pause_menu.paused:
             clock.tick(60)
             continue
@@ -640,10 +650,18 @@ def level_5(slot: int):
             else: # Left
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
 
-        # Apply gravity
-        if not hasBalloon:
-            player_vel_y += gravity
-            player_y += player_vel_y
+        # Pop balloon mechanic
+        if keys[pygame.K_r]:
+            hasBalloon = False
+
+        # Apply gravity when needed
+        player_vel_y += gravity
+        if keys[pygame.K_e] and glider:
+            player_vel_y = gravity
+        if hasBalloon:
+            player_vel_y = 0
+        player_y += player_vel_y
+
 
         on_ground = False
         on_ice = False
@@ -690,6 +708,91 @@ def level_5(slot: int):
                     
                         dying = True
                         death_sound.play()
+
+                # High Jump Functionality
+                if tile == 13:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        higherJumps = True
+                        powerup_respawns[(row_index, col_index)] = [13, pygame.time.get_ticks() + 5000]
+
+                # Balloon Functionality
+                if tile == 15: 
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+
+                        level_map[row_index][col_index] = 0  # Remove the balloon from the map
+                        hasBalloon = True
+                        balloon_vel = -5  # Initial upward speed
+                        powerup_respawns[(row_index, col_index)] = [15, pygame.time.get_ticks() + 5000]
+
+                # Jump reset functionality
+                if tile == 22: 
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the jump reset from screen
+                        bubbleJump = True
+                        doubleJumped = False
+                        powerup_respawns[(row_index, col_index)] = [22, pygame.time.get_ticks() + 5000]
+
+                # Sring functionality
+                if tile == 19:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
+                        player_vel_y = -50
+
+                # Double Jump Boots
+                if tile == 18:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        doubleJumpBoots = True
+                        doubleJumped = False
+
+                # Speed boots
+                if tile == 14:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        player_speed = player_speed * 1.25 # Up the player speed
+                        speedBoots = True
+
+                if tile == 20:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        dash_pickup_time = pygame.time.get_ticks()
+                        powerup_respawns[(row_index, col_index)] = [20, pygame.time.get_ticks() + 5000]
+                        dash_duration = dash_pickup_time + 500
+                        dashed = True
+                        level_map[row_index][col_index] = 0 
+                        player_speed = player_speed * 2 
+                        direction = 1
+                        if player_speed < 0:
+                            player_speed *= -1
+
+                if tile == 21:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+
+                        dash_pickup_time = pygame.time.get_ticks()
+                        powerup_respawns[(row_index, col_index)] = [21, pygame.time.get_ticks() + 5000]
+                        dash_duration = dash_pickup_time + 750
+                        dashed = True
+                        level_map[row_index][col_index] = 0 
+                        player_speed = player_speed * 3.05
+                        direction = -1
+                        player_vel_y = 0
+                        if player_speed < 0:
+                            player_speed *= -1
 
                 if tile == 17: # Picked up glider (For Kenny to do)
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
@@ -779,6 +882,32 @@ def level_5(slot: int):
                     speedBoots = False
                     level_map[SURFACE-13][174] = 18 # Double Jump Boots
                     level_map[3][82] = 14 # Speed Boots
+
+        # Set speed back for player if dashing
+        if dashed:
+            # print("Player speed: " + str(player_speed))
+            if (current_time >= dash_duration) and (dash_duration != 0):
+                player_speed = 8.5 * scale_factor
+                dashed = False
+                dash_duration = 0
+
+        # Set speed to normal if no boots
+        if not speedBoots and not dashed:
+            player_speed = 8.5 * scale_factor
+        if hasBalloon:
+            player_y += balloon_vel  # Move up
+            balloon_vel -= 0.001  # Gradually slow down (simulating air resistance)
+
+            if player_y + TILE_SIZE < 0:  # If the player moves off the top of the screen
+                hasBalloon = False  # Pop the balloon
+                balloon_vel = 0  # Reset velocity
+        
+        # Modified powerup respawns to singular function
+        powerup_remove = []
+        for position, gadget in powerup_respawns.items():
+            if current_time >= gadget[1]:
+                level_map[position[0]][position[1]] = gadget[0]
+                powerup_remove.append(position) # mark for removal
 
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
