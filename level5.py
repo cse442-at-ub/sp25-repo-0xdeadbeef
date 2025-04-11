@@ -488,11 +488,9 @@ def level_5(slot: int):
             pause_menu.handle_event(event, slot)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if bubbleJump and doubleJumpBoots and not doubleJumped:
-                    print("Double")
                     player_vel_y = jump_power  # Double jump
                     bubbleJump = False
                 elif doubleJumpBoots and not doubleJumped:
-                    print("Jump")
                     player_vel_y = jump_power  # Double jump
                     doubleJumped = True  # Mark double jump as used
         if pause_menu.paused:
@@ -770,8 +768,6 @@ def level_5(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
-                        print("Dash pickedup")
                         dash_pickup_time = pygame.time.get_ticks()
                         powerup_respawns[(row_index, col_index)] = [20, pygame.time.get_ticks() + 5000]
                         dash_duration = dash_pickup_time + 500
@@ -889,7 +885,7 @@ def level_5(slot: int):
 
         # Set speed back for player if dashing
         if dashed:
-            print("Player speed: " + str(player_speed))
+            # print("Player speed: " + str(player_speed))
             if (current_time >= dash_duration) and (dash_duration != 0):
                 player_speed = 8.5 * scale_factor
                 dashed = False
