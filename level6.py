@@ -5,6 +5,11 @@ from saves_handler import *
 from firework_level_end import show_level_complete_deaths
 from pause_menu import PauseMenu  # Import the PauseMenu class
 
+from NPCs.level_6_npc_1 import handle_level_6_npc_1_dialogue  # Import the functionality of the first NPC from level 6
+from NPCs.level_6_npc_2 import handle_level_6_npc_2_dialogue  # Import the functionality of the second NPC from level 6
+from NPCs.level_6_npc_3 import handle_level_6_npc_3_dialogue  # Import the functionality of the third NPC from level 6
+from NPCs.level_6_npc_4 import handle_level_6_npc_4_dialogue  # Import the functionality of the fourth NPC from level 6
+
 # Initialize PyGame
 pygame.init()
 
@@ -165,6 +170,19 @@ flipped_walkway = pygame.transform.flip(walkway, True, False)  # Flip horizontal
 sign = pygame.image.load("./desert_images/sign.png")
 sign = pygame.transform.scale(sign, (TILE_SIZE, TILE_SIZE))
 
+npc_1 = pygame.image.load("./Character Combinations/black hair_dark_red shirt_brown pants.png")
+npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
+
+npc_2 = pygame.image.load("./Character Combinations/ginger hair_dark_yellow shirt_black pants.png")
+npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
+
+npc_3 = pygame.image.load("./Character Combinations/brown hair_white_red shirt_brown pants.png")
+npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
+
+npc_4 = pygame.image.load("./Character Combinations/ginger hair_white_yellow shirt_brown pants.png")
+npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
+
+
 # Set up the level with a width of 300 and a height of 30 rows
 level_width = 300
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
@@ -189,7 +207,7 @@ level_map[2][196] = 12 # Coin
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: dirt_tile,  4: thorns, 5: water, 6: water_block, 7: flag, 8: sand, 9: flipped_thorn, 10: left_thorn,
          11: right_thorn, 12: coin, 13: high_jump, 14: speed_boots, 15: balloon, 16: full_cactus, 17: jump_reset, 18: double_jump_boots, 19: spring, 20: button,
          21: flipped_button, 22: super_speed_powerup, 23: sand_boots, 24: glider, 25: high_jump, 26: right_dash, 27: up_dash, 28: left_dash, 29: walkway, 30: flipped_walkway,
-         31: transparent_ground, 32: transparent_dirt, 33: transparent_high_jump, 34: pyramids}
+         31: transparent_ground, 32: transparent_dirt, 33: transparent_high_jump, 34: pyramids, 35: npc_1, 36: npc_2, 37: npc_3, 38: npc_4}
 
 rocks = {61, 118, 196} # Column numbers for all the rocks
 cacti = {64, 167} # Column number for the cactuses
@@ -439,6 +457,12 @@ def respawn_powerups():
     level_map[8][236] = 17 # Jump Reset
 
     level_map[SURFACE][157] = 33 # Transparent High Jump
+
+def respawn_npcs():
+    level_map[SURFACE-4][7] = 35       # First NPC
+    level_map[SURFACE][68] = 36        # Second NPC
+    level_map[SURFACE-21][124] = 37    # Third NPC
+    level_map[SURFACE][194] = 38       # Fourth NPC
     
 def button_spawn(btn_idx):
     if btn_idx == 1: # Spawns in the ground and the spring and the platform to proceed
@@ -456,6 +480,7 @@ def level_6(slot: int):
     respawn_terrain()
     respawn_gadgets()
     respawn_powerups()
+    respawn_npcs()
 
     # Grab the sprite that was customized
     sprite = load_save(slot).get("character")
@@ -531,6 +556,50 @@ def level_6(slot: int):
         print(f"Column: {calculate_column(player_x)}")
 
         screen.blit(background, (0, 0))
+
+                        # Check if player is near the first NPC
+        npc_x = calculate_x_coordinate(7)  # First NPC's x position
+        npc_y = (SURFACE-4) * TILE_SIZE  # First NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle first NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_6_npc_1_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the second NPC
+        npc_x = calculate_x_coordinate(68)  # Second NPC's x position
+        npc_y = (SURFACE) * TILE_SIZE  # Second NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle second NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_6_npc_2_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the third NPC
+        npc_x = calculate_x_coordinate(124)  # Third NPC's x position
+        npc_y = (SURFACE-22) * TILE_SIZE  # Third NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle third NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_6_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the fourth NPC
+        npc_x = calculate_x_coordinate(194)  # Fourth NPC's x position
+        npc_y = (SURFACE) * TILE_SIZE  # Fourth NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle fourth NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_6_npc_4_dialogue(screen, player_rect, npc_rect, keys, current_time)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
