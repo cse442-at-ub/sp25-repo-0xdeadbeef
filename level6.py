@@ -137,17 +137,17 @@ double_jump_boots = pygame.transform.scale(double_jump_boots, (TILE_SIZE, TILE_S
 spring = pygame.image.load("./images/spring.png")
 spring = pygame.transform.scale(spring, (TILE_SIZE, TILE_SIZE))
 
-button = pygame.image.load("./desert_images/button.png")
+button = pygame.image.load("./images/button.png")
 button = pygame.transform.scale(button, (TILE_SIZE, TILE_SIZE))
 flipped_button = pygame.transform.flip(button, False, True)
 
 super_speed_powerup = pygame.image.load("./images/super_speed_powerup.png")
 super_speed_powerup = pygame.transform.scale(super_speed_powerup, (TILE_SIZE, TILE_SIZE))
 
-sand_boots = pygame.image.load("./images/boots.png")
+sand_boots = pygame.image.load("./desert_images/sand_boots.png")
 sand_boots = pygame.transform.scale(sand_boots, (TILE_SIZE, TILE_SIZE))
 
-glider = pygame.image.load("./images/balloon.png")
+glider = pygame.image.load("./images/glider.png")
 glider = pygame.transform.scale(glider, (TILE_SIZE, TILE_SIZE))
 
 high_jump = pygame.image.load("./images/high_jump.png")
@@ -493,7 +493,7 @@ def level_6(slot: int):
     player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
 
     # 8.5 should be standard speed
-    player_speed = 24 * scale_factor # Adjust player speed according to their resolution
+    player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.25 * scale_factor # Gravity effect (Greater number means stronger gravity)
@@ -506,6 +506,12 @@ def level_6(slot: int):
     doubleJumpBoots = False
     sandBoots = False
     glider = False
+    powerup_respawns = {}
+    super_speed_effects = []
+    current_x = 0
+    current_y = 0
+    latestTile = 0
+    dash_counter = 0
 
     animation_index = 0  # Alternates between 0 and 1
     animation_timer = 0  # Tracks when to switch frames
@@ -527,8 +533,8 @@ def level_6(slot: int):
     running = True
     while running:
         
-        print(f"Row: SURFACE - {SURFACE - calculate_row(player_y)}")
-        print(f"Column: {calculate_column(player_x)}")
+        # print(f"Row: SURFACE - {SURFACE - calculate_row(player_y)}")
+        # print(f"Column: {calculate_column(player_x)}")
 
         screen.blit(background, (0, 0))
 
@@ -538,7 +544,12 @@ def level_6(slot: int):
             # Pass events to the PauseMenu
             pause_menu.handle_event(event, slot)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                pass
+                if bubbleJump and doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    bubbleJump = False
+                elif doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jumpit
+                    doubleJumped = True  # Mark double jump as used
         if pause_menu.paused:
             continue
 
@@ -587,20 +598,31 @@ def level_6(slot: int):
         # Handle events
         keys = pygame.key.get_pressed()
         moving = False
-        if keys[pygame.K_w]:
-            player_y -= player_speed
-        if keys[pygame.K_s]:
-            player_y += player_speed
+        # if keys[pygame.K_w]:
+        #     player_y -= player_speed
+        # if keys[pygame.K_s]:
+        #     player_y += player_speed
+        
+        current_x = calculate_column(player_x)
+        current_y = calculate_row(player_y)+1
+        currentTile = level_map[current_y][current_x]
+        if currentTile > 0:
+            latestTile = currentTile
+
         if keys[pygame.K_d]: # If player presses D
-            if on_ice:
-                player_vel_x += acceleration
+            if latestTile == 8 and not sandBoots:
+                player_vel_x = player_speed * 0.7
+            elif sandBoots:
+                player_vel_x = player_speed
             else:
                 player_vel_x = player_speed
             moving = True
             direction = 1
         if keys[pygame.K_a]: # If player presses A
-            if on_ice:
-                player_vel_x -= acceleration
+            if latestTile == 8 and not sandBoots:
+                player_vel_x = (player_speed * 0.7) * -1
+            elif sandBoots:
+                player_vel_x = -player_speed
             else:
                 player_vel_x = -player_speed
             moving = True
@@ -608,7 +630,7 @@ def level_6(slot: int):
         # Jumping Logic (Space Pressed)
         if keys[pygame.K_SPACE]:
             if higherJumps:
-                player_vel_y = jump_power * 2
+                player_vel_y = jump_power * 2.25
                 higherJumps = False
             elif on_ground:
                 player_vel_y = jump_power  # Normal jump
@@ -651,9 +673,11 @@ def level_6(slot: int):
             else: # Left
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
 
-        # Apply gravity
-        # player_vel_y += gravity
-        # player_y += player_vel_y
+         # Apply gravity when needed
+        player_vel_y += gravity
+        if keys[pygame.K_e] and glider:
+            player_vel_y = gravity
+        player_y += player_vel_y
 
         on_ground = False
         on_ice = False
@@ -701,6 +725,104 @@ def level_6(slot: int):
                         dying = True
                         death_sound.play()
 
+                # Jump reset functionality
+                if tile == 17: 
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the jump reset from screen
+                        bubbleJump = True
+                        doubleJumped = False
+                        powerup_respawns[(row_index, col_index)] = [17, pygame.time.get_ticks() + 5000]
+
+                # Double Jump Boots
+                if tile == 18:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        doubleJumpBoots = True
+                        doubleJumped = False
+
+                # Sring functionality
+                if tile == 19:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
+                        player_vel_y = -38
+                        doubleJumped = False
+
+                # High Jump Functionality
+                if tile == 25:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        higherJumps = True
+                        powerup_respawns[(row_index, col_index)] = [25, pygame.time.get_ticks() + 5000]
+
+                # Super Speed Powerup
+                if tile == 22: 
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        super_speed_sound.play()
+                        level_map[row_index][col_index] = 0
+                        if len(super_speed_effects) == 0:
+                            player_speed *= 2.5  # Double the speed
+                        super_speed_effects.append({"end_time": pygame.time.get_ticks() + 1600})  # 1.6 sec effect
+                        powerup_respawns[(row_index, col_index)] = [22, pygame.time.get_ticks() + 5000]  # 5 sec respawn
+
+                if tile == 24: # Picked up glider (For Kenny to do)
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                    
+                        level_map[row_index][col_index] = 0
+                        glider = True
+                        for row_index in range(GROUND, level_height):
+                            level_map[row_index][30:35] = [0] * 5
+                            level_map[row_index][40:45] = [0] * 5
+                        ground_levels[30:35] = [level_height] * 5
+                        ground_levels[40:45] = [level_height] * 5
+
+                # Up Dash
+                if tile == 27:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0 
+                        player_vel_y = -25
+                        dash_sound.play()
+                        powerup_respawns[(row_index, col_index)] = [27, pygame.time.get_ticks() + 5000]
+
+                # Sand Boots
+                if tile == 23:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0 
+                        sandBoots = True
+
+                if tile == 26:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0 
+                        powerup_respawns[(row_index, col_index)] = [26, pygame.time.get_ticks() + 5000]
+                        dash_counter = 100
+                        direction = 1
+
+                if tile == 28:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0 
+                        powerup_respawns[(row_index, col_index)] = [28, pygame.time.get_ticks() + 5000]
+                        dash_counter = -100
+                        direction = -1
+
         level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
         level_name_text = level_name_font.render("Level 6", True, WHITE)  # White text
 
@@ -720,6 +842,7 @@ def level_6(slot: int):
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
+            dash_counter = 0
             update_save(slot, {"Level 6 Deaths": death_count})
             dying = False
             if checkpoint_idx == 0:
@@ -739,7 +862,7 @@ def level_6(slot: int):
             if player_x >= x and player_y <= y and player_y >= (y - (TILE_SIZE * 4)) and not checkpoint_bool[k]:
                 checkpoint_idx += 1
                 checkpoint_bool[k] = True
-                update_save(slot, {"Level 5 Checkpoint": checkpoint_idx})
+                update_save(slot, {"Level 6 Checkpoint": checkpoint_idx})
                 if checkpoint_idx == 1:
                     doubleJumpBoots = False
                     level_map[SURFACE-2][20] = 18 # Double Jump Boots
@@ -748,6 +871,29 @@ def level_6(slot: int):
                     glider = False
                     level_map[SURFACE-12][93] = 23 # Sand Boots
                     level_map[3][97] = 24 # Glider
+
+        current_time = pygame.time.get_ticks()
+
+        # Apply speed effects from multiple power-ups
+        for effect in super_speed_effects[:]:  # Iterate over a copy of the list
+            if current_time >= effect["end_time"]:  # Check if effect expired
+                super_speed_effects.remove(effect)
+            if len(super_speed_effects) == 0:
+                player_speed /= 2.5
+         
+        # Modified powerup respawns to singular function
+        powerup_remove = []
+        for position, gadget in powerup_respawns.items():
+            if current_time >= gadget[1]:
+                level_map[position[0]][position[1]] = gadget[0]
+                powerup_remove.append(position) # mark for removal
+
+        # This creates the dashing affect on the player
+        player_vel_x = dash_counter
+        if dash_counter > 0:
+            dash_counter -= 1
+        elif dash_counter < 0: 
+            dash_counter += 1
 
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
