@@ -69,6 +69,5 @@ class PauseMenu:
                     self.paused = False
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
-            #keys = pygame.key.get_pressed()
             if event.type == pygame.K_ESCAPE:
                 self.paused = False
