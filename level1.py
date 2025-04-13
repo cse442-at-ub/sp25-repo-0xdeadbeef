@@ -578,7 +578,7 @@ def level_1(slot: int):
     player_x = checkpoints[checkpoint_idx][0]  # Start x position, change this number to spawn in a different place
     player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
     player_speed = 6.5 * scale_factor # Adjust player speed according to their resolution
-
+    
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.0 / scale_factor # Gravity effect (Greater number means stronger gravity)
@@ -891,7 +891,8 @@ def level_1(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         coin_count += 1
-                        counter_for_coin_increment = coin_count
+                        counter_for_coin_increment = 0 
+                        eclipse_increment(slot, 1)
                         level_map[SURFACE-1][68] = 0
                         coin_sound.play()
                         level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
