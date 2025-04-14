@@ -550,6 +550,7 @@ def level_2(slot: int):
     player_x = checkpoints[checkpoint_idx][0]  # Start x position, change this number to spawn in a different place
     player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
+    default_speed = player_speed # Set the default speed of the player to be the same as the player_speed
 
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
@@ -1010,9 +1011,13 @@ def level_2(slot: int):
             death_sound.play() # Play death sound when player touches water or thorn
 
         if dying:
+            if super_speed_effects:
+                player_speed = default_speed  # Reset to normal speed
+                super_speed_effects.clear()   # Remove all ongoing effects
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
             update_save(slot, {"Level 2 Deaths": death_count})
+            bubbleJump = False
             dying = False
             
             # Immediately respawn powerups when player dies
