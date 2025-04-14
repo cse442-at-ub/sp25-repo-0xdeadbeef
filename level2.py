@@ -891,7 +891,8 @@ def level_2(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         coin_count += 1
-                        counter_for_coin_increment = coin_count
+                        counter_for_coin_increment = 0 
+                        eclipse_increment(slot, 1)
                         level_map[row_index][col_index] = 0
                         coin_sound.play()
 

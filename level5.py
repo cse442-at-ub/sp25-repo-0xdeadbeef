@@ -477,6 +477,8 @@ def level_5(slot: int):
     hasBalloon = False
     balloon_vel = 0  # Initial vertical velocity
 
+    coin_count = 0
+
     # FOR KENNY TO USE (gadget booleans)
     doubleJumpBoots = False
     speedBoots = False
@@ -746,6 +748,22 @@ def level_5(slot: int):
                     
                         dying = True
                         death_sound.play()
+
+
+
+                # Coin
+                if tile == 12:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        coin_count += 1
+                        # counter_for_coin_increment = 0 
+                        eclipse_increment(slot, 1)
+                        level_map[row_index][col_index] = 0
+                        coin_sound.play()
+
+
+
 
                 # High Jump Functionality
                 if tile == 13:
