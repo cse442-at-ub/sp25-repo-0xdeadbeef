@@ -438,6 +438,12 @@ def level_2(slot: int):
     bubbleJump_respawns = {}
     up_dash_respawns = {}
     left_dash_respawns = {}
+    
+    # Store original positions of powerups that should respawn on death
+    original_powerup_positions = {
+        'super_speed': [(SURFACE-5, 23), (SURFACE-2, 39)],  # Super speed powerup positions
+        'jump_reset': [(SURFACE-2, 12), (SURFACE-5, 197), (SURFACE-10, 242), (SURFACE-10, 252)]  # Jump reset positions
+    }
 
     checkpoints = [(player_x, player_y), (calculate_x_coordinate(55), calculate_y_coordinate(SURFACE-14)), (calculate_x_coordinate(122), calculate_y_coordinate(SURFACE-9)),
                    (calculate_x_coordinate(206), calculate_y_coordinate(SURFACE-11))]
@@ -795,6 +801,17 @@ def level_2(slot: int):
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
             dying = False
+            
+            # Immediately respawn powerups when player dies
+            for pos in original_powerup_positions['super_speed']:
+                level_map[pos[0]][pos[1]] = 13  # Super speed powerup
+                if pos in super_speed_respawns:
+                    del super_speed_respawns[pos]
+                    
+            for pos in original_powerup_positions['jump_reset']:
+                level_map[pos[0]][pos[1]] = 20  # Jump reset
+                if pos in bubbleJump_respawns:
+                    del bubbleJump_respawns[pos]
 
         for k, checkpoint in enumerate(checkpoints):
             x, y = checkpoint
