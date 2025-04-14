@@ -572,8 +572,8 @@ def level_1(slot: int):
     running = True
     while running:
 
-        print(f"Row: SURFACE - {SURFACE - calculate_row(player_y)}")
-        print(f"Column: {calculate_column(player_x)}")
+        #print(f"Row: SURFACE - {SURFACE - calculate_row(player_y)}")
+        #print(f"Column: {calculate_column(player_x)}")
 
         screen.blit(background, (0, 0))
 
@@ -917,6 +917,7 @@ def level_1(slot: int):
             update_save(slot, {"Level 1 Deaths": death_count})
             dying = False
             respawn_powerups()
+            bubbleJump = False
             if checkpoint_idx == 0:
                 doubleJumpBoots = False
                 level_map[SURFACE - 3][39] = 3 # Respawn Double Jump Boots
