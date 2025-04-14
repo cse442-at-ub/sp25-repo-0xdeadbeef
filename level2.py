@@ -7,12 +7,42 @@ from NPCs.level_2_npc_1 import handle_level_2_npc_1_dialogue  # Import the funct
 from NPCs.level_2_npc_2 import handle_level_2_npc_2_dialogue  # Import the functionality of the second NPC from level 2
 from NPCs.level_2_npc_3 import handle_level_2_npc_3_dialogue  # Import the functionality of the third NPC from level 2
 from NPCs.level_2_npc_4 import handle_level_2_npc_4_dialogue  # Import the functionality of the fourth NPC from level 2
+from saves_handler import *
+from firework_level_end import show_level_complete_deaths
+from saves_handler import update_unlock_state, get_unlock_state
+from pause_menu import PauseMenu  # Import the PauseMenu class
 
 # Initialize PyGame
 pygame.init()
+pygame.mixer.init() # Initialize Pygame Audio Mixer
+
+# Load the level complete sound 
+level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
+
+# Gadget pick up sound 
+gadget_sound = pygame.mixer.Sound("Audio/GadgetPickUp.mp3")
+
+# Death sound 
+death_sound = pygame.mixer.Sound("Audio/Death.mp3")
+
+# Super speed power up sound
+super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
+
+# Dash power up sound
+dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
+
+
+# Spring sound 
+spring_sound = pygame.mixer.Sound("Audio/Spring.mp3")
+
+# Coin pick up sound 
+coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
+
+counter_for_coin_increment = 0
+
+
 
 # Screen settings
-
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
 
@@ -102,13 +132,13 @@ jump_reset = pygame.image.load("./images/bubble.png")
 jump_reset = pygame.transform.scale(jump_reset, (TILE_SIZE, TILE_SIZE))
 
 spring = pygame.image.load("./images/spring.png")
-spring= pygame.transform.scale(spring, (TILE_SIZE, TILE_SIZE))
+spring = pygame.transform.scale(spring, (TILE_SIZE, TILE_SIZE))
 
 npc_1 = pygame.image.load("./Character Combinations/black hair_dark_yellow shirt_black pants.png")
 npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
 flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  # Flip horizontally (True), no vertical flip (False)
 
-npc_2 = pygame.image.load("./Character Combinations/brown hair_white_red shirt_brown pants.png")
+npc_2 = pygame.image.load("./Character Combinations/female ginger hair_white_pink skirt_magenta pants.png")
 npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
 flipped_npc_2 = pygame.transform.flip(npc_2, True, False)  # Flip horizontally (True), no vertical flip (False)
 
@@ -119,6 +149,26 @@ flipped_npc_3 = pygame.transform.flip(npc_3, True, False)  # Flip horizontally (
 npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_brown pants.png")
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  
+
+#-----Gadget inventory images and dictionary
+
+inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.transform.scale(inventory, (250, 70))
+inventory_x = (WIDTH - 250) // 2
+inventory_y = HEIGHT - 100
+
+inventory_jump_boots = pygame.image.load("./images/boots.png")
+inventory_jump_boots = pygame.transform.scale(inventory_jump_boots, (42, 50))
+
+inventory_speed_boots = pygame.image.load("./images/speed_boots.png")
+inventory_speed_boots = pygame.transform.scale(inventory_speed_boots, (42, 50))
+
+INV_SLOT_WIDTH = 42
+INV_SLOT_HEIGHT = 45
+
+first_slot = (inventory_x + 5, inventory_y + 10)
+second_slot = (inventory_x + INV_SLOT_WIDTH + 10, inventory_y + 10)
+
 
 # Set up the level with a width of 200 and a height of 27 rows
 level_width = 280
@@ -131,6 +181,8 @@ SURFACE = GROUND - 1 #Constant for the surface level
 
 # This is for the snowflake animations
 WHITE = (255, 255, 255)
+RED = (255, 0, 0) # For timer
+BLUE = (0, 0, 255) # For hover
 NUM_SNOWFLAKES = 200
 snowflakes = []
 
@@ -332,61 +384,140 @@ def calculate_row(y):
 def calculate_y_coordinate(row):
     return int(row * TILE_SIZE)
 
-def show_level_completed_screen(slot: int):
-    # Display the background image
-    screen.blit(background, (0, 0))
+def show_level_completed_screen(slot: int, death_count: int):
 
-    # Set fonts for the text
-    title_font = pygame.font.Font('PixelifySans.ttf', 100)
-    menu_font = pygame.font.Font('PixelifySans.ttf', 60)
+    # Stop level 2 music
+    pygame.mixer.music.stop()
 
-    # Render the "Level Completed" text
-    level_completed_text = title_font.render("Level Completed", True, (255, 255, 255))
-    select_level_text = menu_font.render("Back to Select Level", True, (255, 255, 255))
+    # Play the level complete sound once when this function runs
+    level_complete_sound.play()
 
-    # Position the texts
-    level_completed_rect = level_completed_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-    select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
+    level_map[SURFACE-8][62] = 3 # Double Jump Boots
+    level_map[SURFACE-14][63] = 11 # Speed Boots
+    level_map[SURFACE-5][178] = 3 # Double Jump Boots
+    level_map[SURFACE-11][208] = 11 # Super Speed Boots
 
-    # Create box around the text
-    box_padding = 20
-    level_end_screen_box = pygame.Rect(level_completed_rect.left - box_padding, level_completed_rect.top - box_padding, level_completed_rect.width + box_padding*2, level_completed_rect.height + (box_padding*2) + 80)
-    pygame.draw.rect(screen, (0, 0, 255), level_end_screen_box, 10)
-    
-    # Draw the texts
-    screen.blit(level_completed_text, level_completed_rect)
-    screen.blit(select_level_text, select_level_rect)
 
-    pygame.display.flip()
+    respawn_powerups() # Respawn all powerups on the level
 
-    # Wait for player to either press a key or click the button
+    update_save(slot, {"Level 2 Checkpoint": 0}) # Set checkpoint to 0
+    update_save(slot, {"Level 2 Time": 180})
+
+    current_state = get_unlock_state(slot, "map1")
+    current_state[3] = True  # Unlock level 3
+    update_unlock_state(slot, current_state, "map1")
+
+    level_name = "Level Two"
+
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
+
+
+def show_game_over_screen(slot: int):
+
+    level_map[SURFACE-8][62] = 3 # Double Jump Boots
+    level_map[SURFACE-14][63] = 11 # Speed Boots
+    level_map[SURFACE-5][178] = 3 # Double Jump Boots
+    level_map[SURFACE-11][208] = 11 # Super Speed Boots
+
+    level_map[SURFACE-18][1] = 12 # Respawn Coin
+    level_map[10][135] = 12 # Respawn Coin
+
+    respawn_powerups() # Respawn all powerups on the level
+
+    update_save(slot, {"Level 2 Checkpoint": 0}) # Set checkpoint to 0
+    update_save(slot, {"Level 2 Time": 180})
+
+    # Wait for player to click the button
     waiting = True
     while waiting:
+
+        screen.blit(background, (0, 0))
+
+        # Set fonts for the text
+        title_font = pygame.font.Font('PixelifySans.ttf', 100)
+        sub_font = pygame.font.Font('PixelifySans.ttf', 60)
+        sub_font_hover = pygame.font.Font('PixelifySans.ttf', 65)  # Larger for hover
+
+        # Render hover effect dynamically
+        restart_hover = False
+        select_level_hover = False
+
+        # Render the "Game Over" text
+        game_over_text = title_font.render("Game Over", True, WHITE)
+        restart_text = sub_font.render("Retry", True, WHITE)
+        select_level_text = sub_font.render("Back to Select Level", True, WHITE)
+
+        # Position the texts
+        game_over_rect = game_over_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
+        restart_over_rect = restart_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
+        select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))
+
+        # Check if mouse is hovering
+        if restart_over_rect.collidepoint(pygame.mouse.get_pos()):
+            restart_hover = True
+        if select_level_rect.collidepoint(pygame.mouse.get_pos()):
+            select_level_hover = True
+
+        # If hovering, change text size dynamically
+        if restart_hover:
+            restart_text = sub_font_hover.render("Retry", True, BLUE)
+            restart_over_rect = restart_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))  # Recalculate position
+        if select_level_hover:
+            select_level_text = sub_font_hover.render("Back to Select Level", True, BLUE)
+            select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))  # Recalculate position
+
+        # Create box around the text
+        box_padding = 100
+        game_over_screen_box = pygame.Rect(game_over_rect.left - box_padding, game_over_rect.top, game_over_rect.width + box_padding*2, game_over_rect.height + (box_padding*2) + 40)
+        pygame.draw.rect(screen, BLUE, game_over_screen_box, 10)
+        
+        # Draw the texts
+        screen.blit(game_over_text, game_over_rect)
+        screen.blit(restart_text, restart_over_rect)
+        screen.blit(select_level_text, select_level_rect)
+
+        pygame.display.flip()
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN or event.key == pygame.K_SPACE:
-                    waiting = False  # You could also go back to level select here
-
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
+                if restart_over_rect.collidepoint(mouse_x, mouse_y):
+                    level_2(slot) # Retry the level
+                    sys.exit()
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
 
+def respawn_powerups():
+    level_map[SURFACE-2][12] = 20 # Jump Reset
+    level_map[SURFACE-5][23] = 13 # Super Speed Powerup
+    level_map[SURFACE-2][39] = 13 # Super Speed Powerup
+    level_map[SURFACE-3][118] = 21 # Upwards Dash Powerup
+    level_map[6][145] = 22 #Left Dash Powerup
+    level_map[SURFACE-5][197] = 20 # Jump Reset
+    level_map[SURFACE-10][242] = 20 # Jump Reset
+    level_map[SURFACE-10][252] = 20 # Jump Reset
 
-def read_data(slot: int):
-    with open(f"./User Saves/save{str(slot)}.json", "r") as file:
-        data = json.load(file)
-    return data.get("character")
+# Initialize the PauseMenu
+pause_menu = PauseMenu(screen)
 
 # Function to run the tutorial level
 def level_2(slot: int):
+    
+    respawn_powerups() # Respawn all powerups on the level
+
+    # Stop any previously playing music 
+    pygame.mixer.music.stop()
+    
+    # Load the tutorial music
+    pygame.mixer.music.load("Audio/Level2.mp3")
+    pygame.mixer.music.play(-1)  # -1 loops forever
+
     # Grab the sprite that was customized
-    sprite = read_data(slot)
+    sprite = load_save(slot).get("character")
 
     # Load all the images into their respective variables
     player = pygame.image.load(f"./Assets/Character Sprites/standing/{sprite}")
@@ -404,13 +535,23 @@ def level_2(slot: int):
 
     run_frames = [pygame.transform.scale(frame, (TILE_SIZE, TILE_SIZE)) for frame in run_frames]
 
+    checkpoints = [(calculate_x_coordinate(5), calculate_y_coordinate(SURFACE)), (calculate_x_coordinate(55), calculate_y_coordinate(SURFACE-14)), (calculate_x_coordinate(122), calculate_y_coordinate(SURFACE-9)),
+                   (calculate_x_coordinate(206), calculate_y_coordinate(SURFACE-11))]
+    checkpoint_bool = [False] * len(checkpoints)
+    checkpoint_idx = load_save(slot).get("Level 2 Checkpoint")
+    if not checkpoint_idx:
+        checkpoint_idx = 0
+    for i in range(checkpoint_idx+1):
+        checkpoint_bool[i] = True
+
     # Camera position
     camera_x = 0
     # (5, SURFACE) should be the starting point
-    player_x = calculate_x_coordinate(5)  # Start position, change this number to spawn in a different place
-    player_y = calculate_y_coordinate(SURFACE)
+    player_x = checkpoints[checkpoint_idx][0]  # Start x position, change this number to spawn in a different place
+    player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
 
+    player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
     jump_power = -22 / scale_factor # Jump strength (Bigger negative number means higher jump)
@@ -418,6 +559,16 @@ def level_2(slot: int):
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
     speedBoots = False
+
+    if checkpoint_idx == 0:
+        level_map[SURFACE-8][62] = 3 # Double Jump Boots
+    elif checkpoint_idx == 1:
+        doubleJumpBoots = True
+        level_map[SURFACE-14][63] = 11 # Speed Boots
+    elif checkpoint_idx == 2:
+        level_map[SURFACE-5][178] = 3 # Double Jump Boots
+    elif checkpoint_idx == 3:
+        level_map[SURFACE-11][208] = 11 # Super Speed Boots
 
     animation_index = 0  # Alternates between 0 and 1
     animation_timer = 0  # Tracks when to switch frames
@@ -428,10 +579,12 @@ def level_2(slot: int):
     super_speed_respawns = {}
 
     #-----Declared variables for Dash power-up to avoid undefined variable error
-    dash_respawn_time = 0 
     dash_pickup_time = 0
     dash_duration = 0
     dashing = False
+
+    #-----Variable to check which gadget was picked up first
+    double_first = False
 
     # State Variables for Gadgets
     bubbleJump = False
@@ -445,25 +598,47 @@ def level_2(slot: int):
         'jump_reset': [(SURFACE-2, 12), (SURFACE-5, 197), (SURFACE-10, 242), (SURFACE-10, 252)]  # Jump reset positions
     }
 
-    checkpoints = [(player_x, player_y), (calculate_x_coordinate(55), calculate_y_coordinate(SURFACE-14)), (calculate_x_coordinate(122), calculate_y_coordinate(SURFACE-9)),
-                   (calculate_x_coordinate(206), calculate_y_coordinate(SURFACE-11))]
-    checkpoint_bool = [False] * len(checkpoints)
-    checkpoint_bool[0] = True
-    checkpoint_idx = 0
+    normal_friction = 0.25
+    ice_friction = 0.95  # Lower friction for slippery effect
+    on_ice = False
+
     dying = False
-    death_count = 0
+    death_count = load_save(slot).get("Level 2 Deaths")
+    if not death_count:
+        death_count = 0
     collidable_tiles = {1, 2, 5, 10, 14, 16, 17, 23}
 
     coin_count = 0
+
+    global counter_for_coin_increment
+    counter_for_coin_increment = coin_count
+
+    start_time = load_save(slot).get("Level 2 Time") # Timer resumes from last time they saved
+    if not start_time:
+        start_time = 180  # Timer starts at 180 seconds
+    timer = start_time
+    clock = pygame.time.Clock()
 
     running = True
     while running:
         screen.blit(background, (0, 0))
 
-        level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
-        level_name_text = level_name_font.render("Level 2", True, (255, 255, 255))  # White text
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            # Pass events to the PauseMenu
+            pause_menu.handle_event(event, slot)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
+                if bubbleJump and doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    bubbleJump = False
+                elif doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    doubleJumped = True  # Mark double jump as used
+        if pause_menu.paused:
+            clock.tick(60)
+            continue
 
-        screen.blit(level_name_text, (20, 20))  # Position at (20, 20)
         # Draw level using tile images
         for row_index, row in enumerate(level_map):
             for col_index, tile in enumerate(row):
@@ -558,26 +733,51 @@ def level_2(slot: int):
         current_time = pygame.time.get_ticks()  # Get current time in milliseconds
         handle_level_2_npc_4_dialogue(screen, player_rect, npc_rect, keys, current_time)   
 
+        acceleration = 0.5  # Slower acceleration on ice
+        friction = normal_friction if not on_ice else ice_friction
+
         # Handle events
         keys = pygame.key.get_pressed()
         moving = False
         if keys[pygame.K_d]: # If player presses D
-            player_x += player_speed
+            if on_ice:
+                player_vel_x += acceleration
+            else:
+                player_vel_x = player_speed
             moving = True
             direction = 1
         if keys[pygame.K_a]: # If player presses A
-            player_x -= player_speed        
+            if on_ice:
+                player_vel_x -= acceleration
+            else:
+                player_vel_x = -player_speed
             moving = True
             direction = -1
-        if keys[pygame.K_SPACE] and on_ground: # If player presses Spacebar
-            player_vel_y = jump_power # Apply jump force
-            on_ground = False # Player is now airborne
+         # Jumping Logic (Space Pressed)
+        if keys[pygame.K_SPACE]:
+            if on_ground:
+                player_vel_y = jump_power  # Normal jump
+                on_ground = False
+                doubleJumped = False  # Reset double jump when jumping once
+            elif bubbleJump:
+                player_vel_y = jump_power  # jump again
+                bubbleJump = False
+        if not moving:
+            player_vel_x *= friction
+            if abs(player_vel_x) < 0.1:
+                player_vel_x = 0
         if moving:
+            # Clamp velocity to max speed
+            if abs(player_vel_x) > player_speed:
+                player_vel_x = player_speed * (1 if player_vel_x > 0 else -1)
+            if abs(player_vel_x) < 0.1:
+                player_vel_x = 0
             animation_timer += 1
             if animation_timer >= animation_speed:  
                 animation_timer = 0
                 animation_index = 1 - animation_index  # Alternate between 0 and 1
-
+        
+        player_x += player_vel_x  # Update position
         current_frame = run_frames[animation_index]
 
         if direction == -1:  # Flip when moving left
@@ -596,29 +796,23 @@ def level_2(slot: int):
             else: # Left
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
 
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            
-            # Jumping Logic (Space Pressed)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
-                    if on_ground:
-                        player_vel_y = jump_power  # Normal jump
-                        on_ground = False
-                        doubleJumped = False  # Reset double jump when landing
-                    elif doubleJumpBoots and not doubleJumped:
-                        player_vel_y = jump_power  # Double jump
-                        doubleJumped = True  # Mark double jump as used
-                    elif bubbleJump:
-                        player_vel_y = jump_power  # jump again
-                        bubbleJump = False
+        level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
+        level_name_text = level_name_font.render("Level 2", True, WHITE)  # White text
+
+        screen.blit(level_name_text, (20, 20))  # Position at (20, 20)
+
+        dt = clock.tick(60) / 1000  # Time elapsed per frame in seconds
+        timer -= dt  # Decrease timer
+
+        timer_text = level_name_font.render(f"Time: {int(timer)}", True, RED if timer <= 30 else WHITE)
+        screen.blit(timer_text, (WIDTH // 2 - 50, 20))
             
         # Apply gravity
         player_vel_y += gravity
         player_y += player_vel_y
 
         on_ground = False
+        on_ice = False
         for row_index, row in enumerate(level_map):
             for col_index, tile in enumerate(row):
                 if tile in collidable_tiles:  # Ground, platform, floating ground, invisible platform tiles, Dirt
@@ -657,15 +851,16 @@ def level_2(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play() # Play gadget pick up sound when picking up
                         doubleJumpBoots = True
                         doubleJumped = False
 
-                # If player touches water
+                # If player touches water or thorn
                 if tile == 4 or tile == 6:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        
+                        death_sound.play() # Play death sound when player touches water or thorn
                         dying = True
 
                 # This code picks up the speed boots
@@ -674,6 +869,7 @@ def level_2(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play() # Play gadget pick up sound when picking up
                         player_speed = player_speed * 1.25 # Up the player speed
                         speedBoots = True
 
@@ -682,8 +878,8 @@ def level_2(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         level_map[row_index][col_index] = 0
+                        super_speed_sound.play()
                         player_speed *= 2  # Double the speed
                         super_speed_effects.append({"end_time": pygame.time.get_ticks() + 2000})  # 2 sec effect
                         super_speed_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000  # 5 sec respawn
@@ -693,16 +889,18 @@ def level_2(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-
                         coin_count += 1
+                        counter_for_coin_increment = coin_count
                         level_map[row_index][col_index] = 0
+                        coin_sound.play()
 
                 # Spring
                 if tile == 23:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
-                        player_vel_y = -45
+                        player_vel_y = -35
+                        spring_sound.play() # Play spring sound when making contact
 
                 # Left Dash
                 if tile == 22:
@@ -714,6 +912,7 @@ def level_2(slot: int):
                         left_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
                         dash_duration = dash_pickup_time + 400
                         dashing = True
+                        dash_sound.play()
                         level_map[row_index][col_index] = 0 
                         player_speed = player_speed * 5
                         direction = -1
@@ -729,6 +928,7 @@ def level_2(slot: int):
                         player_vel_y = -25
                         up_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
                         dashing = True
+                        dash_sound.play()
 
                 # This code handles jump reset
                 if tile == 20:
@@ -740,6 +940,11 @@ def level_2(slot: int):
                         doubleJumped = False
                         bubbleJump_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
 
+                if tile == 16 or tile == 17:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and  
+                        player_y + TILE_SIZE == tile_y):  # Feet touching top of ice
+                        on_ice = True
 
         # Inside the game loop
         current_time = pygame.time.get_ticks()
@@ -785,21 +990,29 @@ def level_2(slot: int):
         # Remove respawned power-ups from tracking
         for pos in to_remove:
             del super_speed_respawns[pos]
+        
 
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
-            show_level_completed_screen(slot)
+            show_level_completed_screen(slot, death_count)
             running = False
         
+        if timer <= 0:
+            timer = 0  # Prevent negative values
+            show_game_over_screen(slot)
+            running = False
 
         if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
             player_x = 0
 
+        # When player falls past bottom of level = dies
         if player_y + TILE_SIZE >= level_height * TILE_SIZE:
             dying = True
+            death_sound.play() # Play death sound when player touches water or thorn
 
         if dying:
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
+            update_save(slot, {"Level 2 Deaths": death_count})
             dying = False
             
             # Immediately respawn powerups when player dies
@@ -812,18 +1025,60 @@ def level_2(slot: int):
                 level_map[pos[0]][pos[1]] = 20  # Jump reset
                 if pos in bubbleJump_respawns:
                     del bubbleJump_respawns[pos]
+            if checkpoint_idx == 0 and doubleJumpBoots:
+                doubleJumpBoots = False
+                level_map[SURFACE-8][62] = 3 # Double Jump Boots
+            elif checkpoint_idx == 1 and speedBoots:
+                speedBoots = False
+                level_map[SURFACE-14][63] = 11 # Speed Boots
+                player_speed = player_speed / 1.25 # Revert their speed back to normal
+            elif checkpoint_idx == 2 and doubleJumpBoots:
+                doubleJumpBoots = False
+                level_map[SURFACE-5][178] = 3 # Double Jump Boots
+            elif checkpoint_idx == 3 and speedBoots:
+                speedBoots = False
+                level_map[SURFACE-11][208] = 11 # Super Speed Boots
+                player_speed = player_speed / 1.25 # Revert their speed back to normal
 
         for k, checkpoint in enumerate(checkpoints):
             x, y = checkpoint
-            if player_x >= x and not checkpoint_bool[k]:
+            if player_x >= x and player_y <= y and not checkpoint_bool[k]:
                 checkpoint_idx += 1
                 checkpoint_bool[k] = True
+                update_save(slot, {"Level 2 Checkpoint": checkpoint_idx})
+                update_save(slot, {"Level 2 Time": timer})
                 if checkpoint_idx == 2:
                     doubleJumpBoots = False # Remove their double jump boots
+                    speedBoots = False
                     player_speed = player_speed / 1.25 # Revert their speed back to normal
+                elif checkpoint_idx == 3:
+                    doubleJumpBoots = False
 
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
+
+        #-----Inventory Fill-up logic
+
+        screen.blit(inventory, (inventory_x, inventory_y))
+
+        if (doubleJumpBoots):
+            if (doubleJumpBoots) and (speedBoots == False):
+                double_first = True
+                screen.blit(inventory_jump_boots, first_slot)
+            elif (doubleJumpBoots) and (speedBoots) and double_first:
+                screen.blit(inventory_jump_boots, first_slot)
+                screen.blit(inventory_speed_boots, second_slot)
+
+
+        if (speedBoots):
+            if  (speedBoots) and (doubleJumpBoots == False):
+                double_first == False
+                screen.blit(inventory_speed_boots, first_slot)
+            elif (doubleJumpBoots) and (speedBoots) and (double_first == False):
+                screen.blit(inventory_speed_boots, first_slot)
+                screen.blit(inventory_jump_boots, second_slot)
+
+
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:

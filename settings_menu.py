@@ -4,12 +4,13 @@ import main_menu
 import achievement_menu
 import save_slots
 
-
 import pygame_widgets 
 from pygame_widgets.slider import Slider
 from pygame_widgets.textbox import TextBox 
 
 pygame.init()   # Initialize Pygame
+pygame.mixer.init() # Initialize Pygame Audio Mixer
+current_volume_value = 20
 
 info = pygame.display.Info()
 WIDTH = info.current_w
@@ -18,7 +19,7 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Settings Menu")
 
 # BLIZZARD SETUP (same as before, but we preserve it here)
-num_snowflakes = random.randint(0, 25)  # random between 50 and 200
+num_snowflakes = random.randint(0, 25)  # random between 0 and 25
 snowflakes = []
 
 def create_blizzard():
@@ -51,7 +52,7 @@ movement_img = pygame.image.load("Assets/Settings Menu/MovementSettings.png").co
 audio_img = pygame.image.load("Assets/Settings Menu/AudioSettings.png").convert_alpha()
 
 # Scale them to match your design if desired
-movement_img = pygame.transform.scale(movement_img, (600, 200)) 
+movement_img = pygame.transform.scale(movement_img, (600, 300)) 
 audio_img = pygame.transform.scale(audio_img, (400, 150))       
 
 # Define rects for those images
@@ -72,11 +73,17 @@ back_rect = back_normal.get_rect(center=(WIDTH // 2.05, 800))  # near bottom cen
 
 slider = None
 
-def run_settings_menu(): 
+def run_settings_menu():
+    # Check if any music is currently playing
+    if not pygame.mixer.music.get_busy():
+        # If not, load the "Background.mp3" again
+        pygame.mixer.music.load("Audio/Background.mp3")
+        pygame.mixer.music.play(-1)  # loop forever
+
     create_blizzard()
 
     # Set up the volume slider 
-    global slider
+    global slider, current_volume_value
 
     slider = Slider(
         screen, 
@@ -86,7 +93,7 @@ def run_settings_menu():
         min=0, max=99, step=1,
         colour=(200, 195, 218),       # track color (light purple)
         handleColour=(255, 255, 255),   # handle color (light blue)
-        initial=50
+        initial=current_volume_value
     )
 
     running = True
@@ -136,8 +143,10 @@ def run_settings_menu():
 
         pygame_widgets.update(events) # Update the slider and draw it
 
+        # Get slider value (0 to 100) and convert to 0.0-1/0 for set_volume()
         current_value = slider.getValue()
-        pygame.mixer.music.set_volume(current_value / 100) # Set volume based on slider
+        pygame.mixer.music.set_volume(current_value / 100.0) # Set volume based on slider
+        current_volume_value = current_value
 
         pygame.display.flip()
 
