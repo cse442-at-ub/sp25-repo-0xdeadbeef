@@ -58,6 +58,8 @@ pygame.display.set_caption("Level 5")
 ground_tile = pygame.image.load("./desert_images/ground.png")
 ground_tile = pygame.transform.scale(ground_tile, (TILE_SIZE, TILE_SIZE))
 
+floating_ground = ground_tile
+
 background = pygame.image.load("./desert_images/background.png")
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
@@ -108,6 +110,8 @@ flag = pygame.transform.scale(flag, (TILE_SIZE, TILE_SIZE))
 
 sand = pygame.image.load("./desert_images/sand.png")
 sand = pygame.transform.scale(sand, (TILE_SIZE, TILE_SIZE))
+
+floating_sand = sand
 
 coin = pygame.image.load("./desert_images/coin.png")
 coin = pygame.transform.scale(coin, (TILE_SIZE, TILE_SIZE))
@@ -193,6 +197,8 @@ level_width = 290
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
 
 level_map = [[0] * level_width for _ in range(level_height)]  # Start with air
+# Add solid ground at the very bottom
+level_map.append([1] * level_width)
 ground_levels = None
 
 GROUND = level_height - 4 #Constant for the ground level
@@ -211,7 +217,8 @@ level_map[6][133] = 12 # Coin
 # Dictionary containing which tile corresponds to what
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: dirt_tile,  4: thorns, 5: water, 6: water_block, 7: flag, 8: sand, 9: flipped_thorn, 10: left_thorn,
          11: right_thorn, 12: coin, 13: high_jump, 14: speed_boots, 15: balloon, 16: full_cactus, 17: glider, 18: double_jump_boots, 19: spring, 20: dash_powerup,
-         21: left_dash, 22: jump_reset, 23: full_walkway, 24: iron_boots, 25: pyramids, 26: sign, 27: npc_1, 28: npc_2, 29: npc_3, 30: npc_4}
+         21: left_dash, 22: jump_reset, 23: full_walkway, 24: iron_boots, 25: pyramids, 26: sign, 27: npc_1, 28: npc_2, 29: npc_3, 30: npc_4, 
+         31: floating_ground, 32: floating_sand}
 
 rocks = {13, 55, 106, 149, 218, 240, 247} # Column numbers for all the rocks
 cacti = {11, 53, 107, 228, 255, 280} # Column numbers for the cactuses
@@ -290,9 +297,6 @@ def respawn_terrain():
             row[col_index] = 0  # Set to air (pit)
         level_map[row_index] = row  # Add row to level map
 
-    # Add solid ground at the very bottom
-    level_map.append([1] * level_width)
-
     for row_index in range(SURFACE-1, GROUND): # Raised Ground
         level_map[row_index][15:20] = [1] * 5
     for row_index in range(GROUND, level_height): # Sand
@@ -329,21 +333,21 @@ def respawn_terrain():
 
     level_map[7][12:15] = [2] * 3 # Platform Tiles
 
-    level_map[SURFACE-7][25:35] = [1] * 10 # Floating Ground
+    level_map[SURFACE-7][25:35] = [31] * 10 # Floating Ground
     level_map[SURFACE-6][25:35] = [3] * 10 # Floating Dirt
 
     level_map[SURFACE-8][27:31] = [4] * 4 # Thorns
 
     level_map[SURFACE][37] = 4 # Thorns
 
-    level_map[SURFACE-7][40:50] = [1] * 10 # Floating Ground
+    level_map[SURFACE-7][40:50] = [31] * 10 # Floating Ground
     level_map[SURFACE-6][40:50] = [3] * 10 # Floating Dirt
 
     level_map[SURFACE-8][46:50] = [4] * 4 # Thorns
 
     level_map[SURFACE-9][43] = 16 # Full Cactus
 
-    level_map[SURFACE-7][55:65] = [1] * 10 # Floating Ground
+    level_map[SURFACE-7][55:65] = [31] * 10 # Floating Ground
     level_map[SURFACE-6][55:65] = [3] * 10 # Floating Dirt
 
     level_map[SURFACE-9][57] = 25 # Pyramids
@@ -381,7 +385,7 @@ def respawn_terrain():
 
     level_map[SURFACE][221] = 4 # Thorns
 
-    level_map[SURFACE-6][235:240] = [8] * 5
+    level_map[SURFACE-6][235:240] = [32] * 5
     level_map[SURFACE-5][235:240] = [3] * 5
     level_map[SURFACE-4][235:240] = [3] * 5
     level_map[SURFACE-3][235:240] = [3] * 5
@@ -500,7 +504,7 @@ def level_5(slot: int):
     if not death_count:
         death_count = 0
 
-    collidable_tiles = {1, 2, 3, 8, 23}
+    collidable_tiles = {1, 2, 3, 8, 23, 31, 32}
     dying_tiles = {4, 5, 6, 9, 10, 11}
 
     start_time = load_save(slot).get("Level 5 Time") # Timer resumes from last time they saved
@@ -906,6 +910,11 @@ def level_5(slot: int):
             if checkpoint_idx == 0:
                 glider = False
                 level_map[SURFACE][58] = 17 # Glider
+                level_map[GROUND][30:35] = [1] * 5
+                level_map[GROUND][40:45] = [1] * 5
+                for row_index in range(GROUND+1, level_height):
+                    level_map[row_index][30:35] = [3] * 5
+                    level_map[row_index][40:45] = [3] * 5
             if checkpoint_idx == 1:
                 speedBoots = False
                 doubleJumpBoots
