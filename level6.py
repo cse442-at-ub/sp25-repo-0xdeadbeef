@@ -58,6 +58,8 @@ pygame.display.set_caption("Level 6")
 ground_tile = pygame.image.load("./desert_images/ground.png")
 ground_tile = pygame.transform.scale(ground_tile, (TILE_SIZE, TILE_SIZE))
 
+floating_ground = ground_tile
+
 transparent_ground = pygame.image.load("./desert_images/ground.png").convert_alpha()
 transparent_ground = pygame.transform.scale(transparent_ground, (TILE_SIZE, TILE_SIZE))
 transparent_ground.set_alpha(50)  # 0 = fully transparent, 255 = fully opaque
@@ -215,6 +217,8 @@ level_width = 300
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
 
 level_map = [[0] * level_width for _ in range(level_height)]  # Start with air
+# Add solid ground at the very bottom
+level_map.append([1] * level_width)
 ground_levels = None
 
 GROUND = level_height - 4 #Constant for the ground level
@@ -234,13 +238,14 @@ level_map[2][196] = 12 # Coin
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: dirt_tile,  4: thorns, 5: water, 6: water_block, 7: flag, 8: sand, 9: flipped_thorn, 10: left_thorn,
          11: right_thorn, 12: coin, 13: high_jump, 14: speed_boots, 15: balloon, 16: full_cactus, 17: jump_reset, 18: double_jump_boots, 19: spring, 20: button,
          21: flipped_button, 22: super_speed_powerup, 23: sand_boots, 24: glider, 25: high_jump, 26: right_dash, 27: up_dash, 28: left_dash, 29: walkway, 30: flipped_walkway,
-         31: transparent_ground, 32: transparent_dirt, 33: transparent_high_jump, 34: pyramids, 35: npc_1, 36: npc_2, 37: npc_3, 38: npc_4}
+         31: transparent_ground, 32: transparent_dirt, 33: transparent_high_jump, 34: pyramids, 35: npc_1, 36: npc_2, 37: npc_3, 38: npc_4, 39: floating_ground, 40: sign,
+         41: full_cactus}
 
 rocks = {61, 118, 196} # Column numbers for all the rocks
 cacti = {64, 167} # Column number for the cactuses
-full_cacti = {9, 72, 183, 284} # Column number for the full cactuses
+full_cacti = {9, 183, 284} # Column number for the full cactuses
 palm_tree_with_rocks = {86, 104} # Column number for the palm_tree_with_rock
-signs = {70, 282} # Column numbers for signs
+signs = {282} # Column numbers for signs
 
 # Converts the x coordinates to the column on the map
 def calculate_column(x): 
@@ -300,9 +305,6 @@ def respawn_terrain():
             row[col_index] = 0  # Set to air (pit)
         level_map[row_index] = row  # Add row to level map
 
-    # Add solid ground at the very bottom
-    level_map.append([1] * level_width)
-
     for row_index in range(SURFACE-3, GROUND): # Raised Ground
         level_map[row_index][0:15] = [1] * 15
     for row_index in range(SURFACE-5, level_height): # Raised Ground
@@ -316,8 +318,9 @@ def respawn_terrain():
     for row_index in range(SURFACE-7, level_height): # Raised Ground
         level_map[row_index][53] = 1
     level_map[level_height-1][56] = 1 # Platform for Spring
-    for row_index in range(GROUND, level_height): # Sand
-        level_map[row_index][70:80] = [8] * 10
+    level_map[GROUND][70:80] = [8] * 10
+    for row_index in range(GROUND+1, level_height): # Sand
+        level_map[row_index][70:80] = [3] * 10
     for row_index in range(0, SURFACE-11): # Dirt
         level_map[row_index][95] = 3
     for row_index in range(0, SURFACE-5): # Dirt
@@ -342,7 +345,7 @@ def respawn_terrain():
     # Find the ground level for each column
     for row_index, row in enumerate(level_map):
         for col_index, tile in enumerate(row):
-            if (tile == 1 or tile == 8) and ground_levels[col_index] == len(level_map):
+            if (tile == 1) and ground_levels[col_index] == len(level_map):
                 ground_levels[col_index] = row_index
 
     level_map[SURFACE-4][13:15] = [4] * 2 # Thorns
@@ -350,7 +353,7 @@ def respawn_terrain():
     level_map[SURFACE-12][20] = 2 # Platform Tile
     level_map[SURFACE-16][22] = 2 # Platform Tile
 
-    level_map[SURFACE-13][30:59] = [1] * 29
+    level_map[SURFACE-13][30:59] = [39] * 29 # Floating Ground
     level_map[SURFACE-1][20] = 2 # Platform Tile
 
     level_map[SURFACE-6][30] = 4 # Thorn
@@ -382,13 +385,16 @@ def respawn_terrain():
     level_map[SURFACE-12][48] = 21 # Flipped Button
     level_map[SURFACE][66] = 7 # Flag
 
+    level_map[SURFACE][70] = 40 # Sign
+    level_map[SURFACE-1][72] = 41 # Full Cactus
+
     level_map[SURFACE-5][80:90] = [8] * 10 # Second Layer of Sand
     level_map[SURFACE-5][95:105] = [8] * 10 # Second Layer of Sand
 
     level_map[SURFACE-11][89:96] = [8] * 7 # Third Layer of Sand
 
     level_map[SURFACE-6][89] = 4 # Thorn
-    level_map[4][96:99] = [1] * 3 # Platform Tile
+    level_map[4][96:99] = [39] * 3 # Floating Ground
     level_map[SURFACE][109] = 4 # Thorn
 
     level_map[4][116] = 30 # Flipped Walkway
@@ -403,7 +409,7 @@ def respawn_terrain():
     row = 5
     col = 165
     for i in range(4):
-        level_map[row][col:col+20] = [1] * 20 # Ground
+        level_map[row][col:col+20] = [39] * 20 # Ground
         row += 5
         col = col + 4 if i % 2 == 0 else col - 4
 
@@ -584,7 +590,7 @@ def level_6(slot: int):
     if not death_count:
         death_count = 0
 
-    collidable_tiles = {1, 2, 3, 8, 29, 30}
+    collidable_tiles = {1, 2, 3, 8, 29, 30, 39}
     dying_tiles = {4, 5, 6, 9, 10, 11}
 
     running = True
@@ -703,13 +709,11 @@ def level_6(slot: int):
         #     player_y -= player_speed
         # if keys[pygame.K_s]:
         #     player_y += player_speed
-        
         current_x = calculate_column(player_x)
         current_y = calculate_row(player_y)+1
         currentTile = level_map[current_y][current_x]
         if currentTile > 0:
             latestTile = currentTile
-
         if keys[pygame.K_d]: # If player presses D
             if latestTile == 8 and not sandBoots:
                 player_vel_x = player_speed * 0.7
@@ -774,7 +778,7 @@ def level_6(slot: int):
             else: # Left
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
 
-         # Apply gravity when needed
+        # Apply gravity when needed
         player_vel_y += gravity
         if keys[pygame.K_e] and glider:
             player_vel_y = gravity
