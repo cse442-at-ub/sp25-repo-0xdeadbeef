@@ -925,6 +925,7 @@ def level_3(slot: int):
             death_sound.play()
 
         if dying:
+            respawn_powerups()
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
             update_save(slot, {"Level 3 Deaths": death_count})
