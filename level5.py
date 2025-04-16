@@ -988,7 +988,7 @@ def level_5(slot: int):
                     level_map[row_index][40:45] = [3] * 5
             if checkpoint_idx == 1:
                 speedBoots = False
-                doubleJumpBoots
+                doubleJumpBoots = False
                 level_map[3][82] = 14 # Speed Boots
                 level_map[SURFACE-13][174] = 18 # Double Jump Boots
             if checkpoint_idx == 2:
