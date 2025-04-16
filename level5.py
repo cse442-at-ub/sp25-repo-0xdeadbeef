@@ -58,6 +58,8 @@ pygame.display.set_caption("Level 5")
 ground_tile = pygame.image.load("./desert_images/ground.png")
 ground_tile = pygame.transform.scale(ground_tile, (TILE_SIZE, TILE_SIZE))
 
+floating_ground = ground_tile
+
 background = pygame.image.load("./desert_images/background.png")
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
@@ -109,6 +111,8 @@ flag = pygame.transform.scale(flag, (TILE_SIZE, TILE_SIZE))
 sand = pygame.image.load("./desert_images/sand.png")
 sand = pygame.transform.scale(sand, (TILE_SIZE, TILE_SIZE))
 
+floating_sand = sand
+
 coin = pygame.image.load("./desert_images/coin.png")
 coin = pygame.transform.scale(coin, (TILE_SIZE, TILE_SIZE))
 
@@ -121,7 +125,7 @@ speed_boots = pygame.transform.scale(speed_boots, (TILE_SIZE, TILE_SIZE))
 balloon = pygame.image.load("./images/balloon.png")
 balloon = pygame.transform.scale(balloon, (TILE_SIZE, TILE_SIZE))
 
-glider = pygame.image.load("./images/balloon.png")
+glider = pygame.image.load("./images/glider.png")
 glider = pygame.transform.scale(glider, (TILE_SIZE, TILE_SIZE))
 
 double_jump_boots = pygame.image.load("./images/boots.png")
@@ -140,7 +144,7 @@ jump_reset = pygame.transform.scale(jump_reset, (TILE_SIZE, TILE_SIZE))
 full_walkway = pygame.image.load("./desert_images/full_walkway.png")
 full_walkway = pygame.transform.scale(full_walkway, (TILE_SIZE * 8, TILE_SIZE * 2))
 
-iron_boots = pygame.image.load("./images/boots.png")
+iron_boots = pygame.image.load("./images/iron_boots.png")
 iron_boots = pygame.transform.scale(iron_boots, (TILE_SIZE, TILE_SIZE))
 
 sign = pygame.image.load("./desert_images/sign.png")
@@ -158,11 +162,43 @@ npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
 npc_4 = pygame.image.load("./Character Combinations/ginger hair_white_yellow shirt_brown pants.png")
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 
+
+#-----Gadget inventory images and dictionary
+
+inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.transform.scale(inventory, (250, 70))
+inventory_x = (WIDTH - 250) // 2
+inventory_y = HEIGHT - 100
+
+inventory_jump_boots = pygame.image.load("./images/boots.png")
+inventory_jump_boots = pygame.transform.scale(inventory_jump_boots, (42, 50))
+
+inventory_speed_boots = pygame.image.load("./images/speed_boots.png")
+inventory_speed_boots = pygame.transform.scale(inventory_speed_boots, (42, 50))
+
+inventory_iron_boots = pygame.image.load("./images/iron_boots.png")
+inventory_iron_boots = pygame.transform.scale(inventory_iron_boots, (42, 50))
+
+inventory_glider = pygame.image.load("./images/glider.png")
+inventory_glider = pygame.transform.scale(inventory_glider, (42, 50))
+
+INV_SLOT_WIDTH = 42
+INV_SLOT_HEIGHT = 45
+
+first_slot = (inventory_x + 5, inventory_y + 10)
+second_slot = (inventory_x + INV_SLOT_WIDTH + 10, inventory_y + 10)
+third_slot = (inventory_x + (2*INV_SLOT_WIDTH + 20), inventory_y + 10)
+fourth_slot = (inventory_x + (3*INV_SLOT_WIDTH + 40), inventory_y + 10)
+
+
+
 # Set up the level with a width of 290 and a height of 30 rows
 level_width = 290
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
 
 level_map = [[0] * level_width for _ in range(level_height)]  # Start with air
+# Add solid ground at the very bottom
+level_map.append([1] * level_width)
 ground_levels = None
 
 GROUND = level_height - 4 #Constant for the ground level
@@ -181,7 +217,8 @@ level_map[6][133] = 12 # Coin
 # Dictionary containing which tile corresponds to what
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: dirt_tile,  4: thorns, 5: water, 6: water_block, 7: flag, 8: sand, 9: flipped_thorn, 10: left_thorn,
          11: right_thorn, 12: coin, 13: high_jump, 14: speed_boots, 15: balloon, 16: full_cactus, 17: glider, 18: double_jump_boots, 19: spring, 20: dash_powerup,
-         21: left_dash, 22: jump_reset, 23: full_walkway, 24: iron_boots, 25: pyramids, 26: sign, 27: npc_1, 28: npc_2, 29: npc_3, 30: npc_4}
+         21: left_dash, 22: jump_reset, 23: full_walkway, 24: iron_boots, 25: pyramids, 26: sign, 27: npc_1, 28: npc_2, 29: npc_3, 30: npc_4, 
+         31: floating_ground, 32: floating_sand}
 
 rocks = {13, 55, 106, 149, 218, 240, 247} # Column numbers for all the rocks
 cacti = {11, 53, 107, 228, 255, 280} # Column numbers for the cactuses
@@ -218,7 +255,11 @@ def show_level_completed_screen(slot: int, death_count: int):
     update_save(slot, {"Level 5 Checkpoint": 0}) # Set checkpoint to 0
     update_save(slot, {"Level 5 Time": 150}) # Reset the time
 
-    show_level_complete_deaths(slot, 0, death_count)
+
+    level_name = "Level Five"
+
+
+    show_level_complete_deaths(slot, 0, death_count, level_name)
     
 def npc_spawn():
     level_map[SURFACE][6] = 27 # First NPC
@@ -256,9 +297,6 @@ def respawn_terrain():
             row[col_index] = 0  # Set to air (pit)
         level_map[row_index] = row  # Add row to level map
 
-    # Add solid ground at the very bottom
-    level_map.append([1] * level_width)
-
     for row_index in range(SURFACE-1, GROUND): # Raised Ground
         level_map[row_index][15:20] = [1] * 5
     for row_index in range(GROUND, level_height): # Sand
@@ -295,21 +333,21 @@ def respawn_terrain():
 
     level_map[7][12:15] = [2] * 3 # Platform Tiles
 
-    level_map[SURFACE-7][25:35] = [1] * 10 # Floating Ground
+    level_map[SURFACE-7][25:35] = [31] * 10 # Floating Ground
     level_map[SURFACE-6][25:35] = [3] * 10 # Floating Dirt
 
     level_map[SURFACE-8][27:31] = [4] * 4 # Thorns
 
     level_map[SURFACE][37] = 4 # Thorns
 
-    level_map[SURFACE-7][40:50] = [1] * 10 # Floating Ground
+    level_map[SURFACE-7][40:50] = [31] * 10 # Floating Ground
     level_map[SURFACE-6][40:50] = [3] * 10 # Floating Dirt
 
     level_map[SURFACE-8][46:50] = [4] * 4 # Thorns
 
     level_map[SURFACE-9][43] = 16 # Full Cactus
 
-    level_map[SURFACE-7][55:65] = [1] * 10 # Floating Ground
+    level_map[SURFACE-7][55:65] = [31] * 10 # Floating Ground
     level_map[SURFACE-6][55:65] = [3] * 10 # Floating Dirt
 
     level_map[SURFACE-9][57] = 25 # Pyramids
@@ -347,7 +385,7 @@ def respawn_terrain():
 
     level_map[SURFACE][221] = 4 # Thorns
 
-    level_map[SURFACE-6][235:240] = [8] * 5
+    level_map[SURFACE-6][235:240] = [32] * 5
     level_map[SURFACE-5][235:240] = [3] * 5
     level_map[SURFACE-4][235:240] = [3] * 5
     level_map[SURFACE-3][235:240] = [3] * 5
@@ -439,11 +477,18 @@ def level_5(slot: int):
     hasBalloon = False
     balloon_vel = 0  # Initial vertical velocity
 
+    coin_count = 0
+
     # FOR KENNY TO USE (gadget booleans)
     doubleJumpBoots = False
     speedBoots = False
     ironBoots = False
     glider = False
+    gliderActive = False
+    dashed = False
+    dash_duration = 0
+    balloon_vel = 0
+    powerup_respawns = {}
 
     animation_index = 0  # Alternates between 0 and 1
     animation_timer = 0  # Tracks when to switch frames
@@ -459,7 +504,7 @@ def level_5(slot: int):
     if not death_count:
         death_count = 0
 
-    collidable_tiles = {1, 2, 3, 8, 23}
+    collidable_tiles = {1, 2, 3, 8, 23, 31, 32}
     dying_tiles = {4, 5, 6, 9, 10, 11}
 
     start_time = load_save(slot).get("Level 5 Time") # Timer resumes from last time they saved
@@ -482,7 +527,12 @@ def level_5(slot: int):
             # Pass events to the PauseMenu
             pause_menu.handle_event(event, slot)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                pass
+                if bubbleJump and doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    bubbleJump = False
+                elif doubleJumpBoots and not doubleJumped:
+                    player_vel_y = jump_power  # Double jump
+                    doubleJumped = True  # Mark double jump as used
         if pause_menu.paused:
             clock.tick(60)
             continue
@@ -640,10 +690,18 @@ def level_5(slot: int):
             else: # Left
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
 
-        # Apply gravity
-        if not hasBalloon:
-            player_vel_y += gravity
-            player_y += player_vel_y
+        # Pop balloon mechanic
+        if keys[pygame.K_r]:
+            hasBalloon = False
+
+        # Apply gravity when needed
+        player_vel_y += gravity
+        if keys[pygame.K_e] and glider:
+            player_vel_y = gravity
+        if hasBalloon:
+            player_vel_y = 0
+        player_y += player_vel_y
+
 
         on_ground = False
         on_ice = False
@@ -690,6 +748,107 @@ def level_5(slot: int):
                     
                         dying = True
                         death_sound.play()
+
+
+
+                # Coin
+                if tile == 12:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        coin_count += 1
+                        # counter_for_coin_increment = 0 
+                        eclipse_increment(slot, 1)
+                        level_map[row_index][col_index] = 0
+                        coin_sound.play()
+
+
+
+
+                # High Jump Functionality
+                if tile == 13:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        higherJumps = True
+                        powerup_respawns[(row_index, col_index)] = [13, pygame.time.get_ticks() + 5000]
+
+                # Balloon Functionality
+                if tile == 15: 
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+
+                        level_map[row_index][col_index] = 0  # Remove the balloon from the map
+                        hasBalloon = True
+                        balloon_vel = -5  # Initial upward speed
+                        powerup_respawns[(row_index, col_index)] = [15, pygame.time.get_ticks() + 5000]
+
+                # Jump reset functionality
+                if tile == 22: 
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the jump reset from screen
+                        bubbleJump = True
+                        doubleJumped = False
+                        powerup_respawns[(row_index, col_index)] = [22, pygame.time.get_ticks() + 5000]
+
+                # Sring functionality
+                if tile == 19:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
+                        player_vel_y = -50
+
+                # Double Jump Boots
+                if tile == 18:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        doubleJumpBoots = True
+                        doubleJumped = False
+
+                # Speed boots
+                if tile == 14:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        player_speed = player_speed * 1.25 # Up the player speed
+                        speedBoots = True
+
+                if tile == 20:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        dash_pickup_time = pygame.time.get_ticks()
+                        powerup_respawns[(row_index, col_index)] = [20, pygame.time.get_ticks() + 5000]
+                        dash_duration = dash_pickup_time + 500
+                        dashed = True
+                        level_map[row_index][col_index] = 0 
+                        player_speed = player_speed * 2 
+                        direction = 1
+                        if player_speed < 0:
+                            player_speed *= -1
+
+                if tile == 21:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+
+                        dash_pickup_time = pygame.time.get_ticks()
+                        powerup_respawns[(row_index, col_index)] = [21, pygame.time.get_ticks() + 5000]
+                        dash_duration = dash_pickup_time + 750
+                        dashed = True
+                        level_map[row_index][col_index] = 0 
+                        player_speed = player_speed * 3.05
+                        direction = -1
+                        player_vel_y = 0
+                        if player_speed < 0:
+                            player_speed *= -1
 
                 if tile == 17: # Picked up glider (For Kenny to do)
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
@@ -751,6 +910,11 @@ def level_5(slot: int):
             if checkpoint_idx == 0:
                 glider = False
                 level_map[SURFACE][58] = 17 # Glider
+                level_map[GROUND][30:35] = [1] * 5
+                level_map[GROUND][40:45] = [1] * 5
+                for row_index in range(GROUND+1, level_height):
+                    level_map[row_index][30:35] = [3] * 5
+                    level_map[row_index][40:45] = [3] * 5
             if checkpoint_idx == 1:
                 speedBoots = False
                 doubleJumpBoots
@@ -780,8 +944,61 @@ def level_5(slot: int):
                     level_map[SURFACE-13][174] = 18 # Double Jump Boots
                     level_map[3][82] = 14 # Speed Boots
 
+        # Set speed back for player if dashing
+        if dashed:
+            # print("Player speed: " + str(player_speed))
+            if (current_time >= dash_duration) and (dash_duration != 0):
+                player_speed = 8.5 * scale_factor
+                dashed = False
+                dash_duration = 0
+
+        # Set speed to normal if no boots
+        if not speedBoots and not dashed:
+            player_speed = 8.5 * scale_factor
+        if hasBalloon:
+            player_y += balloon_vel  # Move up
+            balloon_vel -= 0.001  # Gradually slow down (simulating air resistance)
+
+            if player_y + TILE_SIZE < 0:  # If the player moves off the top of the screen
+                hasBalloon = False  # Pop the balloon
+                balloon_vel = 0  # Reset velocity
+        
+        # Modified powerup respawns to singular function
+        powerup_remove = []
+        for position, gadget in powerup_respawns.items():
+            if current_time >= gadget[1]:
+                level_map[position[0]][position[1]] = gadget[0]
+                powerup_remove.append(position) # mark for removal
+
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
+
+
+        #-----Inventory Fill-up logic
+
+        screen.blit(inventory, (inventory_x, inventory_y))
+
+        inv_slots = []
+
+        inv_slot_dimensions = [first_slot, second_slot, third_slot, fourth_slot]
+
+        if glider:
+            inv_slots.append(inventory_glider)
+
+        if doubleJumpBoots:
+            inv_slots.append(inventory_jump_boots)
+
+        if ironBoots:
+            inv_slots.append(inventory_iron_boots)
+
+        if speedBoots:
+            inv_slots.append(inventory_speed_boots)
+
+        for x, gadget in enumerate(inv_slots):
+            screen.blit(gadget, inv_slot_dimensions[x])
+        
+
+
     
         pygame.display.flip()  # Update display
 

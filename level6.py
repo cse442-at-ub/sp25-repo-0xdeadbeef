@@ -5,6 +5,11 @@ from saves_handler import *
 from firework_level_end import show_level_complete_deaths
 from pause_menu import PauseMenu  # Import the PauseMenu class
 
+from NPCs.level_6_npc_1 import handle_level_6_npc_1_dialogue  # Import the functionality of the first NPC from level 6
+from NPCs.level_6_npc_2 import handle_level_6_npc_2_dialogue  # Import the functionality of the second NPC from level 6
+from NPCs.level_6_npc_3 import handle_level_6_npc_3_dialogue  # Import the functionality of the third NPC from level 6
+from NPCs.level_6_npc_4 import handle_level_6_npc_4_dialogue  # Import the functionality of the fourth NPC from level 6
+
 # Initialize PyGame
 pygame.init()
 
@@ -52,6 +57,8 @@ pygame.display.set_caption("Level 6")
 
 ground_tile = pygame.image.load("./desert_images/ground.png")
 ground_tile = pygame.transform.scale(ground_tile, (TILE_SIZE, TILE_SIZE))
+
+floating_ground = ground_tile
 
 transparent_ground = pygame.image.load("./desert_images/ground.png").convert_alpha()
 transparent_ground = pygame.transform.scale(transparent_ground, (TILE_SIZE, TILE_SIZE))
@@ -165,11 +172,53 @@ flipped_walkway = pygame.transform.flip(walkway, True, False)  # Flip horizontal
 sign = pygame.image.load("./desert_images/sign.png")
 sign = pygame.transform.scale(sign, (TILE_SIZE, TILE_SIZE))
 
+npc_1 = pygame.image.load("./Character Combinations/black hair_dark_red shirt_brown pants.png")
+npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
+
+npc_2 = pygame.image.load("./Character Combinations/ginger hair_dark_yellow shirt_black pants.png")
+npc_2 = pygame.transform.scale(npc_2, (TILE_SIZE, TILE_SIZE))
+
+npc_3 = pygame.image.load("./Character Combinations/brown hair_white_red shirt_brown pants.png")
+npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
+
+npc_4 = pygame.image.load("./Character Combinations/ginger hair_white_yellow shirt_brown pants.png")
+npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
+
+
+#-----Gadget inventory images and dictionary
+
+inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.transform.scale(inventory, (250, 70))
+inventory_x = (WIDTH - 250) // 2
+inventory_y = HEIGHT - 100
+
+inventory_jump_boots = pygame.image.load("./images/boots.png")
+inventory_jump_boots = pygame.transform.scale(inventory_jump_boots, (42, 50))
+
+inventory_sand_boots = pygame.image.load("./desert_images/sand_boots.png")
+inventory_sand_boots = pygame.transform.scale(inventory_sand_boots, (42, 50))
+
+inventory_glider = pygame.image.load("./images/glider.png")
+inventory_glider = pygame.transform.scale(inventory_glider, (42, 50))
+
+INV_SLOT_WIDTH = 42
+INV_SLOT_HEIGHT = 45
+
+first_slot = (inventory_x + 5, inventory_y + 10)
+second_slot = (inventory_x + INV_SLOT_WIDTH + 10, inventory_y + 10)
+third_slot = (inventory_x + (2*INV_SLOT_WIDTH + 20), inventory_y + 10)
+fourth_slot = (inventory_x + (3*INV_SLOT_WIDTH + 40), inventory_y + 10)
+
+
+
+
 # Set up the level with a width of 300 and a height of 30 rows
 level_width = 300
 level_height = HEIGHT // TILE_SIZE  # Adjust level height according to user's resolution
 
 level_map = [[0] * level_width for _ in range(level_height)]  # Start with air
+# Add solid ground at the very bottom
+level_map.append([1] * level_width)
 ground_levels = None
 
 GROUND = level_height - 4 #Constant for the ground level
@@ -189,13 +238,14 @@ level_map[2][196] = 12 # Coin
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: dirt_tile,  4: thorns, 5: water, 6: water_block, 7: flag, 8: sand, 9: flipped_thorn, 10: left_thorn,
          11: right_thorn, 12: coin, 13: high_jump, 14: speed_boots, 15: balloon, 16: full_cactus, 17: jump_reset, 18: double_jump_boots, 19: spring, 20: button,
          21: flipped_button, 22: super_speed_powerup, 23: sand_boots, 24: glider, 25: high_jump, 26: right_dash, 27: up_dash, 28: left_dash, 29: walkway, 30: flipped_walkway,
-         31: transparent_ground, 32: transparent_dirt, 33: transparent_high_jump, 34: pyramids}
+         31: transparent_ground, 32: transparent_dirt, 33: transparent_high_jump, 34: pyramids, 35: npc_1, 36: npc_2, 37: npc_3, 38: npc_4, 39: floating_ground, 40: sign,
+         41: full_cactus}
 
 rocks = {61, 118, 196} # Column numbers for all the rocks
 cacti = {64, 167} # Column number for the cactuses
-full_cacti = {9, 72, 183, 284} # Column number for the full cactuses
+full_cacti = {9, 183, 284} # Column number for the full cactuses
 palm_tree_with_rocks = {86, 104} # Column number for the palm_tree_with_rock
-signs = {70, 282} # Column numbers for signs
+signs = {282} # Column numbers for signs
 
 # Converts the x coordinates to the column on the map
 def calculate_column(x): 
@@ -225,7 +275,11 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     update_save(slot, {"Level 6 Checkpoint": 0}) # Set checkpoint to 0
 
-    show_level_complete_deaths(slot, 0, death_count)
+
+    level_name = "Level Six"
+    
+
+    show_level_complete_deaths(slot, 0, death_count, level_name)
 
 def show_game_over_screen(slot: int):
     
@@ -251,9 +305,6 @@ def respawn_terrain():
             row[col_index] = 0  # Set to air (pit)
         level_map[row_index] = row  # Add row to level map
 
-    # Add solid ground at the very bottom
-    level_map.append([1] * level_width)
-
     for row_index in range(SURFACE-3, GROUND): # Raised Ground
         level_map[row_index][0:15] = [1] * 15
     for row_index in range(SURFACE-5, level_height): # Raised Ground
@@ -267,8 +318,9 @@ def respawn_terrain():
     for row_index in range(SURFACE-7, level_height): # Raised Ground
         level_map[row_index][53] = 1
     level_map[level_height-1][56] = 1 # Platform for Spring
-    for row_index in range(GROUND, level_height): # Sand
-        level_map[row_index][70:80] = [8] * 10
+    level_map[GROUND][70:80] = [8] * 10
+    for row_index in range(GROUND+1, level_height): # Sand
+        level_map[row_index][70:80] = [3] * 10
     for row_index in range(0, SURFACE-11): # Dirt
         level_map[row_index][95] = 3
     for row_index in range(0, SURFACE-5): # Dirt
@@ -293,7 +345,7 @@ def respawn_terrain():
     # Find the ground level for each column
     for row_index, row in enumerate(level_map):
         for col_index, tile in enumerate(row):
-            if (tile == 1 or tile == 8) and ground_levels[col_index] == len(level_map):
+            if (tile == 1) and ground_levels[col_index] == len(level_map):
                 ground_levels[col_index] = row_index
 
     level_map[SURFACE-4][13:15] = [4] * 2 # Thorns
@@ -301,7 +353,7 @@ def respawn_terrain():
     level_map[SURFACE-12][20] = 2 # Platform Tile
     level_map[SURFACE-16][22] = 2 # Platform Tile
 
-    level_map[SURFACE-13][30:59] = [1] * 29
+    level_map[SURFACE-13][30:59] = [39] * 29 # Floating Ground
     level_map[SURFACE-1][20] = 2 # Platform Tile
 
     level_map[SURFACE-6][30] = 4 # Thorn
@@ -333,13 +385,16 @@ def respawn_terrain():
     level_map[SURFACE-12][48] = 21 # Flipped Button
     level_map[SURFACE][66] = 7 # Flag
 
+    level_map[SURFACE][70] = 40 # Sign
+    level_map[SURFACE-1][72] = 41 # Full Cactus
+
     level_map[SURFACE-5][80:90] = [8] * 10 # Second Layer of Sand
     level_map[SURFACE-5][95:105] = [8] * 10 # Second Layer of Sand
 
     level_map[SURFACE-11][89:96] = [8] * 7 # Third Layer of Sand
 
     level_map[SURFACE-6][89] = 4 # Thorn
-    level_map[4][96:99] = [1] * 3 # Platform Tile
+    level_map[4][96:99] = [39] * 3 # Floating Ground
     level_map[SURFACE][109] = 4 # Thorn
 
     level_map[4][116] = 30 # Flipped Walkway
@@ -354,7 +409,7 @@ def respawn_terrain():
     row = 5
     col = 165
     for i in range(4):
-        level_map[row][col:col+20] = [1] * 20 # Ground
+        level_map[row][col:col+20] = [39] * 20 # Ground
         row += 5
         col = col + 4 if i % 2 == 0 else col - 4
 
@@ -439,6 +494,12 @@ def respawn_powerups():
     level_map[8][236] = 17 # Jump Reset
 
     level_map[SURFACE][157] = 33 # Transparent High Jump
+
+def respawn_npcs():
+    level_map[SURFACE-4][7] = 35       # First NPC
+    level_map[SURFACE][68] = 36        # Second NPC
+    level_map[SURFACE-21][124] = 37    # Third NPC
+    level_map[SURFACE][194] = 38       # Fourth NPC
     
 def button_spawn(btn_idx):
     if btn_idx == 1: # Spawns in the ground and the spring and the platform to proceed
@@ -456,6 +517,7 @@ def level_6(slot: int):
     respawn_terrain()
     respawn_gadgets()
     respawn_powerups()
+    respawn_npcs()
 
     # Grab the sprite that was customized
     sprite = load_save(slot).get("character")
@@ -514,6 +576,8 @@ def level_6(slot: int):
     dashed = False
     dash_duration = 0
 
+    coin_count = 0
+
     animation_index = 0  # Alternates between 0 and 1
     animation_timer = 0  # Tracks when to switch frames
     animation_speed = 4  # Adjust this to control animation speed
@@ -528,7 +592,7 @@ def level_6(slot: int):
     if not death_count:
         death_count = 0
 
-    collidable_tiles = {1, 2, 3, 8, 29, 30}
+    collidable_tiles = {1, 2, 3, 8, 29, 30, 39}
     dying_tiles = {4, 5, 6, 9, 10, 11}
 
     running = True
@@ -538,6 +602,50 @@ def level_6(slot: int):
         # print(f"Column: {calculate_column(player_x)}")
 
         screen.blit(background, (0, 0))
+
+                        # Check if player is near the first NPC
+        npc_x = calculate_x_coordinate(7)  # First NPC's x position
+        npc_y = (SURFACE-4) * TILE_SIZE  # First NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle first NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_6_npc_1_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the second NPC
+        npc_x = calculate_x_coordinate(68)  # Second NPC's x position
+        npc_y = (SURFACE) * TILE_SIZE  # Second NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle second NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_6_npc_2_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the third NPC
+        npc_x = calculate_x_coordinate(124)  # Third NPC's x position
+        npc_y = (SURFACE-22) * TILE_SIZE  # Third NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle third NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_6_npc_3_dialogue(screen, player_rect, npc_rect, keys, current_time)
+
+        # Check if player is near the fourth NPC
+        npc_x = calculate_x_coordinate(194)  # Fourth NPC's x position
+        npc_y = (SURFACE) * TILE_SIZE  # Fourth NPC's y position
+        player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
+        npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
+
+        # Handle fourth NPC dialogue
+        keys = pygame.key.get_pressed()
+        current_time = pygame.time.get_ticks()  # Get current time in milliseconds
+        handle_level_6_npc_4_dialogue(screen, player_rect, npc_rect, keys, current_time)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -603,13 +711,11 @@ def level_6(slot: int):
         #     player_y -= player_speed
         # if keys[pygame.K_s]:
         #     player_y += player_speed
-        
         current_x = calculate_column(player_x)
         current_y = calculate_row(player_y)+1
         currentTile = level_map[current_y][current_x]
         if currentTile > 0:
             latestTile = currentTile
-
         if keys[pygame.K_d]: # If player presses D
             if latestTile == 8 and not sandBoots:
                 player_vel_x = player_speed * 0.7
@@ -674,7 +780,7 @@ def level_6(slot: int):
             else: # Left
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
 
-         # Apply gravity when needed
+        # Apply gravity when needed
         player_vel_y += gravity
         if keys[pygame.K_e] and glider:
             player_vel_y = gravity
@@ -725,6 +831,23 @@ def level_6(slot: int):
                     
                         dying = True
                         death_sound.play()
+
+
+
+                # Coin
+                if tile == 12:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
+                        coin_count += 1
+                        # counter_for_coin_increment = 0 
+                        eclipse_increment(slot, 1)
+                        level_map[row_index][col_index] = 0
+                        coin_sound.play()
+
+
+
+
 
                 # Jump reset functionality
                 if tile == 17: 
@@ -908,6 +1031,31 @@ def level_6(slot: int):
 
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
+
+
+        #-----Inventory Fill-up logic
+
+        screen.blit(inventory, (inventory_x, inventory_y))
+
+        inv_slots = []
+
+        inv_slot_dimensions = [first_slot, second_slot, third_slot, fourth_slot]
+
+        if glider:
+            inv_slots.append(inventory_glider)
+
+        if doubleJumpBoots:
+            inv_slots.append(inventory_jump_boots)
+
+        if sandBoots:
+            inv_slots.append(inventory_sand_boots)
+
+
+        for x, gadget in enumerate(inv_slots):
+            screen.blit(gadget, inv_slot_dimensions[x])
+
+
+
     
         pygame.display.flip()  # Update display
 

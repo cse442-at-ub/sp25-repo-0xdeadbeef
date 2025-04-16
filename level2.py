@@ -550,6 +550,7 @@ def level_2(slot: int):
     player_x = checkpoints[checkpoint_idx][0]  # Start x position, change this number to spawn in a different place
     player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
+    default_speed = player_speed # Set the default speed of the player to be the same as the player_speed
 
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
@@ -591,6 +592,12 @@ def level_2(slot: int):
     bubbleJump_respawns = {}
     up_dash_respawns = {}
     left_dash_respawns = {}
+    
+    # Store original positions of powerups that should respawn on death
+    original_powerup_positions = {
+        'super_speed': [(SURFACE-5, 23), (SURFACE-2, 39)],  # Super speed powerup positions
+        'jump_reset': [(SURFACE-2, 12), (SURFACE-5, 197), (SURFACE-10, 242), (SURFACE-10, 252)]  # Jump reset positions
+    }
 
     normal_friction = 0.25
     ice_friction = 0.95  # Lower friction for slippery effect
@@ -884,7 +891,8 @@ def level_2(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         coin_count += 1
-                        counter_for_coin_increment = coin_count
+                        counter_for_coin_increment = 0 
+                        eclipse_increment(slot, 1)
                         level_map[row_index][col_index] = 0
                         coin_sound.play()
 
@@ -1004,10 +1012,25 @@ def level_2(slot: int):
             death_sound.play() # Play death sound when player touches water or thorn
 
         if dying:
+            if super_speed_effects:
+                player_speed = default_speed  # Reset to normal speed
+                super_speed_effects.clear()   # Remove all ongoing effects
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
             update_save(slot, {"Level 2 Deaths": death_count})
+            bubbleJump = False
             dying = False
+            
+            # Immediately respawn powerups when player dies
+            for pos in original_powerup_positions['super_speed']:
+                level_map[pos[0]][pos[1]] = 13  # Super speed powerup
+                if pos in super_speed_respawns:
+                    del super_speed_respawns[pos]
+                    
+            for pos in original_powerup_positions['jump_reset']:
+                level_map[pos[0]][pos[1]] = 20  # Jump reset
+                if pos in bubbleJump_respawns:
+                    del bubbleJump_respawns[pos]
             if checkpoint_idx == 0 and doubleJumpBoots:
                 doubleJumpBoots = False
                 level_map[SURFACE-8][62] = 3 # Double Jump Boots
