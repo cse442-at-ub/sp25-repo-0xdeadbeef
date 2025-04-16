@@ -7,6 +7,8 @@ import level1
 import level2
 import level3
 import level4
+import level5
+import level6
 import save_slots
 import world_select
 import main_menu  
@@ -155,9 +157,9 @@ mini_squares = [
         # {"pos": (WIDTH // 2 + 110, HEIGHT // 2 + 150), "image": locked_level_image},
     ],
     [  # Map 2
-        {"pos": (WIDTH // 2 - 200, HEIGHT // 2 - 180), "image": unlocked_level_image},
         {"pos": (WIDTH // 2 - 250, HEIGHT // 2 - 20), "image": current_level_images[5]},
-        {"pos": (WIDTH // 2 - 30, HEIGHT // 2 - 40), "image": unlocked_level_image},
+        {"pos": (WIDTH // 2 - 30, HEIGHT // 2 - 40), "image": current_level_images[5]},
+        {"pos": (WIDTH // 2 - 200, HEIGHT // 2 - 180), "image": unlocked_level_image},
         {"pos": (WIDTH // 2 + 110, HEIGHT // 2 + 40), "image": unlocked_level_image},
         {"pos": (WIDTH // 2 - 20, HEIGHT // 2 + 140), "image": locked_level_image},
     ],
@@ -234,17 +236,20 @@ def World_Selector(slot: int):
                                         level4.level_4(slot)  # Call the Level 4 function
                                         sys.exit()
 
-                            # SOON TO DOx2 : 
-                            # elif current_level == 0 and idx == 5:  # Level 5 button in Map 2
-                            #     print("Level 5 button clicked. Going to desert Level 5...")
-                            #     running = False
-                            #     level_5.start_level_5(slot)  # Call the Level 5 function
-                            #     sys.exit()
-                            # elif current_level == 0 and idx == 6:  # Level 6 button in Map 2
-                            #     print("Level 6 button clicked. Going to desert Level 6...")
-                            #     running = False
-                            #     level_6.start_level_6(slot)  # Call the Level 6 function
-                            #     sys.exit()
+                    elif current_level == 1:
+                        for idx, square in enumerate(mini_squares[current_level]):
+                            rect = square["image"].get_rect(topleft=square["pos"])
+                            if rect.collidepoint(event.pos):
+                                if idx == 0:  # Desert level 5 button is at index 0 in Map 2
+                                    print("Desert level button clicked. Going to Level 5...")
+                                    running = False
+                                    level5.level_5(slot)
+                                    sys.exit()
+                                if idx == 1:  # Desert level 6 button is at index 1 in Map 2
+                                    print("Desert level button clicked. Going to Level 6...")
+                                    running = False
+                                    level6.level_6(slot)
+                                    sys.exit()
 
                         
             elif event.type == pygame.KEYDOWN:
