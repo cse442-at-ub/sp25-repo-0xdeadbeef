@@ -70,6 +70,10 @@ background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 platform_tile = pygame.image.load("./desert_images/platform.png")
 platform_tile = pygame.transform.scale(platform_tile, (TILE_SIZE, TILE_SIZE))
 
+transparent_platform = pygame.image.load("./desert_images/platform.png").convert_alpha()
+transparent_platform = pygame.transform.scale(transparent_platform, (TILE_SIZE, TILE_SIZE))  # 0 = fully transparent, 255 = fully opaque
+transparent_platform.set_alpha(50)  # 0 = fully transparent, 255 = fully opaque
+
 dirt_tile = pygame.image.load("./desert_images/dirt.png")
 dirt_tile = pygame.transform.scale(dirt_tile, (TILE_SIZE, TILE_SIZE))
 
@@ -143,6 +147,10 @@ double_jump_boots = pygame.transform.scale(double_jump_boots, (TILE_SIZE, TILE_S
 
 spring = pygame.image.load("./images/spring.png")
 spring = pygame.transform.scale(spring, (TILE_SIZE, TILE_SIZE))
+
+transparent_spring = pygame.image.load("./images/spring.png").convert_alpha()
+transparent_spring = pygame.transform.scale(transparent_spring, (TILE_SIZE, TILE_SIZE))  # 0 = fully transparent, 255 = fully opaque
+transparent_spring.set_alpha(50)  # 0 = fully transparent, 255 = fully opaque
 
 button = pygame.image.load("./images/button.png")
 button = pygame.transform.scale(button, (TILE_SIZE, TILE_SIZE))
@@ -241,7 +249,7 @@ tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: dirt_tile,  4: thor
          11: right_thorn, 12: coin, 13: high_jump, 14: speed_boots, 15: balloon, 16: full_cactus, 17: jump_reset, 18: double_jump_boots, 19: spring, 20: button,
          21: flipped_button, 22: super_speed_powerup, 23: sand_boots, 24: glider, 25: high_jump, 26: right_dash, 27: up_dash, 28: left_dash, 29: walkway, 30: flipped_walkway,
          31: transparent_ground, 32: transparent_dirt, 33: transparent_high_jump, 34: pyramids, 35: npc_1, 36: npc_2, 37: npc_3, 38: npc_4, 39: floating_ground, 40: sign,
-         41: full_cactus, 42: invisible_platform}
+         41: full_cactus, 42: invisible_platform, 43: transparent_spring, 44: transparent_platform}
 
 rocks = {61, 118, 196} # Column numbers for all the rocks
 cacti = {64, 167} # Column number for the cactuses
@@ -277,10 +285,8 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     update_save(slot, {"Level 6 Checkpoint": 0}) # Set checkpoint to 0
 
-
     level_name = "Level Six"
     
-
     show_level_complete_deaths(slot, 0, death_count, level_name)
 
 def show_game_over_screen(slot: int):
@@ -362,6 +368,10 @@ def respawn_terrain():
     for row_index in range(SURFACE-5, level_height):
         level_map[row_index][29] = 10 # Left Thorns
         level_map[row_index][31] = 11 # Right Thorns
+
+    level_map[7][53:56] = [44] * 3 # Platform Tiles
+    level_map[level_height-1][34] = 31 # Ground
+    level_map[level_height-2][34] = 43 # Spring --------------------------------------------------------------
 
     level_map[7][30:32] = [2] * 2 # Platform Tiles
     level_map[7][38:41] = [2] * 3 # Platform Tiles
@@ -513,6 +523,7 @@ def respawn_npcs():
     
 def button_spawn(btn_idx):
     if btn_idx == 1: # Spawns in the ground and the spring and the platform to proceed
+        print("Ok")
         level_map[7][53:56] = [2] * 3 # Platform Tiles
         level_map[level_height-1][34] = 1 # Ground
         level_map[level_height-2][34] = 19 # Spring
@@ -521,6 +532,11 @@ def button_spawn(btn_idx):
     elif btn_idx == 3: # Despawns the dirt and turns it into air
         for row_index in range(SURFACE-4, GROUND): # Dirt
             level_map[row_index][189] = 0 # Air
+
+def button_despawn():
+    level_map[7][53:56] = [44] * 3 # Transparent Platform Tiles
+    level_map[level_height-1][34] = 31 # Transparent Ground
+    level_map[level_height-2][34] = 43 # Transparent Spring
 
 def level_6(slot: int):
 
@@ -889,6 +905,14 @@ def level_6(slot: int):
                         doubleJumped = False
                         spring_sound.play()
 
+                # Spring functionality
+                if tile == 20 or tile == 21:
+                    tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
+                    if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
+                        player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
+                        
+                        button_spawn(1)
+
                 # High Jump Functionality
                 if tile == 25:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
@@ -999,6 +1023,7 @@ def level_6(slot: int):
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
             update_save(slot, {"Level 6 Deaths": death_count})
+            button_despawn()
             dying = False
             if checkpoint_idx == 0:
                 doubleJumpBoots = False
