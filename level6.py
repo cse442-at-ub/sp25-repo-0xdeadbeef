@@ -169,6 +169,8 @@ walkway = pygame.image.load("./desert_images/walkway.png")
 walkway = pygame.transform.scale(walkway, (TILE_SIZE * 4, TILE_SIZE * 2))
 flipped_walkway = pygame.transform.flip(walkway, True, False)  # Flip horizontally (True), no vertical flip (False)
 
+invisible_platform = None
+
 sign = pygame.image.load("./desert_images/sign.png")
 sign = pygame.transform.scale(sign, (TILE_SIZE, TILE_SIZE))
 
@@ -239,7 +241,7 @@ tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: dirt_tile,  4: thor
          11: right_thorn, 12: coin, 13: high_jump, 14: speed_boots, 15: balloon, 16: full_cactus, 17: jump_reset, 18: double_jump_boots, 19: spring, 20: button,
          21: flipped_button, 22: super_speed_powerup, 23: sand_boots, 24: glider, 25: high_jump, 26: right_dash, 27: up_dash, 28: left_dash, 29: walkway, 30: flipped_walkway,
          31: transparent_ground, 32: transparent_dirt, 33: transparent_high_jump, 34: pyramids, 35: npc_1, 36: npc_2, 37: npc_3, 38: npc_4, 39: floating_ground, 40: sign,
-         41: full_cactus}
+         41: full_cactus, 42: invisible_platform}
 
 rocks = {61, 118, 196} # Column numbers for all the rocks
 cacti = {64, 167} # Column number for the cactuses
@@ -398,11 +400,18 @@ def respawn_terrain():
     level_map[SURFACE][109] = 4 # Thorn
 
     level_map[4][116] = 30 # Flipped Walkway
+    level_map[5][116:120] = [42] * 4 # Invisible Platform to be walked on
+
     level_map[4][122] = 7 # Flag
+
     level_map[4][125] = 29 # Walkway
+    level_map[5][125:129] = [42] * 4 # Invisible Platform to be walked on
 
     level_map[9][128] = 30 # Flipped Walkway
+    level_map[10][128:132] = [42] * 4 # Invisible Platform to be walked on
+
     level_map[4][156] = 30 # Flipped Walkway
+    level_map[5][156:160] = [42] * 4 # Invisible Platform to be walked on
 
     level_map[4][162] = 7 # Flag
 
@@ -471,7 +480,8 @@ def respawn_powerups():
     
     for col_index in range(130, 150, 6):
         level_map[SURFACE-5][col_index] = 17 # Jump Reset
-    level_map[SURFACE-10][139] = 17 # Jump Reset
+    level_map[SURFACE-9][133] = 17 # Jump Reset
+    level_map[SURFACE-9][139] = 17 # Jump Reset
     level_map[SURFACE-8][148] = 28 # Left Dash
 
     level_map[4][171] = 22 # Super Speed Powerup
@@ -599,7 +609,7 @@ def level_6(slot: int):
     if not death_count:
         death_count = 0
 
-    collidable_tiles = {1, 2, 3, 8, 29, 30, 39}
+    collidable_tiles = {1, 2, 3, 8, 39, 42}
     dying_tiles = {4, 5, 6, 9, 10, 11}
 
     running = True
@@ -673,7 +683,7 @@ def level_6(slot: int):
         for row_index, row in enumerate(level_map):
             for col_index, tile in enumerate(row):
                 x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
-                if tile == 0:
+                if tile == 0 or tile == 42: # Continue if the tile is an air block or invisible platform
                     continue
                 screen.blit(tiles.get(tile), (x, y)) # Draw according to the dictionary
 
@@ -809,7 +819,7 @@ def level_6(slot: int):
                         on_ground = True  # Player lands
                         doubleJumped = False # Reset double jump
 
-                    if tile == 29 or tile == 30: # If walkway, ignore collision from left and right and from bottom
+                    if tile == 42: # If invisible platform, ignore collision from left and right and from bottom
                         continue
 
                     # This code block ensures collision with solid blocks from the left and right
@@ -839,8 +849,6 @@ def level_6(slot: int):
                         dying = True
                         death_sound.play()
 
-
-
                 # Coin
                 if tile == 12:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
@@ -851,10 +859,6 @@ def level_6(slot: int):
                         eclipse_increment(slot, 1)
                         level_map[row_index][col_index] = 0
                         coin_sound.play()
-
-
-
-
 
                 # Jump reset functionality
                 if tile == 17: 
@@ -881,7 +885,7 @@ def level_6(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
-                        player_vel_y = -38
+                        player_vel_y = -38 * scale_factor
                         doubleJumped = False
                         spring_sound.play()
 
@@ -930,7 +934,7 @@ def level_6(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0 
-                        player_vel_y = -25
+                        player_vel_y = -25 * scale_factor
                         dash_sound.play()
                         powerup_respawns[(row_index, col_index)] = [27, pygame.time.get_ticks() + 5000]
 
@@ -943,13 +947,14 @@ def level_6(slot: int):
                         gadget_sound.play()
                         sandBoots = True
 
-                if tile == 26:
+                if tile == 26: # Right Dash
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         dash_pickup_time = pygame.time.get_ticks()
                         powerup_respawns[(row_index, col_index)] = [26, pygame.time.get_ticks() + 5000]
-                        dash_duration = dash_pickup_time + 500
+                        dash_duration = dash_pickup_time + 1000
+                        dash_sound.play()
                         dashed = True
                         level_map[row_index][col_index] = 0 
                         dash_sound.play()
@@ -958,13 +963,14 @@ def level_6(slot: int):
                         if player_speed < 0:
                             player_speed *= -1
 
-                if tile == 28:
+                if tile == 28: # Left Dash
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         dash_pickup_time = pygame.time.get_ticks()
                         powerup_respawns[(row_index, col_index)] = [28, pygame.time.get_ticks() + 5000]
                         dash_duration = dash_pickup_time + 750
+                        dash_sound.play()
                         dashed = True
                         level_map[row_index][col_index] = 0 
                         dash_sound.play()

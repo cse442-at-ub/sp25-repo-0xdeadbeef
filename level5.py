@@ -150,6 +150,8 @@ full_walkway = pygame.transform.scale(full_walkway, (TILE_SIZE * 8, TILE_SIZE * 
 iron_boots = pygame.image.load("./images/iron_boots.png")
 iron_boots = pygame.transform.scale(iron_boots, (TILE_SIZE, TILE_SIZE))
 
+invisible_platform = None
+
 sign = pygame.image.load("./desert_images/sign.png")
 sign = pygame.transform.scale(sign, (TILE_SIZE, TILE_SIZE))
 
@@ -221,7 +223,7 @@ level_map[6][133] = 12 # Coin
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: dirt_tile,  4: thorns, 5: water, 6: water_block, 7: flag, 8: sand, 9: flipped_thorn, 10: left_thorn,
          11: right_thorn, 12: coin, 13: high_jump, 14: speed_boots, 15: balloon, 16: full_cactus, 17: glider, 18: double_jump_boots, 19: spring, 20: dash_powerup,
          21: left_dash, 22: jump_reset, 23: full_walkway, 24: iron_boots, 25: pyramids, 26: sign, 27: npc_1, 28: npc_2, 29: npc_3, 30: npc_4, 
-         31: floating_ground, 32: floating_sand}
+         31: floating_ground, 32: floating_sand, 33: invisible_platform}
 
 rocks = {13, 55, 106, 149, 218, 240, 247} # Column numbers for all the rocks
 cacti = {11, 53, 107, 228, 255, 280} # Column numbers for the cactuses
@@ -277,6 +279,70 @@ def show_game_over_screen(slot: int):
     
     update_save(slot, {"Level 5 Checkpoint": 0}) # Set checkpoint to 0
     update_save(slot, {"Level 5 Time": 150})
+
+    # Wait for player to click the button
+    waiting = True
+    while waiting:
+
+        screen.blit(background, (0, 0))
+
+        # Set fonts for the text
+        title_font = pygame.font.Font('PixelifySans.ttf', 100)
+        sub_font = pygame.font.Font('PixelifySans.ttf', 60)
+        sub_font_hover = pygame.font.Font('PixelifySans.ttf', 65)  # Larger for hover
+
+        # Render hover effect dynamically
+        restart_hover = False
+        select_level_hover = False
+
+        # Render the "Game Over" text
+        game_over_text = title_font.render("Game Over", True, WHITE)
+        restart_text = sub_font.render("Retry", True, WHITE)
+        select_level_text = sub_font.render("Back to Select Level", True, WHITE)
+
+        # Position the texts
+        game_over_rect = game_over_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
+        restart_over_rect = restart_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
+        select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))
+
+        # Check if mouse is hovering
+        if restart_over_rect.collidepoint(pygame.mouse.get_pos()):
+            restart_hover = True
+        if select_level_rect.collidepoint(pygame.mouse.get_pos()):
+            select_level_hover = True
+
+        # If hovering, change text size dynamically
+        if restart_hover:
+            restart_text = sub_font_hover.render("Retry", True, BLUE)
+            restart_over_rect = restart_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))  # Recalculate position
+        if select_level_hover:
+            select_level_text = sub_font_hover.render("Back to Select Level", True, BLUE)
+            select_level_rect = select_level_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))  # Recalculate position
+
+        # Create box around the text
+        box_padding = 100
+        game_over_screen_box = pygame.Rect(game_over_rect.left - box_padding, game_over_rect.top, game_over_rect.width + box_padding*2, game_over_rect.height + (box_padding*2) + 40)
+        pygame.draw.rect(screen, BLUE, game_over_screen_box, 10)
+        
+        # Draw the texts
+        screen.blit(game_over_text, game_over_rect)
+        screen.blit(restart_text, restart_over_rect)
+        screen.blit(select_level_text, select_level_rect)
+
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_x, mouse_y = event.pos
+                if restart_over_rect.collidepoint(mouse_x, mouse_y):
+                    level_5(slot) # Retry the level
+                    sys.exit()
+                if select_level_rect.collidepoint(mouse_x, mouse_y):
+                    world_select.World_Selector(slot)
+                    sys.exit()  # Go back to level select
 
 def respawn_terrain():
     for row_index in range(GROUND, level_height):
@@ -394,6 +460,7 @@ def respawn_terrain():
     level_map[SURFACE-3][235:240] = [3] * 5
 
     level_map[SURFACE-7][240] = 23 # Full Walkway/Bridge
+    level_map[SURFACE-6][240:248] = [33] * 8 # Invisible Platform for the Full Walkway
 
     level_map[SURFACE-1][274] = 25 # Pyramids
     level_map[SURFACE-1][282] = 25 # Pyramids
@@ -407,7 +474,7 @@ def respawn_gadgets():
 
     level_map[SURFACE-5][243] = 18 # Double Jump Boots
 
-    level_map[SURFACE][215] = 24 # Iron Boots
+    level_map[SURFACE][245] = 24 # Iron Boots
 
 def respawn_powerups():
     level_map[SURFACE-2][18] = 13 # High Jump
@@ -425,6 +492,7 @@ def respawn_powerups():
 
     level_map[SURFACE-10][197] = 22 # Jump Reset
     level_map[SURFACE-5][232] = 22 # Jump Reset
+    level_map[SURFACE-1][232] = 22 # Jump Reset
 
 def level_5(slot: int):
 
@@ -514,7 +582,7 @@ def level_5(slot: int):
     if not death_count:
         death_count = 0
 
-    collidable_tiles = {1, 2, 3, 8, 23, 31, 32}
+    collidable_tiles = {1, 2, 3, 8, 31, 32, 33}
     dying_tiles = {4, 5, 6, 9, 10, 11}
 
     start_time = load_save(slot).get("Level 5 Time") # Timer resumes from last time they saved
@@ -526,8 +594,8 @@ def level_5(slot: int):
     running = True
     while running:
         
-        #print(f"Row: SURFACE - {SURFACE - calculate_row(player_y)}")
-        #print(f"Column: {calculate_column(player_x)}")
+        # print(f"Row: SURFACE - {SURFACE - calculate_row(player_y)}")
+        # print(f"Column: {calculate_column(player_x)}")
 
         screen.blit(background, (0, 0))
 
@@ -551,7 +619,7 @@ def level_5(slot: int):
         for row_index, row in enumerate(level_map):
             for col_index, tile in enumerate(row):
                 x, y = col_index * TILE_SIZE - camera_x, row_index * TILE_SIZE
-                if tile == 0:
+                if tile == 0 or tile == 33: # Continue if air or invisible platform
                     continue
                 screen.blit(tiles.get(tile), (x, y)) # Draw according to the dictionary
 
@@ -640,16 +708,21 @@ def level_5(slot: int):
         #     player_y -= player_speed
         # if keys[pygame.K_s]:
         #     player_y += player_speed
+        current_x = calculate_column(player_x)
+        current_y = calculate_row(player_y)+1
+        currentTile = level_map[current_y][current_x]
+        if currentTile > 0:
+            latestTile = currentTile
         if keys[pygame.K_d]: # If player presses D
-            if on_ice:
-                player_vel_x += acceleration
+            if latestTile == 8 or latestTile == 32:
+                player_vel_x = player_speed * 0.7
             else:
                 player_vel_x = player_speed
             moving = True
             direction = 1
         if keys[pygame.K_a]: # If player presses A
-            if on_ice:
-                player_vel_x -= acceleration
+            if latestTile == 8 or latestTile == 32:
+                player_vel_x = (player_speed * 0.7) * -1
             else:
                 player_vel_x = -player_speed
             moving = True
@@ -730,7 +803,7 @@ def level_5(slot: int):
                         on_ground = True  # Player lands
                         doubleJumped = False # Reset double jump
 
-                    if tile == 23: # If walkway, ignore collision from left and right and from bottom
+                    if tile == 33: # If walkway, ignore collision from left and right and from bottom
                         continue
 
                     # This code block ensures collision with solid blocks from the left and right
@@ -760,8 +833,6 @@ def level_5(slot: int):
                         dying = True
                         death_sound.play()
 
-
-
                 # Coin
                 if tile == 12:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
@@ -772,9 +843,6 @@ def level_5(slot: int):
                         eclipse_increment(slot, 1)
                         level_map[row_index][col_index] = 0
                         coin_sound.play()
-
-
-
 
                 # High Jump Functionality
                 if tile == 13:
@@ -815,6 +883,7 @@ def level_5(slot: int):
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
                         player_vel_y = -50
                         spring_sound.play()
+                        player_vel_y = -50 * scale_factor
 
                 # Double Jump Boots
                 if tile == 18:
@@ -836,13 +905,14 @@ def level_5(slot: int):
                         player_speed = player_speed * 1.25 # Up the player speed
                         speedBoots = True
 
-                if tile == 20:
+                if tile == 20: # Right Dash
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         dash_pickup_time = pygame.time.get_ticks()
                         powerup_respawns[(row_index, col_index)] = [20, pygame.time.get_ticks() + 5000]
                         dash_duration = dash_pickup_time + 500
+                        dash_sound.play()
                         dashed = True
                         level_map[row_index][col_index] = 0 
                         dash_sound.play()
@@ -851,7 +921,7 @@ def level_5(slot: int):
                         if player_speed < 0:
                             player_speed *= -1
 
-                if tile == 21:
+                if tile == 21: # Left Dash
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
@@ -859,6 +929,7 @@ def level_5(slot: int):
                         dash_pickup_time = pygame.time.get_ticks()
                         powerup_respawns[(row_index, col_index)] = [21, pygame.time.get_ticks() + 5000]
                         dash_duration = dash_pickup_time + 750
+                        dash_sound.play()
                         dashed = True
                         level_map[row_index][col_index] = 0 
                         dash_sound.play()
@@ -868,7 +939,7 @@ def level_5(slot: int):
                         if player_speed < 0:
                             player_speed *= -1
 
-                if tile == 17: # Picked up glider (For Kenny to do)
+                if tile == 17: # Picked up glider
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
 
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
@@ -883,7 +954,7 @@ def level_5(slot: int):
                         ground_levels[30:35] = [level_height] * 5
                         ground_levels[40:45] = [level_height] * 5
 
-                if tile == 24: # Picked up iron boots (For Kenny to do)
+                if tile == 24: # Picked up iron boots
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
 
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
@@ -892,7 +963,9 @@ def level_5(slot: int):
                         level_map[row_index][col_index] = 0
                         gadget_sound.play()
                         collidable_tiles.remove(23)
+                        collidable_tiles.remove(33)
                         ironBoots = True
+                        player_speed = player_speed / 1.25
 
 
         level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
@@ -937,14 +1010,14 @@ def level_5(slot: int):
                     level_map[row_index][40:45] = [3] * 5
             if checkpoint_idx == 1:
                 speedBoots = False
-                doubleJumpBoots
+                doubleJumpBoots = False
                 level_map[3][82] = 14 # Speed Boots
                 level_map[SURFACE-13][174] = 18 # Double Jump Boots
             if checkpoint_idx == 2:
-                collidable_tiles.add(23)
+                collidable_tiles.add(33)
                 ironBoots = False
                 doubleJumpBoots = False
-                level_map[SURFACE][215] = 24 # Iron Boots
+                level_map[SURFACE][245] = 24 # Iron Boots
                 level_map[SURFACE-5][243] = 18 # Double Jump Boots
 
 
@@ -973,7 +1046,7 @@ def level_5(slot: int):
                 dash_duration = 0
 
         # Set speed to normal if no boots
-        if not speedBoots and not dashed:
+        if not speedBoots and not dashed and not ironBoots:
             player_speed = 8.5 * scale_factor
         if hasBalloon:
             player_y += balloon_vel  # Move up
