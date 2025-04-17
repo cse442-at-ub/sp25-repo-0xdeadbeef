@@ -39,6 +39,9 @@ spring_sound = pygame.mixer.Sound("Audio/Spring.mp3")
 # Coin pick up sound 
 coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
 
+# Pop Balloon sound
+pop_balloon_sound = pygame.mixer.Sound("Audio/PopBalloon.mp3")
+
 # Screen settings
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
@@ -430,6 +433,13 @@ def level_5(slot: int):
     respawn_powerups()
     npc_spawn()
 
+    # Stop any previously playing music 
+    pygame.mixer.music.stop()
+    
+    # Load the tutorial music
+    pygame.mixer.music.load("Audio/Level5.mp3")
+    pygame.mixer.music.play(-1)  # -1 loops forever
+
     # Grab the sprite that was customized
     sprite = load_save(slot).get("character")
 
@@ -692,6 +702,7 @@ def level_5(slot: int):
 
         # Pop balloon mechanic
         if keys[pygame.K_r]:
+            pop_balloon_sound.play()
             hasBalloon = False
 
         # Apply gravity when needed
@@ -771,6 +782,7 @@ def level_5(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        power_up_sound.play()
                         higherJumps = True
                         powerup_respawns[(row_index, col_index)] = [13, pygame.time.get_ticks() + 5000]
 
@@ -781,6 +793,7 @@ def level_5(slot: int):
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
 
                         level_map[row_index][col_index] = 0  # Remove the balloon from the map
+                        power_up_sound.play()
                         hasBalloon = True
                         balloon_vel = -5  # Initial upward speed
                         powerup_respawns[(row_index, col_index)] = [15, pygame.time.get_ticks() + 5000]
@@ -795,12 +808,13 @@ def level_5(slot: int):
                         doubleJumped = False
                         powerup_respawns[(row_index, col_index)] = [22, pygame.time.get_ticks() + 5000]
 
-                # Sring functionality
+                # Spring functionality
                 if tile == 19:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
                         player_vel_y = -50
+                        spring_sound.play()
 
                 # Double Jump Boots
                 if tile == 18:
@@ -808,6 +822,7 @@ def level_5(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play()
                         doubleJumpBoots = True
                         doubleJumped = False
 
@@ -817,6 +832,7 @@ def level_5(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play()
                         player_speed = player_speed * 1.25 # Up the player speed
                         speedBoots = True
 
@@ -829,6 +845,7 @@ def level_5(slot: int):
                         dash_duration = dash_pickup_time + 500
                         dashed = True
                         level_map[row_index][col_index] = 0 
+                        dash_sound.play()
                         player_speed = player_speed * 2 
                         direction = 1
                         if player_speed < 0:
@@ -844,6 +861,7 @@ def level_5(slot: int):
                         dash_duration = dash_pickup_time + 750
                         dashed = True
                         level_map[row_index][col_index] = 0 
+                        dash_sound.play()
                         player_speed = player_speed * 3.05
                         direction = -1
                         player_vel_y = 0
@@ -857,6 +875,7 @@ def level_5(slot: int):
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                     
                         level_map[row_index][col_index] = 0
+                        gadget_sound.play()
                         glider = True
                         for row_index in range(GROUND, level_height):
                             level_map[row_index][30:35] = [0] * 5
@@ -871,6 +890,7 @@ def level_5(slot: int):
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         
                         level_map[row_index][col_index] = 0
+                        gadget_sound.play()
                         collidable_tiles.remove(23)
                         ironBoots = True
 
