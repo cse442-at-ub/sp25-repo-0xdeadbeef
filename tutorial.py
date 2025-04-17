@@ -120,6 +120,27 @@ background_tree = pygame.image.load("./images/background_tree.png")
 background_tree = pygame.transform.scale(background_tree, (TILE_SIZE * 1.5, TILE_SIZE * 2))
 
 
+level_almost_complete_popup = pygame.image.load("./images/level_near_completion_pop_up.png")
+level_almost_complete_popup = pygame.transform.scale(level_almost_complete_popup, (250, 60))
+
+
+level_almost_complete_font = pygame.font.Font('PixelifySans.ttf', 10)
+keep_heading_right_font = pygame.font.Font('PixelifySans.ttf', 10)
+level_almost_complete_text = level_almost_complete_font.render("Tutorial Level Almost Complete!", True, (255, 255, 255))
+keep_heading_right_text = keep_heading_right_font.render("Keep Heading Right!", True, (255, 255, 255))
+
+
+
+pop_up_x = WIDTH - (WIDTH * .20)
+pop_up_y = HEIGHT - (HEIGHT * .95)
+
+
+
+level_almost_complete_rect = level_almost_complete_text.get_rect(center=(pop_up_x + 140, pop_up_y + 18))
+keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 140, pop_up_y + 38))
+
+
+
 #-----Gadget inventory images and dictionary
 
 inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
@@ -327,6 +348,13 @@ def tutorial_level(slot: int):
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
     speedBoots = False
+
+
+
+    times_passed_wooden_sign = 0
+    time_before_pop_up_disappears = 0
+
+
 
     if checkpoint_idx == 0:
         level_map[SURFACE][28] = 3 # Double Jump Boots
@@ -700,7 +728,7 @@ def tutorial_level(slot: int):
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
 
-        
+        # print(player_x)
         #-----Inventory Fill-up logic
 
         screen.blit(inventory, (inventory_x, inventory_y))
@@ -722,7 +750,24 @@ def tutorial_level(slot: int):
             elif (doubleJumpBoots) and (speedBoots) and (double_first == False):
                 screen.blit(inventory_speed_boots, first_slot)
                 screen.blit(inventory_jump_boots, second_slot)
-                
+
+
+        # Pop up near level completion 
+        if (pygame.time.get_ticks() < time_before_pop_up_disappears):
+            screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
+            screen.blit(level_almost_complete_text, level_almost_complete_rect)
+            screen.blit(keep_heading_right_text, keep_heading_right_rect)
+
+
+        if (player_x >= 5208 and times_passed_wooden_sign < 1):
+            times_passed_wooden_sign += 1
+            screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
+            screen.blit(level_almost_complete_text, level_almost_complete_rect)
+            screen.blit(keep_heading_right_text, keep_heading_right_rect)
+            time_before_pop_up_disappears = pygame.time.get_ticks() + 5000
+
+
+
         pygame.display.flip()  # Update display
 
 if __name__ == "__main__":
