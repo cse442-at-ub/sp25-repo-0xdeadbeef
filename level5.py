@@ -165,6 +165,35 @@ npc_4 = pygame.image.load("./Character Combinations/ginger hair_white_yellow shi
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 
 
+
+
+
+
+level_almost_complete_popup = pygame.image.load("./images/level_near_completion_pop_up.png")
+level_almost_complete_popup = pygame.transform.scale(level_almost_complete_popup, (250, 60))
+
+
+level_almost_complete_font = pygame.font.Font('PixelifySans.ttf', 10)
+keep_heading_right_font = pygame.font.Font('PixelifySans.ttf', 10)
+level_almost_complete_text = level_almost_complete_font.render("Level 5 Almost Complete!", True, (255, 255, 255))
+keep_heading_right_text = keep_heading_right_font.render("Keep Heading Right!", True, (255, 255, 255))
+
+
+
+pop_up_x = WIDTH - (WIDTH * .20)
+pop_up_y = HEIGHT - (HEIGHT * .95)
+
+
+
+level_almost_complete_rect = level_almost_complete_text.get_rect(center=(pop_up_x + 140, pop_up_y + 18))
+keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 140, pop_up_y + 38))
+
+
+
+
+
+
+
 #-----Gadget inventory images and dictionary
 
 inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
@@ -546,6 +575,13 @@ def level_5(slot: int):
     balloon_vel = 0  # Initial vertical velocity
 
     coin_count = 0
+
+
+
+    times_passed_wooden_sign = 0
+    time_before_pop_up_disappears = 0
+
+
 
     # FOR KENNY TO USE (gadget booleans)
     doubleJumpBoots = False
@@ -1068,6 +1104,24 @@ def level_5(slot: int):
         for x, gadget in enumerate(inv_slots):
             screen.blit(gadget, inv_slot_dimensions[x])
         
+
+        
+        
+        # print(player_x)
+        # Pop up near level completion 
+        if (pygame.time.get_ticks() < time_before_pop_up_disappears):
+            screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
+            screen.blit(level_almost_complete_text, level_almost_complete_rect)
+            screen.blit(keep_heading_right_text, keep_heading_right_rect)
+
+
+        if (player_x >= 9270 and times_passed_wooden_sign < 1):
+            times_passed_wooden_sign += 1
+            screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
+            screen.blit(level_almost_complete_text, level_almost_complete_rect)
+            screen.blit(keep_heading_right_text, keep_heading_right_rect)
+            time_before_pop_up_disappears = pygame.time.get_ticks() + 5000
+
 
 
     

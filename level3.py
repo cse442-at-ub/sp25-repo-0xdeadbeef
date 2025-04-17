@@ -156,6 +156,33 @@ npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_b
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  
 
+
+
+
+level_almost_complete_popup = pygame.image.load("./images/level_near_completion_pop_up.png")
+level_almost_complete_popup = pygame.transform.scale(level_almost_complete_popup, (250, 60))
+
+
+level_almost_complete_font = pygame.font.Font('PixelifySans.ttf', 10)
+keep_heading_right_font = pygame.font.Font('PixelifySans.ttf', 10)
+level_almost_complete_text = level_almost_complete_font.render("Level 3 Almost Complete!", True, (255, 255, 255))
+keep_heading_right_text = keep_heading_right_font.render("Keep Heading Right!", True, (255, 255, 255))
+
+
+
+pop_up_x = WIDTH - (WIDTH * .20)
+pop_up_y = HEIGHT - (HEIGHT * .95)
+
+
+
+level_almost_complete_rect = level_almost_complete_text.get_rect(center=(pop_up_x + 140, pop_up_y + 18))
+keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 140, pop_up_y + 38))
+
+
+
+
+
+
 #-----Gadget inventory images and dictionary
 
 inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
@@ -533,6 +560,13 @@ def level_3(slot: int):
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
     frostWalkBoots = False # Track if player has frost walk boots
+
+
+
+    times_passed_wooden_sign = 0
+    time_before_pop_up_disappears = 0
+
+
 
     if checkpoint_idx == 0:
         level_map[5][24] = 10 # Frost Walking Boots
@@ -1030,6 +1064,25 @@ def level_3(slot: int):
             elif (doubleJumpBoots) and (frostWalkBoots) and (double_first == False):
                 screen.blit(inventory_frost_boots, first_slot)
                 screen.blit(inventory_jump_boots, second_slot)
+
+
+
+        # print(player_x)
+        # Pop up near level completion 
+        if (pygame.time.get_ticks() < time_before_pop_up_disappears):
+            screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
+            screen.blit(level_almost_complete_text, level_almost_complete_rect)
+            screen.blit(keep_heading_right_text, keep_heading_right_rect)
+
+
+        if (player_x >= 8289 and times_passed_wooden_sign < 1):
+            times_passed_wooden_sign += 1
+            screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
+            screen.blit(level_almost_complete_text, level_almost_complete_rect)
+            screen.blit(keep_heading_right_text, keep_heading_right_rect)
+            time_before_pop_up_disappears = pygame.time.get_ticks() + 5000
+
+
 
 
         
