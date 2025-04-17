@@ -529,6 +529,13 @@ def level_6(slot: int):
     respawn_powerups()
     respawn_npcs()
 
+    # Stop any previously playing music 
+    pygame.mixer.music.stop()
+    
+    # Load the tutorial music
+    pygame.mixer.music.load("Audio/Level6.mp3")
+    pygame.mixer.music.play(-1)  # -1 loops forever
+
     # Grab the sprite that was customized
     sprite = load_save(slot).get("character")
 
@@ -869,16 +876,18 @@ def level_6(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        gadget_sound.play()
                         doubleJumpBoots = True
                         doubleJumped = False
 
-                # Sring functionality
+                # Spring functionality
                 if tile == 19:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
                         player_vel_y = -38 * scale_factor
                         doubleJumped = False
+                        spring_sound.play()
 
                 # High Jump Functionality
                 if tile == 25:
@@ -886,6 +895,7 @@ def level_6(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0  # Remove the boots from screen
+                        power_up_sound.play()
                         higherJumps = True
                         powerup_respawns[(row_index, col_index)] = [25, pygame.time.get_ticks() + 5000]
 
@@ -896,6 +906,8 @@ def level_6(slot: int):
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         super_speed_sound.play()
                         level_map[row_index][col_index] = 0
+                        power_up_sound.play()
+
                         if len(super_speed_effects) == 0:
                             player_speed *= 2.5  # Double the speed
                         super_speed_effects.append({"end_time": pygame.time.get_ticks() + 1600})  # 1.6 sec effect
@@ -908,6 +920,7 @@ def level_6(slot: int):
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                     
                         level_map[row_index][col_index] = 0
+                        gadget_sound.play()
                         glider = True
                         for row_index in range(GROUND, level_height):
                             level_map[row_index][30:35] = [0] * 5
@@ -931,6 +944,7 @@ def level_6(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0 
+                        gadget_sound.play()
                         sandBoots = True
 
                 if tile == 26: # Right Dash
@@ -943,6 +957,7 @@ def level_6(slot: int):
                         dash_sound.play()
                         dashed = True
                         level_map[row_index][col_index] = 0 
+                        dash_sound.play()
                         player_speed = player_speed * 2 
                         direction = 1
                         if player_speed < 0:
@@ -958,6 +973,7 @@ def level_6(slot: int):
                         dash_sound.play()
                         dashed = True
                         level_map[row_index][col_index] = 0 
+                        dash_sound.play()
                         player_speed = player_speed * 3.05
                         direction = -1
                         if player_speed < 0:
