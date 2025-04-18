@@ -287,7 +287,7 @@ def show_level_completed_screen(slot: int):
     
     level_name = "Tutorial"
 
-    show_level_complete(slot, counter_for_coin_increment, level_name)
+    show_level_complete(slot, counter_for_coin_increment, level_name, background)
 
 def respawn_powerups():
     level_map[SURFACE][95] = 8 # Super speed powerup

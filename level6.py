@@ -281,7 +281,7 @@ def show_level_completed_screen(slot: int, death_count: int):
     level_name = "Level Six"
     
 
-    show_level_complete_deaths(slot, 0, death_count, level_name)
+    show_level_complete_deaths(slot, 0, death_count, level_name, background)
 
 def show_game_over_screen(slot: int):
     
