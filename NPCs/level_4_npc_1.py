@@ -7,9 +7,10 @@ font = pygame.font.Font(None, 36)  # Font for dialogue
 # List of dialogue lines
 dialogue_lines = [
     "",  # Empty line to avoid skipping the first dialogue
-    "This is not good.",
-    "Run now!",
-    "The storm is dropping an avalanche!",
+    "Just remember that pressing 'E' can also use items.",
+    "Take that dash powerup and use it to get to the next checkpoint.",
+    "And you better get running.",
+    "The storm is going to drop an avalanche on both of us",
     "We're gonna be buried alive if we don't get out of here on time!",
 ]
 
