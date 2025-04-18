@@ -52,7 +52,7 @@ movement_img = pygame.image.load("Assets/Settings Menu/MovementSettings.png").co
 audio_img = pygame.image.load("Assets/Settings Menu/AudioSettings.png").convert_alpha()
 
 # Scale them to match your design if desired
-movement_img = pygame.transform.scale(movement_img, (600, 200)) 
+movement_img = pygame.transform.scale(movement_img, (600, 300)) 
 audio_img = pygame.transform.scale(audio_img, (400, 150))       
 
 # Define rects for those images
