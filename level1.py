@@ -322,7 +322,7 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     level_name = "Level One"
 
-    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name, background)
 
 # Initialize the PauseMenu
 pause_menu = PauseMenu(screen)
