@@ -1073,6 +1073,8 @@ def level_6(slot: int):
             update_save(slot, {"Level 6 Deaths": death_count})
             respawn_powerups()
             button_despawn()
+            if (SURFACE, 157) in powerup_respawns:
+                del powerup_respawns[(SURFACE, 157)]
             dying = False
             higherJumps = False
             player_vel_y = 0 # Instantly stops any vertical movement
