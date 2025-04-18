@@ -7,12 +7,19 @@ font = pygame.font.Font(None, 36)  # Font for dialogue
 # List of dialogue lines
 dialogue_lines = [
     "",  # Empty line to avoid skipping the first dialogue
-    "Your shoes looks worn off",
-    "You don't happen to overuse them, do you?",
-    "Anyway, take this tool.",
-    "It should help you with reparing your shoes.",
-    "Although, I wouldn't count on it too much.",
-    "It can only be used once, so make sure you know where to jump before wasting those shoes again."
+    "Who goes there?",
+    "Oh, I didn't expect another traveller to come by.",
+    "What brings you to this part of this mountain?",
+    "Oh, so you're here to find a place to stay.",
+    "Take it from me boy, this place is dangerous.",
+    "I've been wanted to move out of this godforsaken place for years now.",
+    "But the land here is too harsh and dangerous to travel through.",
+    "Not to mention that my wife is too attached to this place.",
+    "We don't live in the same home, but we still see each other every day.",
+    "You best be moving now or the storm would catch you.",
+    "You've travelled through terrains like this before?",
+    "Then you should be fine for what's come ahead.",
+    "I'll be fine on my own."
 ]
 
 # Variables to track dialogue state

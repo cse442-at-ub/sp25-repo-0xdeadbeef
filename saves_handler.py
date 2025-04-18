@@ -25,11 +25,39 @@ def create_new_save(slot):
     default_data = {
         "slot": slot,
         "character": "directory",
+        "map1_unlocks": [True, False, False, False, False]
     }
     with open(file_path, "w") as file:
         json.dump(default_data, file, indent=4)
     
     return default_data  # Return newly created data
+
+
+def get_unlock_state(slot, map_id="map1"):
+    file_path = os.path.join(SAVE_DIR, f"save{slot}.json")
+    if os.path.exists(file_path):
+        with open(file_path, "r") as file:
+            data = json.load(file)
+        return data.get(f"{map_id}_unlocks", [])
+    else:
+        # If the save doesn't exist, return default state.
+        return [True, False, False, False, False]
+
+def update_unlock_state(slot, new_state, map_id="map1"):
+    file_path = os.path.join(SAVE_DIR, f"save{slot}.json")
+    if os.path.exists(file_path):
+        with open(file_path, "r") as file:
+            data = json.load(file)
+    else:
+        data = create_new_save(slot)
+    
+    data[f"{map_id}_unlocks"] = new_state
+    
+    with open(file_path, "w") as file:
+        json.dump(data, file, indent=4)
+    
+    print(f"Unlock state for {map_id} updated successfully!")
+
 
 def update_save(slot, new_data):
     """Update the save file with new data for the given slot."""
@@ -51,6 +79,67 @@ def update_save(slot, new_data):
         json.dump(save_data, file, indent=4)
     
     print(f"Save Slot {slot} updated successfully!")
+
+def achievement_counter(slot, level_info):
+    # Update achievment counter when level completed
+    file_path = os.path.join(SAVE_DIR, f"save{slot}.json")
+
+    # Load existing data 
+    if os.path.exists(file_path):
+        with open(file_path, "r") as file:
+            save_data = json.load(file)
+
+    else:
+        print(f"Save file for slot {slot} does not exist. Creating a new save...")
+        save_data = create_new_save(slot)  # Create new save if it doesn't exist
+
+    #Check if level already cleared
+    if level_info not in save_data:
+        level_first_clear = {level_info: 1}
+        save_data.update(level_first_clear)
+        print(f"First time clearing {level_info}!")
+
+    else: 
+        number_of_clears = save_data[level_info]
+        level_updated_clear = {level_info: number_of_clears + 1}
+        save_data.update(level_updated_clear) 
+    
+    with open(file_path, "w") as file:
+        json.dump(save_data, file, indent=4)
+    
+    print(f"{level_info} counter updated successfully")
+
+
+def eclipse_increment(slot, coin_count):
+
+    file_path = os.path.join(SAVE_DIR, f"save{slot}.json")
+
+    # Load existing data 
+    if os.path.exists(file_path):
+        with open(file_path, "r") as file:
+            save_data = json.load(file)
+
+    else:
+        print(f"Save file for slot {slot} does not exist. Creating a new save...")
+        save_data = create_new_save(slot)  # Create new save if it doesn't exist
+
+    #Check if eclipse counter is started 
+    if "Eclipse" not in save_data:
+        start_eclipse_counter = {"Eclipse": coin_count}
+        save_data.update(start_eclipse_counter)
+        print("First Eclipse Collection!")
+
+    else:
+        number_of_eclipses = save_data["Eclipse"]
+        update_eclipse_counter = {"Eclipse": number_of_eclipses + coin_count}
+        save_data.update(update_eclipse_counter)
+
+    with open(file_path, "w") as file:
+        json.dump(save_data, file, indent=4)
+
+    print("Eclipse counter updated")
+        
+
 
 def delete_save(slot):
     file_path = os.path.join(SAVE_DIR, f"save{slot}.json")
