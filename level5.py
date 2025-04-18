@@ -293,7 +293,7 @@ def show_level_completed_screen(slot: int, death_count: int):
     level_name = "Level Five"
 
 
-    show_level_complete_deaths(slot, 0, death_count, level_name)
+    show_level_complete_deaths(slot, 0, death_count, level_name, background)
     
 def npc_spawn():
     level_map[SURFACE][6] = 27 # First NPC
@@ -998,7 +998,6 @@ def level_5(slot: int):
                         
                         level_map[row_index][col_index] = 0
                         gadget_sound.play()
-                        collidable_tiles.remove(23)
                         collidable_tiles.remove(33)
                         ironBoots = True
                         player_speed = player_speed / 1.25
