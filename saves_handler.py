@@ -25,7 +25,8 @@ def create_new_save(slot):
     default_data = {
         "slot": slot,
         "character": "directory",
-        "map1_unlocks": [True, False, False, False, False]
+        "map1_unlocks": [True, False, False, False, False],
+        "map2_unlocks": [False, False, False, False, False]
     }
     with open(file_path, "w") as file:
         json.dump(default_data, file, indent=4)
