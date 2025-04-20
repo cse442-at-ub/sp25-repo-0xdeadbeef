@@ -25,7 +25,6 @@ pygame.mixer.init() # Initialize Pygame Audio Mixer
 
 counter_for_coin_increment = 0
 
-
 # Load the level complete sound 
 level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
 
@@ -474,7 +473,7 @@ def show_level_completed_screen(slot: int, death_count: int):
 
 
     # Change this 0 for coin increment code
-    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name, background)
 
 def respawn_powerups():
     row = SURFACE - 3
