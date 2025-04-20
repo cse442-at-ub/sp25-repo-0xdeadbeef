@@ -476,9 +476,9 @@ def show_level_completed_screen(slot: int, death_count: int):
     update_save(slot, {"Level 4 Checkpoint": 0}) # Set checkpoint to 0
     update_save(slot, {"Level 4 Time": 200})
 
-    # current_state = get_unlock_state(slot, "map2")
-    # current_state[5] = True  # Unlock level 5
-    # update_unlock_state(slot, current_state, "map2")
+    current_state = get_unlock_state(slot, "map2")
+    current_state[0] = True  # Unlock level 5 (Map 2 index 0 is equiv Map 2 level 5)
+    update_unlock_state(slot, current_state, "map2")
 
     level_name = "Level Four"
 
@@ -633,7 +633,7 @@ def level_4(slot: int):
     player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
     
     # 8.5 should be standard speed
-    player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
+    player_speed = 100 * scale_factor # Adjust player speed according to their resolution
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.25 * scale_factor # Gravity effect (Greater number means stronger gravity)
@@ -966,7 +966,7 @@ def level_4(slot: int):
                             current_y = calculate_row(player_y)+1
                             level_map[current_y][current_x] = 21  # Turn the starting tile into ice
                         else:
-                            dying = True
+                            dying = False
                             death_sound.play()
 
                 # Coin
