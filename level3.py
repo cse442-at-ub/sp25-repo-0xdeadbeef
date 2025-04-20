@@ -25,7 +25,6 @@ pygame.mixer.init() # Initialize Pygame Audio Mixer
 
 counter_for_coin_increment = 0
 
-
 # Load the level complete sound 
 level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
 
@@ -549,7 +548,7 @@ def level_3(slot: int):
     player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
     
     # 8.5 should be standard speed
-    player_speed = 100 * scale_factor # Adjust player speed according to their resolution
+    player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
     default_speed = player_speed
     
     player_vel_x = 0 # Horizontal velocity for friction/sliding
@@ -851,7 +850,7 @@ def level_3(slot: int):
                             current_y = calculate_row(player_y)+1
                             level_map[current_y][current_x] = 21  # Turn the starting tile into ice
                         else:
-                            dying = False
+                            dying = True
                             death_sound.play()
 
                 # Coin
