@@ -289,6 +289,7 @@ def show_level_completed_screen(slot: int, death_count: int):
     update_save(slot, {"Level 5 Checkpoint": 0}) # Set checkpoint to 0
     update_save(slot, {"Level 5 Time": 150}) # Reset the time
 
+    # ---TO DO: level 6 locked/unlocked map/level selector on branch: be-linking-level-six-btn-#84--- #
 
     level_name = "Level Five"
 
