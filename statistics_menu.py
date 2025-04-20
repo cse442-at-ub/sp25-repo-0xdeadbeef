@@ -86,7 +86,7 @@ def draw_save_slot_stats(save_data, slot_number, start_y):
     stats = [
         ("Deaths:", save_data.get("total_deaths", 0)),
         ("Yellow Eclipses:", save_data.get("Eclipse", 0)),
-        ("NPCs Talked To:", save_data.get("npcs_talked", 0))
+        ("Levels Completed:", len(save_data.get("map1_unlocks", [])))
     ]
 
     for i, (label, value) in enumerate(stats):
