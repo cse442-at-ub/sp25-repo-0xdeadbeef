@@ -137,7 +137,7 @@ current_level_images = [
 
     pygame.image.load("Accessories/current_desert_level_button.png"), # replace this later with level 5 and 6 for desert map commented directly below
     pygame.image.load("Accessories/desert_level_five_button.png"),
-    # pygame.image.load("Accessories/desert_level_six_button.png"),
+    pygame.image.load("Accessories/desert_level_six_button.png"),
 
     # Add more as needed
 ]
@@ -158,7 +158,7 @@ mini_squares = [
     ],
     [  # Map 2 - Desert
         {"pos": (WIDTH // 2 - 250, HEIGHT // 2 - 20), "image": current_level_images[6]}, # level 5 
-        {"pos": (WIDTH // 2 - 30, HEIGHT // 2 - 40), "image": unlocked_level_image},
+        {"pos": (WIDTH // 2 - 30, HEIGHT // 2 - 40), "image": current_level_images[7]}, # level 6
         {"pos": (WIDTH // 2 - 200, HEIGHT // 2 - 180), "image": unlocked_level_image},
         {"pos": (WIDTH // 2 + 110, HEIGHT // 2 + 40), "image": unlocked_level_image},
         {"pos": (WIDTH // 2 - 20, HEIGHT // 2 + 140), "image": locked_level_image},

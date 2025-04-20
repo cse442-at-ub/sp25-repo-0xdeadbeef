@@ -633,7 +633,7 @@ def level_4(slot: int):
     player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
     
     # 8.5 should be standard speed
-    player_speed = 100 * scale_factor # Adjust player speed according to their resolution
+    player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.25 * scale_factor # Gravity effect (Greater number means stronger gravity)
@@ -836,6 +836,13 @@ def level_4(slot: int):
         # Handle events
         keys = pygame.key.get_pressed()
         moving = False
+        # if keys[pygame.K_w]:
+        #     player_y -= player_speed
+        # if keys[pygame.K_s]:
+        #     player_y += player_speed
+
+        keys = pygame.key.get_pressed()
+        moving = False
         if keys[pygame.K_d]: # If player presses D
             if on_ice:
                 player_vel_x += acceleration
@@ -966,7 +973,7 @@ def level_4(slot: int):
                             current_y = calculate_row(player_y)+1
                             level_map[current_y][current_x] = 21  # Turn the starting tile into ice
                         else:
-                            dying = False
+                            dying = True
                             death_sound.play()
 
                 # Coin
