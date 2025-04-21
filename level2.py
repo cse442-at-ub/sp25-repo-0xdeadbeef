@@ -178,7 +178,7 @@ keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 14
 
 #-----Gadget inventory images and dictionary
 
-inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.image.load("./images/inventory_slot_opacity.png").convert_alpha()
 inventory = pygame.transform.scale(inventory, (250, 70))
 inventory_x = (WIDTH - 250) // 2
 inventory_y = HEIGHT - 100
@@ -435,7 +435,7 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     level_name = "Level Two"
 
-    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name, background)
 
 
 def show_game_over_screen(slot: int):

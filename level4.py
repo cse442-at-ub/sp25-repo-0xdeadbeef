@@ -476,13 +476,13 @@ def show_level_completed_screen(slot: int, death_count: int):
     update_save(slot, {"Level 4 Checkpoint": 0}) # Set checkpoint to 0
     update_save(slot, {"Level 4 Time": 200})
 
-    # current_state = get_unlock_state(slot, "map2")
-    # current_state[5] = True  # Unlock level 5
-    # update_unlock_state(slot, current_state, "map2")
+    current_state = get_unlock_state(slot, "map2")
+    current_state[0] = True  # Unlock level 5 (Map 2 index 0 is equiv Map 2 level 5)
+    update_unlock_state(slot, current_state, "map2")
 
     level_name = "Level Four"
 
-    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name, background)
 
 def show_game_over_screen(slot: int):
 
@@ -834,6 +834,13 @@ def level_4(slot: int):
         friction = normal_friction if not on_ice else ice_friction
 
         # Handle events
+        keys = pygame.key.get_pressed()
+        moving = False
+        # if keys[pygame.K_w]:
+        #     player_y -= player_speed
+        # if keys[pygame.K_s]:
+        #     player_y += player_speed
+
         keys = pygame.key.get_pressed()
         moving = False
         if keys[pygame.K_d]: # If player presses D
