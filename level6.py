@@ -711,7 +711,7 @@ def level_6(slot: int):
 
         # Check if player is near the third NPC
         npc_x = calculate_x_coordinate(124)  # Third NPC's x position
-        npc_y = (SURFACE-22) * TILE_SIZE  # Third NPC's y position
+        npc_y = (SURFACE-21) * TILE_SIZE  # Third NPC's y position
         player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
         npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
 
