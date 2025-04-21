@@ -9,7 +9,7 @@ from NPCs.tutorial_npc_4_dialogue import handle_npc_4_dialogue  # Import the fou
 import world_select
 import json
 from saves_handler import *
-from firework_level_end import show_level_complete
+from firework_level_end import show_level_complete_deaths
 from saves_handler import update_unlock_state, get_unlock_state
 from pause_menu import PauseMenu  # Import the PauseMenu class
 
@@ -231,8 +231,6 @@ for row_index, row in enumerate(level_map):
 tiles = {1: ground_tile, 2: platform_tile, 3: boots, 4: flipped_npc_1, 5: house, 6: thorn, 7: flag, 8: super_speed_powerup, 9: dash_powerup, 
         10: fence, 11: sign, 12: npc_1, 13: speed_boots, 14: coin, 15: npc_2, 16: npc_3, 17: flipped_npc_2, 18: flipped_npc_3, 19: npc_4, 20: flipped_npc_4}
 
-level_map[SURFACE][28] = 3 # Jump Boots
-level_map[SURFACE-5][55] = 13 # Speed Boots
 level_map[SURFACE][60] = 4 # NPC 1
 level_map[SURFACE][27] = 17 # NPC 2
 level_map[SURFACE][86] = 18 # NPC 3
@@ -270,7 +268,7 @@ def calculate_row(y):
 def calculate_y_coordinate(row):
     return int(row * TILE_SIZE)
 
-def show_level_completed_screen(slot: int):
+def show_level_completed_screen(slot: int, death_count: int):
     level_map[SURFACE][28] = 3 # Respawn double jump boots
     level_map[SURFACE-5][55] = 13 # Respawn speed boots
     level_map[SURFACE-1][68] = 0  # Despawn coin
@@ -287,7 +285,11 @@ def show_level_completed_screen(slot: int):
     
     level_name = "Tutorial"
 
-    show_level_complete(slot, counter_for_coin_increment, level_name, background)
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name, background)
+
+def respawn_gadgets():
+    level_map[SURFACE][28] = 3 # Jump Boots
+    level_map[SURFACE-5][55] = 13 # Speed Boots
 
 def respawn_powerups():
     level_map[SURFACE][95] = 8 # Super speed powerup
@@ -299,6 +301,7 @@ pause_menu = PauseMenu(screen)
 # Function to run the tutorial level
 def tutorial_level(slot: int):
 
+    respawn_gadgets()
     respawn_powerups() # Respawn all powerups on the level
 
     # Stop any previously playing music 
@@ -335,6 +338,8 @@ def tutorial_level(slot: int):
     for i in range(checkpoint_idx+1):
         checkpoint_bool[i] = True
 
+        
+
     # Camera position
     camera_x = 0
     player_x = checkpoints[checkpoint_idx][0]  # Start x position, change this number to spawn in a different place
@@ -361,6 +366,9 @@ def tutorial_level(slot: int):
     elif checkpoint_idx == 1:
         doubleJumpBoots = True
         level_map[SURFACE-5][55] = 13 # Respawn Speed Boots
+    
+    if checkpoint_idx != 2:
+        level_map[SURFACE-2][79:81] = [0] * 2   # Despawn platform for the coin
 
     animation_index = 0  # Alternates between 0 and 1
     animation_timer = 0  # Tracks when to switch frames
@@ -398,7 +406,11 @@ def tutorial_level(slot: int):
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
-            pause_menu.handle_event(event, slot)
+            result = pause_menu.handle_event(event, slot)
+            if result == "restart":
+                update_save(slot, {"Tutorial Checkpoint": 0}) # Set checkpoint to 0
+                tutorial_level(slot)
+                sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if on_ground:
                     player_vel_y = jump_power  # Normal jump
@@ -686,7 +698,7 @@ def tutorial_level(slot: int):
         
 
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
-            show_level_completed_screen(slot)
+            show_level_completed_screen(slot, death_count)
             running = False
         
         
@@ -721,8 +733,9 @@ def tutorial_level(slot: int):
                 update_save(slot, {"Tutorial Checkpoint": checkpoint_idx})
                 if checkpoint_idx == 2:
                     doubleJumpBoots = False # Remove their double jump boots
-                    speedBoots = False
-                    player_speed = player_speed / 1.25 # Revert their speed back to normal
+                    if speedBoots:
+                        speedBoots = False
+                        player_speed = player_speed / 1.25 # Revert their speed back to normal
                     level_map[SURFACE-1][68] = 14  #Spawn coin after reaching 2nd checkpoint
 
         # Camera follows player

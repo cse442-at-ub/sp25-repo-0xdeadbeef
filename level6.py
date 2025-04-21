@@ -583,6 +583,7 @@ def level_6(slot: int):
     respawn_terrain()
     respawn_gadgets()
     respawn_powerups()
+    button_despawn()
     respawn_npcs()
 
     # Stop any previously playing music 
@@ -629,7 +630,6 @@ def level_6(slot: int):
 
     # 8.5 should be standard speed
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
-    player_speed *= 2
     default_speed = player_speed
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
@@ -687,7 +687,9 @@ def level_6(slot: int):
 
         screen.blit(background, (0, 0))
 
-                        # Check if player is near the first NPC
+        global timer
+
+        # Check if player is near the first NPC
         npc_x = calculate_x_coordinate(7)  # First NPC's x position
         npc_y = (SURFACE-4) * TILE_SIZE  # First NPC's y position
         player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
@@ -735,7 +737,12 @@ def level_6(slot: int):
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
-            pause_menu.handle_event(event, slot)
+            result = pause_menu.handle_event(event, slot)
+            if result == "restart":
+                timer = None
+                update_save(slot, {"Level 6 Checkpoint": 0}) # Set checkpoint to 0
+                level_6(slot)
+                sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if bubbleJump and doubleJumpBoots and not doubleJumped:
                     player_vel_y = jump_power  # Double jump
@@ -1073,7 +1080,6 @@ def level_6(slot: int):
 
         level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
 
-        global timer
         if timer and timer > 0:
             dt = clock.tick(60) / 1000  # Time elapsed per frame in seconds
             timer -= dt  # Decrease timer
