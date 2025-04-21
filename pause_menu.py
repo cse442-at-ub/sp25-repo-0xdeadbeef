@@ -66,9 +66,11 @@ class PauseMenu:
                 if self.resume_rect.collidepoint(pygame.mouse.get_pos()):
                     self.paused = False
                 elif self.exit_rect.collidepoint(pygame.mouse.get_pos()):
+                    pygame.mixer.music.stop()                               # stop level music
+                    pygame.mixer.music.load("Audio/Background2.mp3")        # map/world selector background music 2
+                    pygame.mixer.music.play(-1)                             # loop forever
                     self.paused = False
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
-            #keys = pygame.key.get_pressed()
             if event.type == pygame.K_ESCAPE:
                 self.paused = False

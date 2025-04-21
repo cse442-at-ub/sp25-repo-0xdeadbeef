@@ -73,7 +73,7 @@ boots = pygame.transform.scale(boots, (TILE_SIZE, TILE_SIZE))
 speed_boots = pygame.image.load("./images/speed_boots.png")
 speed_boots = pygame.transform.scale(speed_boots, (TILE_SIZE, TILE_SIZE))
 
-npc_1 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_black pants.png")
+npc_1 = pygame.image.load("./Character Combinations/female ginger hair_white_brown skirt_blue pants.png")
 npc_1 = pygame.transform.scale(npc_1, (TILE_SIZE, TILE_SIZE))
 flipped_npc_1 = pygame.transform.flip(npc_1, True, False)  # Flip horizontally (True), no vertical flip (False)
 
@@ -85,7 +85,7 @@ npc_3 = pygame.image.load("./Character Combinations/ginger hair_white_blue shirt
 npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
 flipped_npc_3 = pygame.transform.flip(npc_3, True, False)  # Flip horizontally (True), no vertical flip (False)
 
-npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_brown pants.png")
+npc_4 = pygame.image.load("./Character Combinations/female ginger hair_white_pink skirt_magenta pants.png")
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  # Flip horizontally (True), no vertical flip (False)
 
@@ -118,6 +118,27 @@ rock = pygame.transform.scale(rock, (TILE_SIZE, TILE_SIZE // 2))
 
 background_tree = pygame.image.load("./images/background_tree.png")
 background_tree = pygame.transform.scale(background_tree, (TILE_SIZE * 1.5, TILE_SIZE * 2))
+
+
+level_almost_complete_popup = pygame.image.load("./images/level_near_completion_pop_up.png")
+level_almost_complete_popup = pygame.transform.scale(level_almost_complete_popup, (250, 60))
+
+
+level_almost_complete_font = pygame.font.Font('PixelifySans.ttf', 10)
+keep_heading_right_font = pygame.font.Font('PixelifySans.ttf', 10)
+level_almost_complete_text = level_almost_complete_font.render("Tutorial Level Almost Complete!", True, (255, 255, 255))
+keep_heading_right_text = keep_heading_right_font.render("Keep Heading Right!", True, (255, 255, 255))
+
+
+
+pop_up_x = WIDTH - (WIDTH * .20)
+pop_up_y = HEIGHT - (HEIGHT * .95)
+
+
+
+level_almost_complete_rect = level_almost_complete_text.get_rect(center=(pop_up_x + 140, pop_up_y + 18))
+keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 140, pop_up_y + 38))
+
 
 
 #-----Gadget inventory images and dictionary
@@ -255,6 +276,7 @@ def show_level_completed_screen(slot: int):
     level_map[SURFACE-1][68] = 0  # Despawn coin
     level_map[SURFACE-2][79:81] = [0] * 2 # Despawn platforms after getting coin
 
+
     respawn_powerups() # Respawn all powerups on the level
 
     update_save(slot, {"Tutorial Checkpoint": 0}) # Set checkpoint to 0
@@ -262,9 +284,10 @@ def show_level_completed_screen(slot: int):
     current_state = get_unlock_state(slot, "map1")
     current_state[1] = True  # Unlock level 1
     update_unlock_state(slot, current_state, "map1")
-
-    show_level_complete(slot, counter_for_coin_increment)
     
+    level_name = "Tutorial"
+
+    show_level_complete(slot, counter_for_coin_increment, level_name, background)
 
 def respawn_powerups():
     level_map[SURFACE][95] = 8 # Super speed powerup
@@ -317,7 +340,7 @@ def tutorial_level(slot: int):
     player_x = checkpoints[checkpoint_idx][0]  # Start x position, change this number to spawn in a different place
     player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
     player_speed = 6 * scale_factor # Adjust player speed according to their resolution
-
+    
     player_vel_y = 0 # Vertical velocity for jumping
     gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
     jump_power = -21 / scale_factor # Jump strength (Bigger negative number means higher jump)
@@ -325,6 +348,13 @@ def tutorial_level(slot: int):
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
     speedBoots = False
+
+
+
+    times_passed_wooden_sign = 0
+    time_before_pop_up_disappears = 0
+
+
 
     if checkpoint_idx == 0:
         level_map[SURFACE][28] = 3 # Double Jump Boots
@@ -623,7 +653,8 @@ def tutorial_level(slot: int):
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         coin_count += 1
                         # global counter_for_coin_increment
-                        counter_for_coin_increment = coin_count
+                        counter_for_coin_increment = 0 
+                        eclipse_increment(slot, 1)
                         level_map[SURFACE-1][68] = 0
                         coin_sound.play() # Play coin pick up sound when contact
                         level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
@@ -697,7 +728,7 @@ def tutorial_level(slot: int):
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))
 
-        
+        # print(player_x)
         #-----Inventory Fill-up logic
 
         screen.blit(inventory, (inventory_x, inventory_y))
@@ -719,7 +750,24 @@ def tutorial_level(slot: int):
             elif (doubleJumpBoots) and (speedBoots) and (double_first == False):
                 screen.blit(inventory_speed_boots, first_slot)
                 screen.blit(inventory_jump_boots, second_slot)
-                
+
+
+        # Pop up near level completion 
+        if (pygame.time.get_ticks() < time_before_pop_up_disappears):
+            screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
+            screen.blit(level_almost_complete_text, level_almost_complete_rect)
+            screen.blit(keep_heading_right_text, keep_heading_right_rect)
+
+
+        if (player_x >= 5208 and times_passed_wooden_sign < 1):
+            times_passed_wooden_sign += 1
+            screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
+            screen.blit(level_almost_complete_text, level_almost_complete_rect)
+            screen.blit(keep_heading_right_text, keep_heading_right_rect)
+            time_before_pop_up_disappears = pygame.time.get_ticks() + 5000
+
+
+
         pygame.display.flip()  # Update display
 
 if __name__ == "__main__":
