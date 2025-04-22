@@ -1,4 +1,5 @@
 import pygame # type: ignore
+import random
 import sys
 import world_select
 from saves_handler import *
@@ -271,6 +272,18 @@ pause_menu = PauseMenu(screen)
 
 level_map[SURFACE-6][56] = 12 # Coin
 level_map[2][196] = 12 # Coin
+
+# Sand storm (dusty mist) particles constants
+SAND_PALETTE = [                                           # warm, earthy hues
+    (210, 190, 145),  # light tan
+    (198, 166, 125),  # ochre
+    (174, 142, 108)   # deeper brown
+]
+STORM_LAYERS = []      # will hold two large scrolling “fog sheets”
+
+SAND_COLOR = (194, 178, 128)
+NUM_SAND_PARTICLES = 300
+sand_particles = []
 
 # Dictionary containing which tile corresponds to what
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: dirt_tile,  4: thorns, 5: water, 6: water_block, 7: flag, 8: sand, 9: flipped_thorn, 10: left_thorn,
@@ -550,6 +563,16 @@ def respawn_npcs():
     level_map[SURFACE][68] = 36        # Second NPC
     level_map[SURFACE-21][124] = 37    # Third NPC
     level_map[SURFACE][194] = 38       # Fourth NPC
+
+    # init sand‑storm particles
+    for _ in range(NUM_SAND_PARTICLES):
+        x = random.randint(0, WIDTH)
+        y = random.randint(0, HEIGHT)
+        size    = random.randint(2, 5)
+        speed   = random.uniform(10, 20)
+        drift   = random.uniform(-5, 5)
+        sand_particles.append([x, y, size, speed, drift])
+
     
 timer = None
 
@@ -578,13 +601,41 @@ def button_despawn():
     for row_index in range(SURFACE-4, GROUND): # Air currently
         level_map[row_index][189] = 3 # Set back to dirt
 
+def init_sandstorm():
+    STORM_LAYERS.clear()
+
+    def make_layer(scale_factor, alpha_min, alpha_max):
+        # small noise surface, then smoothly scale up → soft, blended shapes
+        tiny = pygame.Surface((WIDTH // scale_factor, HEIGHT // scale_factor), pygame.SRCALPHA)
+        for x in range(tiny.get_width()):
+            for y in range(tiny.get_height()):
+                base_col = random.choice(SAND_PALETTE)
+                # subtle shade variation
+                col = (
+                    base_col[0] + random.randint(-8, 8),
+                    base_col[1] + random.randint(-8, 8),
+                    base_col[2] + random.randint(-8, 8),
+                    random.randint(alpha_min, alpha_max)  # per‑pixel alpha
+                )
+                tiny.set_at((x, y), col)
+        # blow it up so tiny specks smear into smoky waves
+        return pygame.transform.smoothscale(tiny, (WIDTH * 2, HEIGHT))
+
+    # two depths → parallax & thickness
+    front  = make_layer(scale_factor=4, alpha_min=60, alpha_max=95)
+    back   = make_layer(scale_factor=6, alpha_min=30, alpha_max=70)
+
+    # store as [surface, x_offset, scroll_speed]
+    STORM_LAYERS.append([back,   0, -1.2])   # slow, distant sheet
+    STORM_LAYERS.append([front,  0, -3.5])   # fast, near sheet
+
 def level_6(slot: int):
 
     respawn_terrain()
     respawn_gadgets()
     respawn_powerups()
-    button_despawn()
     respawn_npcs()
+    init_sandstorm() 
 
     # Stop any previously playing music 
     pygame.mixer.music.stop()
@@ -630,6 +681,7 @@ def level_6(slot: int):
 
     # 8.5 should be standard speed
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
+    player_speed *= 2
     default_speed = player_speed
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
@@ -687,9 +739,32 @@ def level_6(slot: int):
 
         screen.blit(background, (0, 0))
 
-        global timer
+        for layer in STORM_LAYERS:
+            surf, x_off, speed = layer
+            x_off += speed              # move left every frame
+            if x_off <= -WIDTH:         # seamless wrap
+                x_off += WIDTH
+            layer[1] = x_off            # save updated offset
 
-        # Check if player is near the first NPC
+            # Each sheet is 2× screen width → draw twice for wrap
+            screen.blit(surf, (x_off, 0))
+            screen.blit(surf, (x_off + WIDTH * 2, 0))
+
+        # update & draw sand storm
+        for i, (x, y, size, speed, drift) in enumerate(sand_particles):
+            y += speed
+            x += drift
+            if y > HEIGHT:
+                y = 0
+                x = random.randint(0, WIDTH)
+            if x < 0 or x > WIDTH:
+                x = random.randint(0, WIDTH)
+            sand_particles[i] = [x, y, size, speed, drift]
+            pygame.draw.circle(screen, SAND_COLOR, (int(x), int(y)), size)
+
+
+
+                        # Check if player is near the first NPC
         npc_x = calculate_x_coordinate(7)  # First NPC's x position
         npc_y = (SURFACE-4) * TILE_SIZE  # First NPC's y position
         player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
@@ -713,7 +788,7 @@ def level_6(slot: int):
 
         # Check if player is near the third NPC
         npc_x = calculate_x_coordinate(124)  # Third NPC's x position
-        npc_y = (SURFACE-21) * TILE_SIZE  # Third NPC's y position
+        npc_y = (SURFACE-22) * TILE_SIZE  # Third NPC's y position
         player_rect = pygame.Rect(player_x - camera_x, player_y, TILE_SIZE, TILE_SIZE)
         npc_rect = pygame.Rect(npc_x - camera_x, npc_y, TILE_SIZE, TILE_SIZE)
 
@@ -737,12 +812,7 @@ def level_6(slot: int):
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
-            result = pause_menu.handle_event(event, slot)
-            if result == "restart":
-                timer = None
-                update_save(slot, {"Level 6 Checkpoint": 0}) # Set checkpoint to 0
-                level_6(slot)
-                sys.exit()
+            pause_menu.handle_event(event, slot)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if bubbleJump and doubleJumpBoots and not doubleJumped:
                     player_vel_y = jump_power  # Double jump
@@ -1080,6 +1150,7 @@ def level_6(slot: int):
 
         level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
 
+        global timer
         if timer and timer > 0:
             dt = clock.tick(60) / 1000  # Time elapsed per frame in seconds
             timer -= dt  # Decrease timer
@@ -1203,7 +1274,7 @@ def level_6(slot: int):
 
 
 
-        # print(calculate_column(player_x))
+        # print(player_x)
         # Pop up near level completion 
         if (pygame.time.get_ticks() < time_before_pop_up_disappears):
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
@@ -1211,7 +1282,7 @@ def level_6(slot: int):
             screen.blit(keep_heading_right_text, keep_heading_right_rect)
 
 
-        if (calculate_column(player_x) >= 282 and times_passed_wooden_sign < 1):
+        if (player_x >= 10145 and times_passed_wooden_sign < 1):
             times_passed_wooden_sign += 1
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
             screen.blit(level_almost_complete_text, level_almost_complete_rect)
