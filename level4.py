@@ -476,13 +476,13 @@ def show_level_completed_screen(slot: int, death_count: int):
     update_save(slot, {"Level 4 Checkpoint": 0}) # Set checkpoint to 0
     update_save(slot, {"Level 4 Time": 200})
 
-    # current_state = get_unlock_state(slot, "map2")
-    # current_state[5] = True  # Unlock level 5
-    # update_unlock_state(slot, current_state, "map2")
+    current_state = get_unlock_state(slot, "map2")
+    current_state[0] = True  # Unlock level 5 (Map 2 index 0 is equiv Map 2 level 5)
+    update_unlock_state(slot, current_state, "map2")
 
     level_name = "Level Four"
 
-    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name, background)
 
 def show_game_over_screen(slot: int):
 
@@ -703,7 +703,7 @@ def level_4(slot: int):
 
     start_time = load_save(slot).get("Level 4 Time") # Timer resumes from last time they saved
     if not start_time:
-        start_time = 200  # Timer starts at 180 seconds
+        start_time = 200  # Timer starts at 200 seconds
 
     global counter_for_coin_increment
     counter_for_coin_increment = coin_count
@@ -720,7 +720,13 @@ def level_4(slot: int):
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
-            pause_menu.handle_event(event, slot)
+            result = pause_menu.handle_event(event, slot)
+            if result == "restart":
+                timer = None
+                update_save(slot, {"Level 4 Checkpoint": 0}) # Set checkpoint to 0
+                update_save(slot, {"Level 4 Time": 200}) # Set timer back to 200
+                level_4(slot)
+                sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if bubbleJump and doubleJumpBoots and not doubleJumped:
                     player_vel_y = jump_power  # Double jump
@@ -834,6 +840,13 @@ def level_4(slot: int):
         friction = normal_friction if not on_ice else ice_friction
 
         # Handle events
+        keys = pygame.key.get_pressed()
+        moving = False
+        # if keys[pygame.K_w]:
+        #     player_y -= player_speed
+        # if keys[pygame.K_s]:
+        #     player_y += player_speed
+
         keys = pygame.key.get_pressed()
         moving = False
         if keys[pygame.K_d]: # If player presses D
@@ -1263,7 +1276,7 @@ def level_4(slot: int):
         
 
 
-        # print(player_x)
+        # print(calculate_column(player_x))
         # Pop up near level completion 
         if (pygame.time.get_ticks() < time_before_pop_up_disappears):
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
@@ -1271,7 +1284,7 @@ def level_4(slot: int):
             screen.blit(keep_heading_right_text, keep_heading_right_rect)
 
 
-        if (player_x >= 10543 and times_passed_wooden_sign < 1):
+        if (calculate_column(player_x) >= 292 and times_passed_wooden_sign < 1):
             times_passed_wooden_sign += 1
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
             screen.blit(level_almost_complete_text, level_almost_complete_rect)

@@ -289,11 +289,14 @@ def show_level_completed_screen(slot: int, death_count: int):
     update_save(slot, {"Level 5 Checkpoint": 0}) # Set checkpoint to 0
     update_save(slot, {"Level 5 Time": 150}) # Reset the time
 
+    current_state = get_unlock_state(slot, "map2")
+    current_state[1] = True  # Unlock level 6 (Map 2 index 1 is equiv Map 2 level 6)
+    update_unlock_state(slot, current_state, "map2")
 
     level_name = "Level Five"
 
 
-    show_level_complete_deaths(slot, 0, death_count, level_name)
+    show_level_complete_deaths(slot, 0, death_count, level_name, background)
     
 def npc_spawn():
     level_map[SURFACE][6] = 27 # First NPC
@@ -639,7 +642,13 @@ def level_5(slot: int):
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
-            pause_menu.handle_event(event, slot)
+            result = pause_menu.handle_event(event, slot)
+            if result == "restart":
+                timer = None
+                update_save(slot, {"Level 5 Checkpoint": 0}) # Set checkpoint to 0
+                update_save(slot, {"Level 5 Time": 150})
+                level_5(slot)
+                sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if bubbleJump and doubleJumpBoots and not doubleJumped:
                     player_vel_y = jump_power  # Double jump
@@ -998,7 +1007,6 @@ def level_5(slot: int):
                         
                         level_map[row_index][col_index] = 0
                         gadget_sound.play()
-                        collidable_tiles.remove(23)
                         collidable_tiles.remove(33)
                         ironBoots = True
                         player_speed = player_speed / 1.25
@@ -1129,7 +1137,7 @@ def level_5(slot: int):
 
         
         
-        # print(player_x)
+        # print(calculate_column(player_x))
         # Pop up near level completion 
         if (pygame.time.get_ticks() < time_before_pop_up_disappears):
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
@@ -1137,7 +1145,7 @@ def level_5(slot: int):
             screen.blit(keep_heading_right_text, keep_heading_right_rect)
 
 
-        if (player_x >= 9270 and times_passed_wooden_sign < 1):
+        if (calculate_column(player_x) >= 257 and times_passed_wooden_sign < 1):
             times_passed_wooden_sign += 1
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
             screen.blit(level_almost_complete_text, level_almost_complete_rect)

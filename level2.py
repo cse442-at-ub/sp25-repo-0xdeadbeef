@@ -435,7 +435,7 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     level_name = "Level Two"
 
-    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name, background)
 
 
 def show_game_over_screen(slot: int):
@@ -661,7 +661,13 @@ def level_2(slot: int):
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
-            pause_menu.handle_event(event, slot)
+            result = pause_menu.handle_event(event, slot)
+            if result == "restart":
+                timer = None
+                update_save(slot, {"Level 2 Checkpoint": 0}) # Set checkpoint to 0
+                update_save(slot, {"Level 2 Time": 180}) # Set timer back to 180
+                level_2(slot)
+                sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if bubbleJump and doubleJumpBoots and not doubleJumped:
                     player_vel_y = jump_power  # Double jump
@@ -1120,13 +1126,14 @@ def level_2(slot: int):
 
 
         # Pop up near level completion 
+        # print(calculate_column(player_x))
         if (pygame.time.get_ticks() < time_before_pop_up_disappears):
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
             screen.blit(level_almost_complete_text, level_almost_complete_rect)
             screen.blit(keep_heading_right_text, keep_heading_right_rect)
 
 
-        if (player_x >= 10500 and times_passed_wooden_sign < 1):
+        if (calculate_column(player_x) >= 262 and times_passed_wooden_sign < 1):
             times_passed_wooden_sign += 1
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
             screen.blit(level_almost_complete_text, level_almost_complete_rect)
