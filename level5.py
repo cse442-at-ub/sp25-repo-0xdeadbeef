@@ -200,7 +200,7 @@ keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 14
 
 #-----Gadget inventory images and dictionary
 
-inventory = pygame.image.load("./images/inventory_slot_opacity.png").convert_alpha()
+inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
 inventory = pygame.transform.scale(inventory, (250, 70))
 inventory_x = (WIDTH - 250) // 2
 inventory_y = HEIGHT - 100
@@ -731,13 +731,7 @@ def level_5(slot: int):
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
-            result = pause_menu.handle_event(event, slot)
-            if result == "restart":
-                timer = None
-                update_save(slot, {"Level 5 Checkpoint": 0}) # Set checkpoint to 0
-                update_save(slot, {"Level 5 Time": 150})
-                level_5(slot)
-                sys.exit()
+            pause_menu.handle_event(event, slot)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if bubbleJump and doubleJumpBoots and not doubleJumped:
                     player_vel_y = jump_power  # Double jump
@@ -1226,7 +1220,7 @@ def level_5(slot: int):
 
         
         
-        # print(calculate_column(player_x))
+        # print(player_x)
         # Pop up near level completion 
         if (pygame.time.get_ticks() < time_before_pop_up_disappears):
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
@@ -1234,7 +1228,7 @@ def level_5(slot: int):
             screen.blit(keep_heading_right_text, keep_heading_right_rect)
 
 
-        if (calculate_column(player_x) >= 257 and times_passed_wooden_sign < 1):
+        if (player_x >= 9270 and times_passed_wooden_sign < 1):
             times_passed_wooden_sign += 1
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
             screen.blit(level_almost_complete_text, level_almost_complete_rect)
