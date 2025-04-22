@@ -1,19 +1,36 @@
 import pygame   # type: ignore
-import random   # [ADDED] For random snow positions and speeds
+import random   # For random snow positions and speeds
+import settings_menu 
+import save_slots
+import achievement_menu
+import sys
+
+import pygame_widgets                        # type: ignore
+from pygame_widgets.slider import Slider     # type: ignore
+from pygame_widgets.textbox import TextBox   # type: ignore
 
 pygame.init()   # Initialize Pygame
+pygame.mixer.init() # Initialize Pygame Audio Mixer
 
-WIDTH, HEIGHT = 1920, 1080
+# Load and play music ONCE
+# Load and start playing background music. The -1 loop value loops it indefinitely.
+pygame.mixer.music.load("Audio/Background.mp3")
+pygame.mixer.music.play(-1)         # loop forever
+pygame.mixer.music.set_volume(0.2)  # start at 50% volume 
+
+info = pygame.display.Info()
+WIDTH = info.current_w
+HEIGHT = info.current_h
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Main Menu with Hover Effect")
 
 # BLIZZARD SETUP
-num_snowflakes = random.randint(50, 200) # randomly set the number of snowflakes to something between 50 and 2000
+num_snowflakes = random.randint(0, 50) # randomly set the number of snowflakes to something between 50 and 200
 snowflakes = []
 
 def create_blizzard():
-    # Create initial snowflakes at random positions, with random speeds."""
-    for i in range(num_snowflakes):
+    # Create initial snowflakes at random positions, with random speeds.
+    for _ in range(num_snowflakes):
         x = random.randint(0, WIDTH)
         y = random.randint(-HEIGHT, 0)  # start above the screen
         speed_x = random.uniform(-1, 1) # wind: flakes drift left/right
@@ -63,60 +80,75 @@ start_rect = start_normal.get_rect(center=(WIDTH // 2, HEIGHT // 2 - 150))
 settings_rect = settings_normal.get_rect(center=(WIDTH // 2, HEIGHT // 2))
 exit_rect = exit_normal.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 150))
 
-# [ADDED] Initialize snow before main loop
-create_blizzard()
+# Initialize snow before main loop
+def run_main_menu():
+    # Check if any music is currently playing
+    if not pygame.mixer.music.get_busy():
+        # If not, load the "Background.mp3" again
+        pygame.mixer.music.load("Audio/Background.mp3")
+        pygame.mixer.music.play(-1)  # loop forever
 
-running = True
-while running:
-    # Check for events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            # If a button is clicked, print an action
-            if start_rect.collidepoint(event.pos):
-                print("Start Game")
-                # Switch to your game or next screen
-            elif settings_rect.collidepoint(event.pos):
-                print("Settings")
-                # Open settings menu
-            elif exit_rect.collidepoint(event.pos):
-                print("Exit")
+    create_blizzard() # Initialize snow
+
+    running = True
+    while running:
+        # Check for events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
                 running = False
+            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # If a button is clicked, print an action
+                if start_rect.collidepoint(event.pos):
+                    print("Start Game...")
 
-    # Clear screen by drawing background
-    screen.blit(bg, (0, 0))
+                    # Stop main menu loop, call save slot screen
+                    running = False
+                    save_slots.Screen_SaveSlot()
+                elif settings_rect.collidepoint(event.pos):
+                    print("Settings...")
 
-    # [ADDED] Update and draw the blizzard behind the buttons
-    update_and_draw_blizzard()
+                    # Stop main menu loop, call settings menu 
+                    running = False
+                    settings_menu.run_settings_menu()
+                elif exit_rect.collidepoint(event.pos):
+                    print("Exit...")
+                    running = False
 
-    # Get current mouse position
-    mouse_pos = pygame.mouse.get_pos()
+        # Clear screen by drawing background
+        screen.blit(bg, (0, 0))
 
-    # --- Draw Start Button ---
-    if start_rect.collidepoint(mouse_pos):
-        hover_rect = start_hover.get_rect(center=start_rect.center)
-        screen.blit(start_hover, hover_rect)
-    else:
-        screen.blit(start_normal, start_rect)
-    
-    # --- Draw Settings Button ---
-    if settings_rect.collidepoint(mouse_pos):
-        hover_rect = settings_hover.get_rect(center=settings_rect.center)
-        screen.blit(settings_hover, hover_rect)
-    else:
-        screen.blit(settings_normal, settings_rect)
-    
-    # --- Draw Exit Button ---
-    if exit_rect.collidepoint(mouse_pos):
-        hover_rect = exit_hover.get_rect(center=exit_rect.center)
-        screen.blit(exit_hover, hover_rect)
-    else:
-        screen.blit(exit_normal, exit_rect)
+        # Update and draw the blizzard behind the buttons
+        update_and_draw_blizzard()
 
-    # Update the window
-    pygame.display.flip()
+        # Get current mouse position
+        mouse_pos = pygame.mouse.get_pos()
 
-# Quit Pygame properly
-pygame.quit()
+        # --- Draw Start Button ---
+        if start_rect.collidepoint(mouse_pos):
+            hover_rect = start_hover.get_rect(center=start_rect.center)
+            screen.blit(start_hover, hover_rect)
+        else:
+            screen.blit(start_normal, start_rect)
+        
+        # --- Draw Settings Button ---
+        if settings_rect.collidepoint(mouse_pos):
+            hover_rect = settings_hover.get_rect(center=settings_rect.center)
+            screen.blit(settings_hover, hover_rect)
+        else:
+            screen.blit(settings_normal, settings_rect)
+        
+        # --- Draw Exit Button ---
+        if exit_rect.collidepoint(mouse_pos):
+            hover_rect = exit_hover.get_rect(center=exit_rect.center)
+            screen.blit(exit_hover, hover_rect)
+        else:
+            screen.blit(exit_normal, exit_rect)
+
+        # Update the window
+        pygame.display.flip()
+      
+# Start the main menu
+if __name__ == "__main__":
+    run_main_menu()
+    pygame.quit()  # Quit Pygame   
