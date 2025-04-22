@@ -1,4 +1,5 @@
 import pygame # type: ignore
+import random
 import sys
 import world_select
 from saves_handler import *
@@ -199,7 +200,7 @@ keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 14
 
 #-----Gadget inventory images and dictionary
 
-inventory = pygame.image.load("./images/inventory_slot_opacity.png").convert_alpha()
+inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
 inventory = pygame.transform.scale(inventory, (250, 70))
 inventory_x = (WIDTH - 250) // 2
 inventory_y = HEIGHT - 100
@@ -247,6 +248,18 @@ pause_menu = PauseMenu(screen)
 
 level_map[5][13] = 12  # Coin
 level_map[6][133] = 12 # Coin
+
+# Sand storm (dusty mist) particles constants
+SAND_PALETTE = [                                           # warm, earthy hues
+    (210, 190, 145),  # light tan
+    (198, 166, 125),  # ochre
+    (174, 142, 108)   # deeper brown
+]
+STORM_LAYERS = []      # will hold two large scrolling “fog sheets”
+
+SAND_COLOR = (194, 178, 128)   # light‑brown sand
+NUM_SAND_PARTICLES = 350       # tweak for more / fewer grains
+sand_particles = []            # will be filled in spawn_sandstorm()
 
 # Dictionary containing which tile corresponds to what
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: dirt_tile,  4: thorns, 5: water, 6: water_block, 7: flag, 8: sand, 9: flipped_thorn, 10: left_thorn,
@@ -303,6 +316,16 @@ def npc_spawn():
     level_map[SURFACE][54] = 28 # Second NPC
     level_map[SURFACE][84] = 29 # Third NPC
     level_map[SURFACE][243] = 30 # Fourth NPC
+
+    # init sand storm particles
+    for _ in range(NUM_SAND_PARTICLES):
+        x = random.randint(0, WIDTH)
+        y = random.randint(0, HEIGHT)
+        size    = random.randint(2, 5)
+        speed   = random.uniform(10, 20)
+        drift   = random.uniform(-5, 5)
+        sand_particles.append([x, y, size, speed, drift])
+
 
 def show_game_over_screen(slot: int):
 
@@ -526,12 +549,53 @@ def respawn_powerups():
     level_map[SURFACE-5][232] = 22 # Jump Reset
     level_map[SURFACE-1][232] = 22 # Jump Reset
 
+def init_sandstorm():
+    STORM_LAYERS.clear()
+
+    def make_layer(scale_factor, alpha_min, alpha_max):
+        # small noise surface, then smoothly scale up → soft, blended shapes
+        tiny = pygame.Surface((WIDTH // scale_factor, HEIGHT // scale_factor), pygame.SRCALPHA)
+        for x in range(tiny.get_width()):
+            for y in range(tiny.get_height()):
+                base_col = random.choice(SAND_PALETTE)
+                # subtle shade variation
+                col = (
+                    base_col[0] + random.randint(-8, 8),
+                    base_col[1] + random.randint(-8, 8),
+                    base_col[2] + random.randint(-8, 8),
+                    random.randint(alpha_min, alpha_max)  # per‑pixel alpha
+                )
+                tiny.set_at((x, y), col)
+        # blow it up so tiny specks smear into smoky waves
+        return pygame.transform.smoothscale(tiny, (WIDTH * 2, HEIGHT))
+
+    # two depths → parallax & thickness
+    front  = make_layer(scale_factor=4, alpha_min=60, alpha_max=95)
+    back   = make_layer(scale_factor=6, alpha_min=30, alpha_max=70)
+
+    # store as [surface, x_offset, scroll_speed]
+    STORM_LAYERS.append([back,   0, -1.2])   # slow, distant sheet
+    STORM_LAYERS.append([front,  0, -3.5])   # fast, near sheet
+
+def spawn_sandstorm():
+    sand_particles.clear()
+    for _ in range(NUM_SAND_PARTICLES):
+        x = random.randint(0, WIDTH)
+        y = random.randint(0, HEIGHT)
+        size = random.randint(2, 5)
+        # strong leftward push, light vertical wobble
+        x_vel = random.uniform(-120, -60) / 60     # px per frame
+        y_vel = random.uniform(-20, 20)   / 60
+        sand_particles.append([x, y, size, x_vel, y_vel])
+
 def level_5(slot: int):
 
     respawn_terrain()
     respawn_gadgets()
     respawn_powerups()
     npc_spawn()
+    spawn_sandstorm()
+    init_sandstorm() 
 
     # Stop any previously playing music 
     pygame.mixer.music.stop()
@@ -638,17 +702,36 @@ def level_5(slot: int):
 
         screen.blit(background, (0, 0))
 
+
+        for layer in STORM_LAYERS:
+            surf, x_off, speed = layer
+            x_off += speed              # move left every frame
+            if x_off <= -WIDTH:         # seamless wrap
+                x_off += WIDTH
+            layer[1] = x_off            # save updated offset
+
+            # Each sheet is 2× screen width → draw twice for wrap
+            screen.blit(surf, (x_off, 0))
+            screen.blit(surf, (x_off + WIDTH * 2, 0))
+
+        # update & draw sand storm
+        for p in sand_particles:
+            p[0] += p[3]          # x += x_vel
+            p[1] += p[4]          # y += y_vel
+            # wrap around screen edges to keep storm continuous
+            if p[0] < 0:
+                p[0] = WIDTH
+                p[1] = random.randint(0, HEIGHT)
+            if p[1] < 0 or p[1] > HEIGHT:
+                p[1] = random.randint(0, HEIGHT)
+            pygame.draw.circle(screen, SAND_COLOR, (int(p[0]), int(p[1])), p[2])
+
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
-            result = pause_menu.handle_event(event, slot)
-            if result == "restart":
-                timer = None
-                update_save(slot, {"Level 5 Checkpoint": 0}) # Set checkpoint to 0
-                update_save(slot, {"Level 5 Time": 150})
-                level_5(slot)
-                sys.exit()
+            pause_menu.handle_event(event, slot)
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if bubbleJump and doubleJumpBoots and not doubleJumped:
                     player_vel_y = jump_power  # Double jump
@@ -1137,7 +1220,7 @@ def level_5(slot: int):
 
         
         
-        # print(calculate_column(player_x))
+        # print(player_x)
         # Pop up near level completion 
         if (pygame.time.get_ticks() < time_before_pop_up_disappears):
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
@@ -1145,7 +1228,7 @@ def level_5(slot: int):
             screen.blit(keep_heading_right_text, keep_heading_right_rect)
 
 
-        if (calculate_column(player_x) >= 257 and times_passed_wooden_sign < 1):
+        if (player_x >= 9270 and times_passed_wooden_sign < 1):
             times_passed_wooden_sign += 1
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
             screen.blit(level_almost_complete_text, level_almost_complete_rect)
