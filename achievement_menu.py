@@ -37,6 +37,13 @@ text_positions = [
     for pos in icon_positions]
 
 
+
+
+level_labels = ["T", "1", "2", "3", "4", "5", "6"]
+
+
+
+
 # Load and resize yellow circle
 yellow_circle = pygame.transform.scale(pygame.image.load("Assets/Achievement Menu/yellow_circle.png"), (140, 140))
 yellow_icon_position = (WIDTH // 2 - 825, 700)
@@ -176,7 +183,7 @@ def run_achievements_menu():
         # Draw achievement icons with numbers
         for i, (icon, pos) in enumerate(zip(icons, icon_positions)):
             screen.blit(icon, pos)
-            draw_text(str(i + 1), (pos[0] + 109, pos[1] + 30))
+            draw_text(level_labels[i], (pos[0] + 109, pos[1] + 30))
 
         # Draw yellow circle and its counter
         screen.blit(yellow_circle, yellow_icon_position)
