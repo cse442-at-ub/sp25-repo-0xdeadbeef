@@ -77,29 +77,52 @@ class TransparentButton:
 back_button = TransparentButton("Back", "Assets/Save Slot Menu/PixelifySans.ttf", WIDTH // 2, HEIGHT - 100)
 
 def draw_save_slot_stats(save_data, slot_number, start_y):
-    # Draw save slot title
+    # Calculate proportional positions based on screen height
+    slot_height = HEIGHT // 3  # Each slot takes 1/3 of the screen
+    title_y = start_y + (slot_height * 0.15)  # Title at 15% of slot height
+    stats_start_y = start_y + (slot_height * 0.3)  # Stats start at 30% of slot height
+    line_spacing = slot_height * 0.15  # Spacing between stat lines
+
+    # Draw save slot title (centered horizontally)
     title = render_text_with_outline(f"Save Slot {slot_number}", title_font, (255, 255, 255), (0, 0, 0), 2)
-    title_rect = title.get_rect(center=(WIDTH // 2, start_y + 50))  # Keep title position the same
+    title_rect = title.get_rect(center=(WIDTH // 2, title_y))
     screen.blit(title, title_rect)
 
-    # Draw statistics
+    # Calculate statistics (unchanged)
+    total_deaths = sum(
+        int(value) for key, value in save_data.items() 
+        if key.startswith("Level ") and key.endswith(" Deaths") and not key.startswith("Level 0 ")
+    )
+    
+    completed_levels = 0
+    for key in save_data:
+        if key.endswith("_unlocks") and isinstance(save_data[key], list):
+            completed_levels += sum(1 for level in save_data[key][1:] if level)
+    
     stats = [
-        ("Deaths:", save_data.get("total_deaths", 0)),
+        ("Total Deaths:", total_deaths),
         ("Yellow Eclipses:", save_data.get("Eclipse", 0)),
-        ("Levels Completed:", len(save_data.get("map1_unlocks", [])))
+        ("Levels Completed:", max(0, completed_levels))  # Simplified negative check
     ]
 
+    # Calculate dynamic horizontal positions
+    label_x = WIDTH // 3
+    value_x = WIDTH * 2 // 3
+
     for i, (label, value) in enumerate(stats):
-        # Draw label
+        current_y = stats_start_y + i * line_spacing
+        
+        # Draw label (right-aligned to label_x)
         label_text = render_text_with_outline(label, stat_font, (255, 255, 255), (0, 0, 0), 2)
-        label_rect = label_text.get_rect(center=(WIDTH // 2 - 200, start_y + 150 + i * 80))  # Reduced spacing from 120 to 80
+        label_rect = label_text.get_rect(midright=(label_x, current_y))
         screen.blit(label_text, label_rect)
         
-        # Draw value
+        # Draw value (left-aligned to value_x)
         value_text = render_text_with_outline(str(value), stat_font, (255, 118, 33), (0, 0, 0), 2)
-        value_rect = value_text.get_rect(center=(WIDTH // 2 + 200, start_y + 150 + i * 80))  # Reduced spacing from 120 to 80
+        value_rect = value_text.get_rect(midleft=(value_x, current_y))
         screen.blit(value_text, value_rect)
 
+        
 def run_statistics_menu():
     # Check if any music is currently playing
     if not pygame.mixer.music.get_busy():
