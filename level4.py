@@ -291,7 +291,7 @@ def spawn_terrain():
     level_map[SURFACE-18][37:70] = [6] * 33
     for row_index in range(SURFACE-17, SURFACE-8): # Upside Down Dirt
         level_map[row_index][69] = 9
-    for row_index in range(SURFACE-3, GROUND): # Raised Ground
+    for row_index in range(SURFACE-3, GROUND+1): # Raised Ground
         level_map[row_index][69] = 1
     level_map[SURFACE-18][20:24] = [21] * 4 # Ice
     level_map[SURFACE-17][20:24] = [22] * 4 # Flipped ice
@@ -1046,7 +1046,7 @@ def level_4(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
-                        player_vel_y = -50
+                        player_vel_y = -40 * scale_factor
                         spring_sound.play()
                         
 

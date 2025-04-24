@@ -896,7 +896,7 @@ def level_3(slot: int):
                         dash_duration = dash_pickup_time + 800
                         dashing = True
                         level_map[row_index][col_index] = 0 
-                        player_speed = player_speed * 3
+                        player_speed = player_speed * 3 * scale_factor
                         direction = 1
                         if player_speed < 0:
                             player_speed *= -1
@@ -947,7 +947,7 @@ def level_3(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0 
-                        player_vel_y = -30
+                        player_vel_y = -30 * scale_factor
                         dash_sound.play()
                         up_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
 

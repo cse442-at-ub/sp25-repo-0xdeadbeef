@@ -681,7 +681,6 @@ def level_6(slot: int):
 
     # 8.5 should be standard speed
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
-    player_speed *= 2
     default_speed = player_speed
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
@@ -738,6 +737,8 @@ def level_6(slot: int):
         #print(f"Column: {calculate_column(player_x)}")
 
         screen.blit(background, (0, 0))
+
+        global timer
 
         for layer in STORM_LAYERS:
             surf, x_off, speed = layer
@@ -812,7 +813,12 @@ def level_6(slot: int):
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
-            pause_menu.handle_event(event, slot)
+            result = pause_menu.handle_event(event, slot)
+            if result == "restart":
+                timer = None
+                update_save(slot, {"Level 6 Checkpoint": 0}) # Set checkpoint to 0
+                level_6(slot)
+                sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if bubbleJump and doubleJumpBoots and not doubleJumped:
                     player_vel_y = jump_power  # Double jump
@@ -1150,7 +1156,6 @@ def level_6(slot: int):
 
         level_name_font = pygame.font.Font('PixelifySans.ttf', 48)  # Larger font for level name
 
-        global timer
         if timer and timer > 0:
             dt = clock.tick(60) / 1000  # Time elapsed per frame in seconds
             timer -= dt  # Decrease timer
@@ -1240,7 +1245,6 @@ def level_6(slot: int):
 
         # This creates the dashing affect on the player
         if dashed:
-            # print("Player speed: " + str(player_speed))
             if (current_time >= dash_duration) and (dash_duration != 0):
                 player_speed = 8.5 * scale_factor
                 dashed = False
