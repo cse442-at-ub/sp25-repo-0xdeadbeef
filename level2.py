@@ -419,7 +419,7 @@ def show_level_completed_screen(slot: int, death_count: int):
     level_map[SURFACE-5][178] = 3 # Double Jump Boots
     level_map[SURFACE-11][208] = 11 # Super Speed Boots
 
-
+    respawn_gadgets() # Respawn all gadgets on the level
     respawn_powerups() # Respawn all powerups on the level
 
     update_save(slot, {"Level 2 Checkpoint": 0}) # Set checkpoint to 0
@@ -444,6 +444,7 @@ def show_game_over_screen(slot: int):
     level_map[SURFACE-18][1] = 12 # Respawn Coin
     level_map[10][135] = 12 # Respawn Coin
 
+    respawn_gadgets() # Respawn all gadgets on the level
     respawn_powerups() # Respawn all powerups on the level
 
     update_save(slot, {"Level 2 Checkpoint": 0}) # Set checkpoint to 0
@@ -513,6 +514,12 @@ def show_game_over_screen(slot: int):
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
 
+def respawn_gadgets():
+    level_map[SURFACE-8][62] = 3 # Double Jump Boots
+    level_map[SURFACE-14][63] = 11 # Speed Boots
+    level_map[SURFACE-5][178] = 3 # Double Jump Boots
+    level_map[SURFACE-11][208] = 11 # Super Speed Boots
+
 def respawn_powerups():
     level_map[SURFACE-2][12] = 20 # Jump Reset
     level_map[SURFACE-5][23] = 13 # Super Speed Powerup
@@ -529,7 +536,8 @@ pause_menu = PauseMenu(screen)
 
 # Function to run the tutorial level
 def level_2(slot: int):
-    
+
+    respawn_gadgets() # Respawn all gadgets on the level
     respawn_powerups() # Respawn all powerups on the level
 
     # Stop any previously playing music 
@@ -595,6 +603,7 @@ def level_2(slot: int):
         level_map[SURFACE-8][62] = 3 # Double Jump Boots
     elif checkpoint_idx == 1:
         doubleJumpBoots = True
+        level_map[SURFACE-8][62] = 0 # Remove Double Jump Boots from the screen
         level_map[SURFACE-14][63] = 11 # Speed Boots
     elif checkpoint_idx == 2:
         level_map[SURFACE-5][178] = 3 # Double Jump Boots
