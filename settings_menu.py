@@ -3,10 +3,11 @@ import random   # For random snow positions and speeds
 import main_menu 
 import achievement_menu
 import save_slots
+import statistics_menu  # Add this import at the top
 
-import pygame_widgets 
-from pygame_widgets.slider import Slider
-from pygame_widgets.textbox import TextBox 
+import pygame_widgets  # type: ignore
+from pygame_widgets.slider import Slider # type: ignore
+from pygame_widgets.textbox import TextBox  # type: ignore
 
 pygame.init()   # Initialize Pygame
 pygame.mixer.init() # Initialize Pygame Audio Mixer
@@ -47,7 +48,7 @@ def update_and_draw_blizzard():
 settings_bg = pygame.image.load("Assets/Settings Menu/SettingsMenuBackground.png").convert_alpha()
 settings_bg = pygame.transform.scale(settings_bg, (WIDTH, HEIGHT))
 
-# Images that are “text only” (not buttons)
+# Images that are "text only" (not buttons)
 movement_img = pygame.image.load("Assets/Settings Menu/MovementSettings.png").convert_alpha()
 audio_img = pygame.image.load("Assets/Settings Menu/AudioSettings.png").convert_alpha()
 
@@ -63,7 +64,13 @@ audio_rect = audio_img.get_rect(center=(WIDTH // 2.25, 400))     # a bit lower
 achievements_normal = pygame.image.load("Assets/Settings Menu/AchievementsButton.png").convert_alpha()
 achievements_hover = pygame.transform.scale(achievements_normal, (int(achievements_normal.get_width()*1.1),
                                                                   int(achievements_normal.get_height()*1.1)))
-achievements_rect = achievements_normal.get_rect(center=(WIDTH // 2, 600))
+achievements_rect = achievements_normal.get_rect(center=(WIDTH // 2 - 200, 600))  # Moved left to make room for Statistics
+
+# Statistics button (hoverable)
+statistics_normal = pygame.image.load("Assets/Settings Menu/StatisticsButton.png").convert_alpha()
+statistics_hover = pygame.transform.scale(statistics_normal, (int(statistics_normal.get_width()*1.1),
+                                                             int(statistics_normal.get_height()*1.1)))
+statistics_rect = statistics_normal.get_rect(center=(WIDTH // 2 + 200, 600))  # Positioned to the right of Achievements
 
 # Back button (hoverable)
 back_normal = pygame.image.load("Assets/Settings Menu/BackButton.png").convert_alpha()
@@ -109,7 +116,10 @@ def run_settings_menu():
                     print("Achievements clicked. Going to achievements...")
                     running = False
                     achievement_menu.run_achievements_menu() # Go to achievements menu
-
+                elif statistics_rect.collidepoint(event.pos):
+                    print("Statistics clicked. Going to statistics...")
+                    running = False
+                    statistics_menu.run_statistics_menu() # Go to statistics menu
                 elif back_rect.collidepoint(event.pos):
                     print("Back clicked. Going to main menu...")
                     running = False
@@ -121,7 +131,7 @@ def run_settings_menu():
         # Draw the blizzard behind everything
         update_and_draw_blizzard()
 
-        # Draw the “MovementSettings” and “AudioSettings” images (not buttons)
+        # Draw the "MovementSettings" and "AudioSettings" images (not buttons)
         screen.blit(movement_img, movement_rect)
         screen.blit(audio_img, audio_rect)
 
@@ -132,6 +142,13 @@ def run_settings_menu():
             screen.blit(achievements_hover, hover_rect)
         else:
             screen.blit(achievements_normal, achievements_rect)
+
+        # Check if mouse is over Statistics
+        if statistics_rect.collidepoint(mouse_pos):
+            hover_rect = statistics_hover.get_rect(center=statistics_rect.center)
+            screen.blit(statistics_hover, hover_rect)
+        else:
+            screen.blit(statistics_normal, statistics_rect)
 
         # Check if mouse is over Back
         if back_rect.collidepoint(mouse_pos):

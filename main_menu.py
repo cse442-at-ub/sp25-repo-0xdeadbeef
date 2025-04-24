@@ -60,11 +60,13 @@ bg = pygame.transform.scale(bg, (WIDTH, HEIGHT))
 
 # --- Load button images ---
 # Normal images
+title_normal = pygame.image.load("Assets/Main Menu/GameTitle.png").convert_alpha()
 start_normal = pygame.image.load("Assets/Main Menu/StartGameButton.png").convert_alpha()
 settings_normal = pygame.image.load("Assets/Main Menu/SettingsButton.png").convert_alpha()
 exit_normal = pygame.image.load("Assets/Main Menu/ExitButton.png").convert_alpha()
 
 # Scale normal size (wider and taller for a more relaxed look)
+title_normal = pygame.transform.scale(title_normal, (550, 70))
 start_normal = pygame.transform.scale(start_normal, (450, 120))
 settings_normal = pygame.transform.scale(settings_normal, (450, 120))
 exit_normal = pygame.transform.scale(exit_normal, (250, 120))
@@ -73,6 +75,8 @@ exit_normal = pygame.transform.scale(exit_normal, (250, 120))
 start_hover = pygame.transform.scale(start_normal, (550, 130))
 settings_hover = pygame.transform.scale(settings_normal, (550, 130))
 exit_hover = pygame.transform.scale(exit_normal, (350, 130))
+
+
 
 # --- Define button positions ---
 # We'll center them and space them vertically
@@ -120,6 +124,10 @@ def run_main_menu():
 
         # Update and draw the blizzard behind the buttons
         update_and_draw_blizzard()
+
+        # Draw Game Title at top center
+        title_rect = title_normal.get_rect(midtop=(WIDTH//2, 40))
+        screen.blit(title_normal, title_rect)
 
         # Get current mouse position
         mouse_pos = pygame.mouse.get_pos()

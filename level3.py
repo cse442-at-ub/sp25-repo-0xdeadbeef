@@ -25,7 +25,6 @@ pygame.mixer.init() # Initialize Pygame Audio Mixer
 
 counter_for_coin_increment = 0
 
-
 # Load the level complete sound 
 level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
 
@@ -185,7 +184,7 @@ keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 14
 
 #-----Gadget inventory images and dictionary
 
-inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.image.load("./images/inventory_slot_opacity.png").convert_alpha()
 inventory = pygame.transform.scale(inventory, (250, 70))
 inventory_x = (WIDTH - 250) // 2
 inventory_y = HEIGHT - 100
@@ -474,7 +473,7 @@ def show_level_completed_screen(slot: int, death_count: int):
 
 
     # Change this 0 for coin increment code
-    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name, background)
 
 def respawn_powerups():
     row = SURFACE - 3
@@ -621,7 +620,11 @@ def level_3(slot: int):
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
-            pause_menu.handle_event(event, slot)
+            result = pause_menu.handle_event(event, slot)
+            if result == "restart":
+                update_save(slot, {"Level 3 Checkpoint": 0}) # Set checkpoint to 0
+                level_3(slot)
+                sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if bubbleJump and doubleJumpBoots and not doubleJumped:
                     player_vel_y = jump_power  # Double jump
@@ -1067,7 +1070,7 @@ def level_3(slot: int):
 
 
 
-        # print(player_x)
+        # print(calculate_column(player_x))
         # Pop up near level completion 
         if (pygame.time.get_ticks() < time_before_pop_up_disappears):
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
@@ -1075,7 +1078,7 @@ def level_3(slot: int):
             screen.blit(keep_heading_right_text, keep_heading_right_rect)
 
 
-        if (player_x >= 8289 and times_passed_wooden_sign < 1):
+        if (calculate_column(player_x) >= 229 and times_passed_wooden_sign < 1):
             times_passed_wooden_sign += 1
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
             screen.blit(level_almost_complete_text, level_almost_complete_rect)

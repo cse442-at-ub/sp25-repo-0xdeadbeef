@@ -136,8 +136,8 @@ current_level_images = [
     pygame.image.load("Accessories/snow_level_four_button.png"), # level 4 for snow map
 
     pygame.image.load("Accessories/current_desert_level_button.png"), # replace this later with level 5 and 6 for desert map commented directly below
-    # pygame.image.load("Accessories/desert_level_five_button.png"),
-    # pygame.image.load("Accessories/desert_level_six_button.png"),
+    pygame.image.load("Accessories/desert_level_five_button.png"),
+    pygame.image.load("Accessories/desert_level_six_button.png"),
 
     # Add more as needed
 ]
@@ -147,7 +147,7 @@ current_level_images = [pygame.transform.scale(img, (40, 40)) for img in current
 locked_level_image = pygame.transform.scale(locked_level_image, (40, 40))
 
 mini_squares = [
-    [  # Map 1
+    [  # Map 1 - Snow
         {"pos": (WIDTH // 2 - 140, HEIGHT // 2 + 70), "image": current_level_images[0]}, # Tutorial Level
         {"pos": (WIDTH // 2 - 150, HEIGHT // 2 - 80), "image": current_level_images[1]}, # Level 1
         {"pos": (WIDTH // 2 + 10, HEIGHT // 2 - 20), "image": current_level_images[2]}, # Level 2
@@ -156,9 +156,9 @@ mini_squares = [
         # {"pos": (WIDTH // 2 + 157, HEIGHT // 2 - 35), "image": unlocked_level_image},
         # {"pos": (WIDTH // 2 + 110, HEIGHT // 2 + 150), "image": locked_level_image},
     ],
-    [  # Map 2
-        {"pos": (WIDTH // 2 - 250, HEIGHT // 2 - 20), "image": current_level_images[5]},
-        {"pos": (WIDTH // 2 - 30, HEIGHT // 2 - 40), "image": current_level_images[5]},
+    [  # Map 2 - Desert
+        {"pos": (WIDTH // 2 - 250, HEIGHT // 2 - 20), "image": current_level_images[6]}, # level 5 
+        {"pos": (WIDTH // 2 - 30, HEIGHT // 2 - 40), "image": current_level_images[7]}, # level 6
         {"pos": (WIDTH // 2 - 200, HEIGHT // 2 - 180), "image": unlocked_level_image},
         {"pos": (WIDTH // 2 + 110, HEIGHT // 2 + 40), "image": unlocked_level_image},
         {"pos": (WIDTH // 2 - 20, HEIGHT // 2 + 140), "image": locked_level_image},
@@ -174,6 +174,7 @@ def World_Selector(slot: int):
         pygame.mixer.music.play(-1)  # loop forever
 
     level_unlocks_map1 = get_unlock_state(slot, "map1")
+    level_unlocks_map2 = get_unlock_state(slot, "map2")
     current_level = 0
     num_levels = len(background_images)
     running = True
@@ -207,7 +208,7 @@ def World_Selector(slot: int):
                             rect = square["image"].get_rect(topleft=square["pos"])
                             if rect.collidepoint(event.pos):
                                 if not level_unlocks_map1[idx]:
-                                    print("Level is locked!")
+                                    print("Snow Level is locked!")
                                 else:
                                     # Depending on which mini square was clicked, navigate to the appropriate level.
                                     if idx == 0:
@@ -240,16 +241,30 @@ def World_Selector(slot: int):
                         for idx, square in enumerate(mini_squares[current_level]):
                             rect = square["image"].get_rect(topleft=square["pos"])
                             if rect.collidepoint(event.pos):
-                                if idx == 0:  # Desert level 5 button is at index 0 in Map 2
-                                    print("Desert level button clicked. Going to Level 5...")
-                                    running = False
-                                    level5.level_5(slot)
-                                    sys.exit()
-                                if idx == 1:  # Desert level 6 button is at index 1 in Map 2
-                                    print("Desert level button clicked. Going to Level 6...")
-                                    running = False
-                                    level6.level_6(slot)
-                                    sys.exit()
+                                if not level_unlocks_map2[idx]:
+                                    print("Desert level is locked!")
+                                else:
+                                    if idx == 0:    # level 5 button in Map 2
+                                        print("Level 5 button clicked. Going to desert level 5...")
+                                        running = False
+                                        level5.level_5(slot) # Call the level 5 function
+                                        sys.exit()
+                                    elif idx == 1:  # level 5 button in Map 2
+                                        print("Level 6 button clicked. Going to desert level 6...")
+                                        running = False
+                                        level6.level_6(slot) # Call the level 6 function
+                                        sys.exit()
+                                
+                                # if idx == 0:  # Desert level 5 button is at index 0 in Map 2
+                                #     print("Desert level button clicked. Going to Level 5...")
+                                #     running = False
+                                #     level5.level_5(slot)
+                                #     sys.exit()
+                                # if idx == 1:  # Desert level 6 button is at index 1 in Map 2
+                                #     print("Desert level button clicked. Going to Level 6...")
+                                #     running = False
+                                #     level6.level_6(slot)
+                                #     sys.exit()
 
                         
             elif event.type == pygame.KEYDOWN:
@@ -287,6 +302,8 @@ def World_Selector(slot: int):
             # If we are on Map 1 and this level is locked, draw the locked level image
             if current_level == 0 and not level_unlocks_map1[idx]:
                 # Draw locked level image instead of the regular image if level is locked
+                screen.blit(locked_level_image, square["pos"])
+            elif current_level == 1 and not level_unlocks_map2[idx]:
                 screen.blit(locked_level_image, square["pos"])
             else:
                 # Apply hover effect to mini square
