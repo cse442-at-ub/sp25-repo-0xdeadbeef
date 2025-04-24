@@ -150,9 +150,35 @@ npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_b
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  
 
+
+
+
+level_almost_complete_popup = pygame.image.load("./images/level_near_completion_pop_up.png")
+level_almost_complete_popup = pygame.transform.scale(level_almost_complete_popup, (250, 60))
+
+
+level_almost_complete_font = pygame.font.Font('PixelifySans.ttf', 10)
+keep_heading_right_font = pygame.font.Font('PixelifySans.ttf', 10)
+level_almost_complete_text = level_almost_complete_font.render("Level 2 Almost Complete!", True, (255, 255, 255))
+keep_heading_right_text = keep_heading_right_font.render("Keep Heading Right!", True, (255, 255, 255))
+
+
+
+pop_up_x = WIDTH - (WIDTH * .20)
+pop_up_y = HEIGHT - (HEIGHT * .95)
+
+
+
+level_almost_complete_rect = level_almost_complete_text.get_rect(center=(pop_up_x + 140, pop_up_y + 18))
+keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 140, pop_up_y + 38))
+
+
+
+
+
 #-----Gadget inventory images and dictionary
 
-inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.image.load("./images/inventory_slot_opacity.png").convert_alpha()
 inventory = pygame.transform.scale(inventory, (250, 70))
 inventory_x = (WIDTH - 250) // 2
 inventory_y = HEIGHT - 100
@@ -409,7 +435,7 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     level_name = "Level Two"
 
-    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
+    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name, background)
 
 
 def show_game_over_screen(slot: int):
@@ -561,6 +587,13 @@ def level_2(slot: int):
     doubleJumped = False # Track if player double jumped already
     speedBoots = False
 
+
+
+    times_passed_wooden_sign = 0
+    time_before_pop_up_disappears = 0
+
+
+
     if checkpoint_idx == 0:
         level_map[SURFACE-8][62] = 3 # Double Jump Boots
     elif checkpoint_idx == 1:
@@ -628,7 +661,13 @@ def level_2(slot: int):
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
-            pause_menu.handle_event(event, slot)
+            result = pause_menu.handle_event(event, slot)
+            if result == "restart":
+                timer = None
+                update_save(slot, {"Level 2 Checkpoint": 0}) # Set checkpoint to 0
+                update_save(slot, {"Level 2 Time": 180}) # Set timer back to 180
+                level_2(slot)
+                sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if bubbleJump and doubleJumpBoots and not doubleJumped:
                     player_vel_y = jump_power  # Double jump
@@ -1083,6 +1122,25 @@ def level_2(slot: int):
             elif (doubleJumpBoots) and (speedBoots) and (double_first == False):
                 screen.blit(inventory_speed_boots, first_slot)
                 screen.blit(inventory_jump_boots, second_slot)
+
+
+
+        # Pop up near level completion 
+        # print(calculate_column(player_x))
+        if (pygame.time.get_ticks() < time_before_pop_up_disappears):
+            screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
+            screen.blit(level_almost_complete_text, level_almost_complete_rect)
+            screen.blit(keep_heading_right_text, keep_heading_right_rect)
+
+
+        if (calculate_column(player_x) >= 262 and times_passed_wooden_sign < 1):
+            times_passed_wooden_sign += 1
+            screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
+            screen.blit(level_almost_complete_text, level_almost_complete_rect)
+            screen.blit(keep_heading_right_text, keep_heading_right_rect)
+            time_before_pop_up_disappears = pygame.time.get_ticks() + 5000
+
+
 
 
 

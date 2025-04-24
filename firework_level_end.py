@@ -26,9 +26,6 @@ scale_factor = HEIGHT / BASE_HEIGHT
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Level 3")
 
-background = pygame.image.load("./images/background.png")
-background = pygame.transform.scale(background, (WIDTH, HEIGHT))  # Scale to screen size
-
 # Firework class
 class Firework:
     def __init__(self):
@@ -78,7 +75,7 @@ LIGHT_BLUE = (173, 216, 230)  # Light blue color
 WHITE = (255, 255, 255)
 BLUE = (0, 0, 255)
 
-def show_level_complete(slot: int, coin: int, level_name):
+def show_level_complete(slot: int, coin: int, level_name, background):
     global fireworks
     # Stop tutorial music
     pygame.mixer.music.stop()
@@ -138,7 +135,7 @@ def show_level_complete(slot: int, coin: int, level_name):
                     world_select.World_Selector(slot)
                     sys.exit()
 
-def show_level_complete_deaths(slot: int, coin: int, death_counter: int, level_name):
+def show_level_complete_deaths(slot: int, coin: int, death_counter: int, level_name, background):
     global fireworks
     # Stop tutorial music
     pygame.mixer.music.stop()
@@ -210,7 +207,7 @@ def show_level_complete_deaths(slot: int, coin: int, death_counter: int, level_n
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
-                    # level_name = "Level One"
+                    print(level_name)
                     achievement_counter(slot, level_name)
                     eclipse_increment(slot, coin)
                     world_select.World_Selector(slot)
