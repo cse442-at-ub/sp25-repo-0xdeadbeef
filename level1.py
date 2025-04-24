@@ -870,7 +870,7 @@ def level_1(slot: int):
                         dash_pickup_time = pygame.time.get_ticks()
                         dash_respawn_time = dash_pickup_time + 5000
                         level_map[SURFACE-2][113] = 0 
-                        player_speed = player_speed * 2
+                        player_speed = player_speed * 2 * scale_factor
                         dash_duration = pygame.time.get_ticks() + 200
                         dashing = True
 

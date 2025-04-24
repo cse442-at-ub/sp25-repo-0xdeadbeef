@@ -49,7 +49,7 @@ BASE_HEIGHT = 1080
 info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h # Will only work with resolutions 1920 x 1080 or better
 
-TILE_SIZE = 40  # Adjusted for better layout
+TILE_SIZE = HEIGHT // 30  # Adjusted for better layout
 
 scale_factor = HEIGHT / BASE_HEIGHT
 
@@ -372,10 +372,6 @@ level_map[SURFACE-11][208] = 11 # Super Speed Boots
 
 level_map[SURFACE-6][190], level_map[SURFACE-6][195] = 6, 6 # Thorns
 
-level_map[SURFACE-5][197] = 20 # Jump Reset
-level_map[SURFACE-10][242] = 20 # Jump Reset
-level_map[SURFACE-10][252] = 20 # Jump Reset
-
 level_map[SURFACE-13][262] = 18 # House
 level_map[SURFACE-14][270] = 19 # Windmill
 
@@ -524,7 +520,8 @@ def respawn_powerups():
     level_map[SURFACE-3][118] = 21 # Upwards Dash Powerup
     level_map[6][145] = 22 #Left Dash Powerup
     level_map[SURFACE-5][197] = 20 # Jump Reset
-    level_map[SURFACE-10][242] = 20 # Jump Reset
+    level_map[SURFACE-10][240] = 20 # Jump Reset
+    level_map[SURFACE-10][246] = 20 # Jump Reset
     level_map[SURFACE-10][252] = 20 # Jump Reset
 
 # Initialize the PauseMenu
@@ -580,8 +577,8 @@ def level_2(slot: int):
 
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
-    gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
-    jump_power = -22 / scale_factor # Jump strength (Bigger negative number means higher jump)
+    gravity = 1.25 * scale_factor # Gravity effect (Greater number means stronger gravity)
+    jump_power = -18 * scale_factor # Jump strength (Bigger negative number means higher jump)
     on_ground = False # Track if player is on the ground
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
@@ -629,7 +626,7 @@ def level_2(slot: int):
     # Store original positions of powerups that should respawn on death
     original_powerup_positions = {
         'super_speed': [(SURFACE-5, 23), (SURFACE-2, 39)],  # Super speed powerup positions
-        'jump_reset': [(SURFACE-2, 12), (SURFACE-5, 197), (SURFACE-10, 242), (SURFACE-10, 252)]  # Jump reset positions
+        'jump_reset': [(SURFACE-2, 12), (SURFACE-5, 197), (SURFACE-10, 240), (SURFACE-10, 246), (SURFACE-10, 252)]  # Jump reset positions
     }
 
     normal_friction = 0.25
@@ -940,7 +937,7 @@ def level_2(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
-                        player_vel_y = -35
+                        player_vel_y = -35 * scale_factor
                         spring_sound.play() # Play spring sound when making contact
 
                 # Left Dash
@@ -966,7 +963,7 @@ def level_2(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0 
-                        player_vel_y = -25
+                        player_vel_y = -25 * scale_factor
                         up_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
                         dashing = True
                         dash_sound.play()
