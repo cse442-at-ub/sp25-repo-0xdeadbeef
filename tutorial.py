@@ -33,6 +33,9 @@ super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
 # Dash power up sound
 dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
 
+# Power up sound (global)
+power_up_sound = pygame.mixer.Sound("Audio/PowerUpPickUp.mp3") 
+
 # Coin pick up sound 
 coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
 
@@ -45,7 +48,7 @@ BASE_HEIGHT = 1080
 info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h # Will only work with resolutions 1920 x 1080 or better
 
-TILE_SIZE = 40  # Adjusted for better layout
+TILE_SIZE = HEIGHT // 30  # Adjusted for better layout
 
 scale_factor = HEIGHT / BASE_HEIGHT
 
@@ -330,7 +333,7 @@ def tutorial_level(slot: int):
 
     run_frames = [pygame.transform.scale(frame, (TILE_SIZE, TILE_SIZE)) for frame in run_frames]
 
-    checkpoints = [(200, HEIGHT-200), (1480, HEIGHT-400), (3480, HEIGHT-200)]
+    checkpoints = [(calculate_x_coordinate(4), calculate_y_coordinate(SURFACE)), (calculate_x_coordinate(37), calculate_y_coordinate(SURFACE-5)), (calculate_x_coordinate(87), calculate_y_coordinate(SURFACE))]
     checkpoint_bool = [False] * len(checkpoints)
     checkpoint_idx = load_save(slot).get("Tutorial Checkpoint")
     if not checkpoint_idx:
@@ -338,35 +341,34 @@ def tutorial_level(slot: int):
     for i in range(checkpoint_idx+1):
         checkpoint_bool[i] = True
 
-        
-
     # Camera position
     camera_x = 0
     player_x = checkpoints[checkpoint_idx][0]  # Start x position, change this number to spawn in a different place
     player_y = checkpoints[checkpoint_idx][1]  # Start y position, change this number to spawn in a different place
-    player_speed = 6 * scale_factor # Adjust player speed according to their resolution
+    player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
+    default_speed = player_speed
     
     player_vel_y = 0 # Vertical velocity for jumping
-    gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
-    jump_power = -21 / scale_factor # Jump strength (Bigger negative number means higher jump)
+    gravity = 1.25 * scale_factor # Gravity effect (Greater number means stronger gravity)
+    jump_power = -18 * scale_factor # Jump strength (Bigger negative number means higher jump)
     on_ground = False # Track if player is on the ground
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
     speedBoots = False
 
-
-
     times_passed_wooden_sign = 0
     time_before_pop_up_disappears = 0
-
-
 
     if checkpoint_idx == 0:
         level_map[SURFACE][28] = 3 # Double Jump Boots
     elif checkpoint_idx == 1:
         doubleJumpBoots = True
+        level_map[SURFACE][28] = 0 # Don't show the double jump boots
         level_map[SURFACE-5][55] = 13 # Respawn Speed Boots
-    
+    elif checkpoint_idx == 2:
+        level_map[SURFACE][28] = 0 # Don't show the double jump boots
+        level_map[SURFACE-5][55] = 0 # Don't show the speed Boots
+
     if checkpoint_idx != 2:
         level_map[SURFACE-2][79:81] = [0] * 2   # Despawn platform for the coin
 
@@ -376,16 +378,11 @@ def tutorial_level(slot: int):
     direction = 1  # 1 for right, -1 for left
 
     #-----Declared variables for speed boost to avoid undefined variable error
-    super_speed_bool = False
-    super_speed_respawn_time = 0
-    super_speed_pickup_time = 0
-    super_speed_effect_off_time = 0
-
+    powerup_respawns = {}
+    super_speed_effects = []
     #-----Declared variables for Dash power-up to avoid undefined variable error
-    dash_respawn_time = 0 
-    dash_pickup_time = 0
+    dashed = False
     dash_duration = 0
-    dashing = False
 
     #-----Variable to check which gadget was picked up first
     double_first = False
@@ -400,6 +397,7 @@ def tutorial_level(slot: int):
 
     running = True
     while running:
+
         screen.blit(background, (0, 0))
 
         for event in pygame.event.get():
@@ -626,6 +624,7 @@ def tutorial_level(slot: int):
                         player_speed = player_speed * 1.25 # Up the player speed
                         speedBoots = True
 
+                # Thorns
                 if tile == 6:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
@@ -633,32 +632,40 @@ def tutorial_level(slot: int):
                         death_sound.play() # Play gadget pick up sound when picking up
                         dying = True
 
+                # Super Speed
                 if tile == 8:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
 
-                        super_speed_pickup_time = pygame.time.get_ticks()
-                        super_speed_effect_off_time = super_speed_pickup_time + 2000
-                        super_speed_bool = True
                         super_speed_sound.play()
-                        level_map[SURFACE][95] = 0
-                        super_speed_respawn_time = super_speed_pickup_time + 5000
-                        player_speed = player_speed * 2
+                        level_map[row_index][col_index] = 0
+                        power_up_sound.play()
 
+                        if len(super_speed_effects) == 0:
+                            player_speed *= 2  # Double the speed
+                        super_speed_effects.append({"end_time": pygame.time.get_ticks() + 2000})  # 2 sec effect
+                        powerup_respawns[(row_index, col_index)] = [8, pygame.time.get_ticks() + 5000]  # 5 sec respawn
+
+                # Right Dash
                 if tile == 9:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
 
                         dash_pickup_time = pygame.time.get_ticks()
-                        dash_respawn_time = dash_pickup_time + 5000
-                        level_map[SURFACE-2][113] = 0 
-                        player_speed = player_speed * 2
-                        dash_duration = pygame.time.get_ticks() + 200
-                        dashing = True
+                        powerup_respawns[(row_index, col_index)] = [9, pygame.time.get_ticks() + 5000]
+                        dash_duration = dash_pickup_time + 750
                         dash_sound.play()
+                        dashed = True
+                        level_map[row_index][col_index] = 0 
+                        dash_sound.play()
+                        player_speed = player_speed * 2 
+                        direction = 1
+                        if player_speed < 0:
+                            player_speed *= -1
 
+                # Coin
                 if tile == 14:
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
@@ -671,39 +678,10 @@ def tutorial_level(slot: int):
                         coin_sound.play() # Play coin pick up sound when contact
                         level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
 
-        # Apply super-speed powerup
-        if (super_speed_bool == True) and (pygame.time.get_ticks() >= super_speed_effect_off_time):
-            player_speed = player_speed / 2
-            super_speed_bool = False
-            super_speed_pickup_time = 0
-
-        #-----Respawns super-speed power-up after 5 seconds
-        if (super_speed_respawn_time > 0) and (pygame.time.get_ticks() >= super_speed_respawn_time): 
-            level_map[SURFACE][95] = 8
-            super_speed_respawn_time = 0
-
-        # Apply dash powerup
-        if dashing:
-            player_x += player_speed
-            if (pygame.time.get_ticks() >= dash_duration) and (dash_duration != 0):
-                player_speed = player_speed / 2
-                dashing = False
-                dash_duration = 0
-
-        #-----Respawns Dash power-up after 5 seconds
-        if (dash_respawn_time > 0 ) and (pygame.time.get_ticks() >= dash_respawn_time):
-            level_map[SURFACE-2][113] = 9
-            dash_respawn_time = 0
-
-        
-
         if player_x + TILE_SIZE >= level_width * TILE_SIZE:  # If player reaches the end of the level
             show_level_completed_screen(slot, death_count)
             running = False
         
-        
-        
-
         if player_x <= 0: # Ensure player is within the bounds of the level and does not go to the left
             player_x = 0
 
@@ -716,14 +694,41 @@ def tutorial_level(slot: int):
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
             update_save(slot, {"Tutorial Deaths": death_count})
+            respawn_powerups()
+            dash_duration = 0
             dying = False
+            player_speed = default_speed # Reset to normal speed
             if checkpoint_idx == 0 and doubleJumpBoots:
                 doubleJumpBoots = False
                 level_map[SURFACE][28] = 3
             elif checkpoint_idx == 1 and speedBoots:
                 level_map[SURFACE-5][55] = 13
                 speedBoots = False
-                player_speed = player_speed / 1.25
+            if super_speed_effects:
+                super_speed_effects.clear()   # Remove all ongoing effects
+
+        current_time = pygame.time.get_ticks()
+
+        # Apply speed effects from multiple power-ups
+        for effect in super_speed_effects[:]:  # Iterate over a copy of the list
+            if current_time >= effect["end_time"]:  # Check if effect expired
+                super_speed_effects.remove(effect)
+            if len(super_speed_effects) == 0:
+                player_speed /= 2
+
+        # Modified powerup respawns to singular function
+        powerup_remove = []
+        for position, gadget in powerup_respawns.items():
+            if current_time >= gadget[1]:
+                level_map[position[0]][position[1]] = gadget[0]
+                powerup_remove.append(position) # mark for removal
+
+        # Apply dash powerup
+        if dashed:
+            if (current_time >= dash_duration) and (dash_duration != 0):
+                player_speed = default_speed
+                dashed = False
+                dash_duration = 0
 
         for k, checkpoint in enumerate(checkpoints):
             x, y = checkpoint
