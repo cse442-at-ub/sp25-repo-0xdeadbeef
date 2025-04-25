@@ -31,16 +31,11 @@ super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
 # Dash power up sound
 dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
 
-
 # Spring sound 
 spring_sound = pygame.mixer.Sound("Audio/Spring.mp3")
 
 # Coin pick up sound 
 coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
-
-counter_for_coin_increment = 0
-
-
 
 # Screen settings
 BASE_WIDTH = 1920
@@ -49,7 +44,7 @@ BASE_HEIGHT = 1080
 info = pygame.display.Info()
 WIDTH, HEIGHT = info.current_w, info.current_h # Will only work with resolutions 1920 x 1080 or better
 
-TILE_SIZE = 40  # Adjusted for better layout
+TILE_SIZE = HEIGHT // 30  # Adjusted for better layout
 
 scale_factor = HEIGHT / BASE_HEIGHT
 
@@ -150,31 +145,19 @@ npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_b
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  
 
-
-
-
 level_almost_complete_popup = pygame.image.load("./images/level_near_completion_pop_up.png")
 level_almost_complete_popup = pygame.transform.scale(level_almost_complete_popup, (250, 60))
-
 
 level_almost_complete_font = pygame.font.Font('PixelifySans.ttf', 10)
 keep_heading_right_font = pygame.font.Font('PixelifySans.ttf', 10)
 level_almost_complete_text = level_almost_complete_font.render("Level 2 Almost Complete!", True, (255, 255, 255))
 keep_heading_right_text = keep_heading_right_font.render("Keep Heading Right!", True, (255, 255, 255))
 
-
-
 pop_up_x = WIDTH - (WIDTH * .20)
 pop_up_y = HEIGHT - (HEIGHT * .95)
 
-
-
 level_almost_complete_rect = level_almost_complete_text.get_rect(center=(pop_up_x + 140, pop_up_y + 18))
 keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 140, pop_up_y + 38))
-
-
-
-
 
 #-----Gadget inventory images and dictionary
 
@@ -372,10 +355,6 @@ level_map[SURFACE-11][208] = 11 # Super Speed Boots
 
 level_map[SURFACE-6][190], level_map[SURFACE-6][195] = 6, 6 # Thorns
 
-level_map[SURFACE-5][197] = 20 # Jump Reset
-level_map[SURFACE-10][242] = 20 # Jump Reset
-level_map[SURFACE-10][252] = 20 # Jump Reset
-
 level_map[SURFACE-13][262] = 18 # House
 level_map[SURFACE-14][270] = 19 # Windmill
 
@@ -423,7 +402,7 @@ def show_level_completed_screen(slot: int, death_count: int):
     level_map[SURFACE-5][178] = 3 # Double Jump Boots
     level_map[SURFACE-11][208] = 11 # Super Speed Boots
 
-
+    respawn_gadgets() # Respawn all gadgets on the level
     respawn_powerups() # Respawn all powerups on the level
 
     update_save(slot, {"Level 2 Checkpoint": 0}) # Set checkpoint to 0
@@ -435,7 +414,7 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     level_name = "Level Two"
 
-    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name, background)
+    show_level_complete_deaths(slot, 0, death_count, level_name, background)
 
 
 def show_game_over_screen(slot: int):
@@ -445,9 +424,7 @@ def show_game_over_screen(slot: int):
     level_map[SURFACE-5][178] = 3 # Double Jump Boots
     level_map[SURFACE-11][208] = 11 # Super Speed Boots
 
-    level_map[SURFACE-18][1] = 12 # Respawn Coin
-    level_map[10][135] = 12 # Respawn Coin
-
+    respawn_gadgets() # Respawn all gadgets on the level
     respawn_powerups() # Respawn all powerups on the level
 
     update_save(slot, {"Level 2 Checkpoint": 0}) # Set checkpoint to 0
@@ -517,6 +494,16 @@ def show_game_over_screen(slot: int):
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
 
+def respawn_coin_logic():
+    level_map[SURFACE-18][1] = 12 # Coin
+    level_map[10][135] = 12 # Coin
+
+def respawn_gadgets():
+    level_map[SURFACE-8][62] = 3 # Double Jump Boots
+    level_map[SURFACE-14][63] = 11 # Speed Boots
+    level_map[SURFACE-5][178] = 3 # Double Jump Boots
+    level_map[SURFACE-11][208] = 11 # Super Speed Boots
+
 def respawn_powerups():
     level_map[SURFACE-2][12] = 20 # Jump Reset
     level_map[SURFACE-5][23] = 13 # Super Speed Powerup
@@ -524,7 +511,8 @@ def respawn_powerups():
     level_map[SURFACE-3][118] = 21 # Upwards Dash Powerup
     level_map[6][145] = 22 #Left Dash Powerup
     level_map[SURFACE-5][197] = 20 # Jump Reset
-    level_map[SURFACE-10][242] = 20 # Jump Reset
+    level_map[SURFACE-10][240] = 20 # Jump Reset
+    level_map[SURFACE-10][246] = 20 # Jump Reset
     level_map[SURFACE-10][252] = 20 # Jump Reset
 
 # Initialize the PauseMenu
@@ -532,7 +520,9 @@ pause_menu = PauseMenu(screen)
 
 # Function to run the tutorial level
 def level_2(slot: int):
-    
+
+    respawn_coin_logic() # Respawn all coins on the level
+    respawn_gadgets() # Respawn all gadgets on the level
     respawn_powerups() # Respawn all powerups on the level
 
     # Stop any previously playing music 
@@ -570,6 +560,18 @@ def level_2(slot: int):
     for i in range(checkpoint_idx+1):
         checkpoint_bool[i] = True
 
+    coin_locations = [(calculate_x_coordinate(1), calculate_y_coordinate(SURFACE-18)), (calculate_x_coordinate(135), calculate_y_coordinate(10))]
+    coin_picked_up = load_save(slot).get("Level 2 Coins")
+    if not coin_picked_up:
+        coin_picked_up = [False] * len(coin_locations)
+
+    for k, coin in enumerate(coin_picked_up):
+        if coin:
+            x, y = coin_locations[k]
+            row = calculate_row(y)
+            column = calculate_column(x)
+            level_map[row][column] = 0 # Get rid of the coins already picked up
+
     # Camera position
     camera_x = 0
     # (5, SURFACE) should be the starting point
@@ -580,8 +582,8 @@ def level_2(slot: int):
 
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
-    gravity = 1.2 / scale_factor # Gravity effect (Greater number means stronger gravity)
-    jump_power = -22 / scale_factor # Jump strength (Bigger negative number means higher jump)
+    gravity = 1.25 * scale_factor # Gravity effect (Greater number means stronger gravity)
+    jump_power = -18 * scale_factor # Jump strength (Bigger negative number means higher jump)
     on_ground = False # Track if player is on the ground
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
@@ -598,6 +600,7 @@ def level_2(slot: int):
         level_map[SURFACE-8][62] = 3 # Double Jump Boots
     elif checkpoint_idx == 1:
         doubleJumpBoots = True
+        level_map[SURFACE-8][62] = 0 # Remove Double Jump Boots from the screen
         level_map[SURFACE-14][63] = 11 # Speed Boots
     elif checkpoint_idx == 2:
         level_map[SURFACE-5][178] = 3 # Double Jump Boots
@@ -629,7 +632,7 @@ def level_2(slot: int):
     # Store original positions of powerups that should respawn on death
     original_powerup_positions = {
         'super_speed': [(SURFACE-5, 23), (SURFACE-2, 39)],  # Super speed powerup positions
-        'jump_reset': [(SURFACE-2, 12), (SURFACE-5, 197), (SURFACE-10, 242), (SURFACE-10, 252)]  # Jump reset positions
+        'jump_reset': [(SURFACE-2, 12), (SURFACE-5, 197), (SURFACE-10, 240), (SURFACE-10, 246), (SURFACE-10, 252)]  # Jump reset positions
     }
 
     normal_friction = 0.25
@@ -641,11 +644,6 @@ def level_2(slot: int):
     if not death_count:
         death_count = 0
     collidable_tiles = {1, 2, 5, 10, 14, 16, 17, 23}
-
-    coin_count = 0
-
-    global counter_for_coin_increment
-    counter_for_coin_increment = coin_count
 
     start_time = load_save(slot).get("Level 2 Time") # Timer resumes from last time they saved
     if not start_time:
@@ -661,7 +659,13 @@ def level_2(slot: int):
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
-            pause_menu.handle_event(event, slot)
+            result = pause_menu.handle_event(event, slot)
+            if result == "restart":
+                timer = None
+                update_save(slot, {"Level 2 Checkpoint": 0}) # Set checkpoint to 0
+                update_save(slot, {"Level 2 Time": 180}) # Set timer back to 180
+                level_2(slot)
+                sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if bubbleJump and doubleJumpBoots and not doubleJumped:
                     player_vel_y = jump_power  # Double jump
@@ -923,8 +927,11 @@ def level_2(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        coin_count += 1
-                        counter_for_coin_increment = 0 
+                        
+                        coin_position = (tile_x, tile_y)
+                        idx = coin_locations.index(coin_position)
+                        coin_picked_up[idx] = True
+                        update_save(slot, {"Level 2 Coins": coin_picked_up}) # Save picked up coins
                         eclipse_increment(slot, 1)
                         level_map[row_index][col_index] = 0
                         coin_sound.play()
@@ -934,7 +941,7 @@ def level_2(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE >= tile_x and player_x <= tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE >= tile_y and player_y <= tile_y + TILE_SIZE):
-                        player_vel_y = -35
+                        player_vel_y = -35 * scale_factor
                         spring_sound.play() # Play spring sound when making contact
 
                 # Left Dash
@@ -960,7 +967,7 @@ def level_2(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0 
-                        player_vel_y = -25
+                        player_vel_y = -25 * scale_factor
                         up_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
                         dashing = True
                         dash_sound.play()
@@ -1120,13 +1127,14 @@ def level_2(slot: int):
 
 
         # Pop up near level completion 
+        # print(calculate_column(player_x))
         if (pygame.time.get_ticks() < time_before_pop_up_disappears):
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
             screen.blit(level_almost_complete_text, level_almost_complete_rect)
             screen.blit(keep_heading_right_text, keep_heading_right_rect)
 
 
-        if (player_x >= 10500 and times_passed_wooden_sign < 1):
+        if (calculate_column(player_x) >= 262 and times_passed_wooden_sign < 1):
             times_passed_wooden_sign += 1
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
             screen.blit(level_almost_complete_text, level_almost_complete_rect)

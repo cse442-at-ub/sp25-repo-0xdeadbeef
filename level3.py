@@ -22,10 +22,6 @@ pygame.init()
 
 pygame.mixer.init() # Initialize Pygame Audio Mixer
 
-
-counter_for_coin_increment = 0
-
-
 # Load the level complete sound 
 level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
 
@@ -185,7 +181,7 @@ keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 14
 
 #-----Gadget inventory images and dictionary
 
-inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.image.load("./images/inventory_slot_opacity.png").convert_alpha()
 inventory = pygame.transform.scale(inventory, (250, 70))
 inventory_x = (WIDTH - 250) // 2
 inventory_y = HEIGHT - 100
@@ -218,6 +214,15 @@ BLUE = (0, 0, 255) # For hover
 NUM_SNOWFLAKES = 200
 snowflakes = []
 
+#This for loop is also for snowflakes
+for _ in range(NUM_SNOWFLAKES):
+    x = random.randint(0, WIDTH)
+    y = random.randint(0, HEIGHT)
+    size = random.randint(2, 6)  # Random size
+    speed = random.uniform(3, 6)  # Falling speed
+    x_speed = random.uniform(-2, 2)  # Small horizontal drift
+    snowflakes.append([x, y, size, speed, x_speed])
+
 ground_levels = []
 
 # Dictionary containing which tile corresponds to what
@@ -231,15 +236,7 @@ trees = {48, 157, 247} # Column numbers for all the trees
 background_trees = {6, 86, 232} # Column numbers for all the background trees
 signs = {10, 94, 230} # Column numbers for all the signs
 
-def spawn_terrian():
-    #This for loop is also for snowflakes
-    for _ in range(NUM_SNOWFLAKES):
-        x = random.randint(0, WIDTH)
-        y = random.randint(0, HEIGHT)
-        size = random.randint(2, 6)  # Random size
-        speed = random.uniform(3, 6)  # Falling speed
-        x_speed = random.uniform(-2, 2)  # Small horizontal drift
-        snowflakes.append([x, y, size, speed, x_speed])
+def spawn_terrain():
 
     for row_index in range(GROUND, level_height):
         row = [1] * level_width  # Default to full ground row
@@ -302,33 +299,18 @@ def spawn_terrian():
 
     # All code after this line should be for props, npcs, gadgets, and powerups. Terrain should not be made here.
 
-    row = SURFACE - 3
-    col = 12
-    for i in range(6):
-        level_map[row][col] = 4 # Jump Reset
-        row -= 3
-        col = col - 4 if i % 2 == 0 else col + 4
-    level_map[row][col] = 5
-
     level_map[6][20:33] = [6] * 13 # Floating Ground
     level_map[5][24] = 10 # Frost Walking Boots
     level_map[4][28] = 12 # Coin
-    level_map[10][36] = 4 # Jump Reset
-    level_map[14][43] = 4 # Jump Reset
 
     level_map[level_height-3][15:35] = [3] * 20 # Water
     level_map[level_height-2][15:35] = [11] * 20 # Water Block
     level_map[level_height-1][15:35] = [11] * 20 # Water Block
 
-    level_map[SURFACE-2][57] = 4 # Jump Reset
-    level_map[SURFACE-7][100] = 4 # Jump Reset
-
     level_map[SURFACE][39] = 7 # Thorn
 
     level_map[SURFACE-5][55] = 13 # Walkway
     level_map[SURFACE-4][55:59] = [15] * 4 # Invisible Platforms to ensure collision with walkway
-
-    level_map[SURFACE-8][61] = 5 # Dash Powerup
 
     level_map[level_height-3][55:75] = [3] * 20 # Water
     level_map[level_height-2][55:75] = [11] * 20 # Water Block
@@ -340,12 +322,6 @@ def spawn_terrian():
     level_map[level_height-3][95:130] = [3] * 35 # Water
     level_map[level_height-2][95:130] = [11] * 35 # Water Block
     level_map[level_height-1][95:130] = [11] * 35 # Water Block
-
-    level_map[SURFACE-7][105] = 4 # Jump Reset
-    level_map[SURFACE-7][115] = 4 # Jump Reset
-    level_map[SURFACE-14][115] = 4 # Jump Reset
-    level_map[SURFACE-3][125] = 4 # Jump Reset
-    level_map[SURFACE-6][130] = 20 # Super Speed Powerup
 
     level_map[SURFACE-6][110] = 7 # Thorn
     level_map[14][110] = 17 # Flipped Thorn
@@ -369,9 +345,6 @@ def spawn_terrian():
     level_map[SURFACE-5][165:170] = [21] * 5 # Ice
     level_map[SURFACE-4][165:170] = [22] * 5 # Flipped ice
 
-    level_map[SURFACE-6][167] = 20 # Super Speed Powerup
-    level_map[SURFACE-6][169] = 23 # High Jump Powerup
-
     level_map[SURFACE-7][182:187] = [21] * 5 # Ice
     level_map[SURFACE-6][182:187] = [22] * 5 # Flipped ice
 
@@ -393,12 +366,6 @@ def spawn_terrian():
 
     level_map[3][186] = 12 # Coin
 
-    level_map[SURFACE-3][193] = 4 # Jump Reset
-    level_map[SURFACE-5][198] = 4 # Jump Reset
-
-    level_map[SURFACE-9][198] = 24 # Up Dash Powerup
-    level_map[SURFACE-13][198] = 4 # Up Dash Powerup
-
     level_map[12][202:219] = [6] * 17 # Floating Ground
     level_map[12][201] = 18 # Left Thorn
     level_map[12][219] = 19 # Right Thorn
@@ -410,8 +377,6 @@ def spawn_terrian():
     level_map[3][216] = 16 # Double Jump Boots
 
     level_map[20][224] = 17 # Flipped Thorn
-
-    level_map[SURFACE-8][227] = 4 # Jump Reset
 
     level_map[SURFACE-19][235] = 25 # House
 
@@ -461,7 +426,6 @@ def show_level_completed_screen(slot: int, death_count: int):
     level_map[3][204] = 10 # Frost Walking Boots
     level_map[3][216] = 16 # Double Jump Boots
 
-
     respawn_powerups() # Respawn all powerups on the level
 
     update_save(slot, {"Level 3 Checkpoint": 0}) # Set checkpoint to 0
@@ -472,9 +436,8 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     level_name = "Level Three"
 
-
     # Change this 0 for coin increment code
-    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name, background)
+    show_level_complete_deaths(slot, 0, death_count, level_name, background)
 
 def respawn_powerups():
     row = SURFACE - 3
@@ -483,7 +446,7 @@ def respawn_powerups():
         level_map[row][col] = 4 # Jump Reset
         row -= 3
         col = col - 4 if i % 2 == 0 else col + 4
-    level_map[row][col] = 5
+    level_map[row][col] = 5 # Right Dash Powerup
     level_map[10][36] = 4 # Jump Reset
     level_map[14][43] = 4 # Jump Reset
     level_map[SURFACE-2][57] = 4 # Jump Reset
@@ -498,6 +461,7 @@ def respawn_powerups():
     level_map[SURFACE-3][193] = 4 # Jump Reset
     level_map[SURFACE-5][198] = 4 # Jump Reset
     level_map[SURFACE-9][198] = 24 # Up Dash Powerup
+    level_map[SURFACE-13][198] = 4 # Jump Reset
     level_map[11][210] = 23 # High Jump Powerup
     level_map[SURFACE-8][227] = 4 # Jump Reset
 
@@ -505,7 +469,9 @@ def respawn_powerups():
 pause_menu = PauseMenu(screen)
 
 def level_3(slot: int):
-    spawn_terrian()
+    
+    spawn_terrain()
+    respawn_powerups()
 
     # Stop any previously playing music 
     pygame.mixer.music.stop()
@@ -542,6 +508,18 @@ def level_3(slot: int):
     for i in range(checkpoint_idx+1):
         checkpoint_bool[i] = True
 
+    coin_locations = [(calculate_x_coordinate(28), calculate_y_coordinate(4)), (calculate_x_coordinate(186), calculate_y_coordinate(3))]
+    coin_picked_up = load_save(slot).get("Level 3 Coins")
+    if not coin_picked_up:
+        coin_picked_up = [False] * len(coin_locations)
+
+    for k, coin in enumerate(coin_picked_up):
+        if coin:
+            x, y = coin_locations[k]
+            row = calculate_row(y)
+            column = calculate_column(x)
+            level_map[row][column] = 0 # Get rid of the coins already picked up
+
     # Camera position
     camera_x = 0
     # (5, SURFACE) should be the starting point
@@ -565,8 +543,6 @@ def level_3(slot: int):
 
     times_passed_wooden_sign = 0
     time_before_pop_up_disappears = 0
-
-
 
     if checkpoint_idx == 0:
         level_map[5][24] = 10 # Frost Walking Boots
@@ -592,11 +568,6 @@ def level_3(slot: int):
     collidable_tiles = {1, 2, 3, 6, 9, 15, 21, 22}
     dying_tiles = {3, 7, 11, 17, 18, 19}
 
-    coin_count = 0
-
-    global counter_for_coin_increment
-    counter_for_coin_increment = coin_count
-
     # State Variables for Gadgets
     bubbleJump = False
     bubbleJump_respawns = {}
@@ -621,7 +592,11 @@ def level_3(slot: int):
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
-            pause_menu.handle_event(event, slot)
+            result = pause_menu.handle_event(event, slot)
+            if result == "restart":
+                update_save(slot, {"Level 3 Checkpoint": 0}) # Set checkpoint to 0
+                level_3(slot)
+                sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if bubbleJump and doubleJumpBoots and not doubleJumped:
                     player_vel_y = jump_power  # Double jump
@@ -859,8 +834,11 @@ def level_3(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        coin_count += 1
-                        counter_for_coin_increment = 0 
+
+                        coin_position = (tile_x, tile_y)
+                        idx = coin_locations.index(coin_position)
+                        coin_picked_up[idx] = True
+                        update_save(slot, {"Level 3 Coins": coin_picked_up}) # Save picked up coins
                         eclipse_increment(slot, 1)
                         level_map[row_index][col_index] = 0
                         coin_sound.play()
@@ -893,7 +871,7 @@ def level_3(slot: int):
                         dash_duration = dash_pickup_time + 800
                         dashing = True
                         level_map[row_index][col_index] = 0 
-                        player_speed = player_speed * 3
+                        player_speed = player_speed * 3 * scale_factor
                         direction = 1
                         if player_speed < 0:
                             player_speed *= -1
@@ -944,7 +922,7 @@ def level_3(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0 
-                        player_vel_y = -30
+                        player_vel_y = -30 * scale_factor
                         dash_sound.play()
                         up_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
 
@@ -1067,7 +1045,7 @@ def level_3(slot: int):
 
 
 
-        # print(player_x)
+        # print(calculate_column(player_x))
         # Pop up near level completion 
         if (pygame.time.get_ticks() < time_before_pop_up_disappears):
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
@@ -1075,7 +1053,7 @@ def level_3(slot: int):
             screen.blit(keep_heading_right_text, keep_heading_right_rect)
 
 
-        if (player_x >= 8289 and times_passed_wooden_sign < 1):
+        if (calculate_column(player_x) >= 229 and times_passed_wooden_sign < 1):
             times_passed_wooden_sign += 1
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
             screen.blit(level_almost_complete_text, level_almost_complete_rect)

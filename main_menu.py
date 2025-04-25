@@ -25,18 +25,17 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Main Menu with Hover Effect")
 
 # BLIZZARD SETUP
-num_snowflakes = random.randint(0, 50) # randomly set the number of snowflakes to something between 50 and 200
+num_snowflakes = random.randint(50, 100) # randomly set the number of snowflakes to something between 50 and 100
 snowflakes = []
 
-def create_blizzard():
-    # Create initial snowflakes at random positions, with random speeds.
-    for _ in range(num_snowflakes):
-        x = random.randint(0, WIDTH)
-        y = random.randint(-HEIGHT, 0)  # start above the screen
-        speed_x = random.uniform(-1, 1) # wind: flakes drift left/right
-        speed_y = random.uniform(1, 0.5)  # fall speed (slow and steady)
-        size = random.randint(4, 7)    # flake size for thick snow
-        snowflakes.append([x, y, speed_x, speed_y, size])
+ # Create initial snowflakes at random positions, with random speeds.
+for _ in range(num_snowflakes):
+    x = random.randint(0, WIDTH)
+    y = random.randint(-HEIGHT, 0)  # start above the screen
+    speed_x = random.uniform(-1, 1) # wind: flakes drift left/right
+    speed_y = random.uniform(1, 0.5)  # fall speed (slow and steady)
+    size = random.randint(4, 7)    # flake size for thick snow
+    snowflakes.append([x, y, speed_x, speed_y, size])
 
 def update_and_draw_blizzard():
     # Move snowflakes in a slow, windy pattern and draw them.
@@ -60,11 +59,13 @@ bg = pygame.transform.scale(bg, (WIDTH, HEIGHT))
 
 # --- Load button images ---
 # Normal images
+title_normal = pygame.image.load("Assets/Main Menu/GameTitle.png").convert_alpha()
 start_normal = pygame.image.load("Assets/Main Menu/StartGameButton.png").convert_alpha()
 settings_normal = pygame.image.load("Assets/Main Menu/SettingsButton.png").convert_alpha()
 exit_normal = pygame.image.load("Assets/Main Menu/ExitButton.png").convert_alpha()
 
 # Scale normal size (wider and taller for a more relaxed look)
+title_normal = pygame.transform.scale(title_normal, (550, 70))
 start_normal = pygame.transform.scale(start_normal, (450, 120))
 settings_normal = pygame.transform.scale(settings_normal, (450, 120))
 exit_normal = pygame.transform.scale(exit_normal, (250, 120))
@@ -73,6 +74,8 @@ exit_normal = pygame.transform.scale(exit_normal, (250, 120))
 start_hover = pygame.transform.scale(start_normal, (550, 130))
 settings_hover = pygame.transform.scale(settings_normal, (550, 130))
 exit_hover = pygame.transform.scale(exit_normal, (350, 130))
+
+
 
 # --- Define button positions ---
 # We'll center them and space them vertically
@@ -87,8 +90,6 @@ def run_main_menu():
         # If not, load the "Background.mp3" again
         pygame.mixer.music.load("Audio/Background.mp3")
         pygame.mixer.music.play(-1)  # loop forever
-
-    create_blizzard() # Initialize snow
 
     running = True
     while running:
@@ -120,6 +121,10 @@ def run_main_menu():
 
         # Update and draw the blizzard behind the buttons
         update_and_draw_blizzard()
+
+        # Draw Game Title at top center
+        title_rect = title_normal.get_rect(midtop=(WIDTH//2, 40))
+        screen.blit(title_normal, title_rect)
 
         # Get current mouse position
         mouse_pos = pygame.mouse.get_pos()
