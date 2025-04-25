@@ -914,7 +914,7 @@ def level_5(slot: int):
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
 
         # Pop balloon mechanic
-        if keys[pygame.K_r]:
+        if keys[pygame.K_r] and hasBalloon:
             pop_balloon_sound.play()
             hasBalloon = False
 
@@ -1233,9 +1233,6 @@ def level_5(slot: int):
             screen.blit(gadget, inv_slot_dimensions[x])
         
 
-        
-        
-        # print(player_x)
         # Pop up near level completion 
         if (pygame.time.get_ticks() < time_before_pop_up_disappears):
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
@@ -1243,7 +1240,7 @@ def level_5(slot: int):
             screen.blit(keep_heading_right_text, keep_heading_right_rect)
 
 
-        if (player_x >= 9270 and times_passed_wooden_sign < 1):
+        if (calculate_column(player_x) >= 257 and times_passed_wooden_sign < 1):
             times_passed_wooden_sign += 1
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
             screen.blit(level_almost_complete_text, level_almost_complete_rect)
