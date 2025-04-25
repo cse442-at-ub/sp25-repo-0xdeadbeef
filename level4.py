@@ -15,8 +15,6 @@ from pause_menu import PauseMenu  # Import the PauseMenu class
 # Initialize PyGame
 pygame.init()
 
-counter_for_coin_increment = 0
-
 pygame.mixer.init() # Initialize Pygame Audio Mixer
 
 # Load the level complete sound 
@@ -167,34 +165,19 @@ npc_4 = pygame.image.load("./Character Combinations/ginger hair_white_yellow shi
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  # Flip horizontally (True), no vertical flip (False)
 
-
-
-
 level_almost_complete_popup = pygame.image.load("./images/level_near_completion_pop_up.png")
 level_almost_complete_popup = pygame.transform.scale(level_almost_complete_popup, (250, 60))
-
 
 level_almost_complete_font = pygame.font.Font('PixelifySans.ttf', 10)
 keep_heading_right_font = pygame.font.Font('PixelifySans.ttf', 10)
 level_almost_complete_text = level_almost_complete_font.render("Level 4 Almost Complete!", True, (255, 255, 255))
 keep_heading_right_text = keep_heading_right_font.render("Keep Heading Right!", True, (255, 255, 255))
 
-
-
 pop_up_x = WIDTH - (WIDTH * .20)
 pop_up_y = HEIGHT - (HEIGHT * .95)
 
-
-
 level_almost_complete_rect = level_almost_complete_text.get_rect(center=(pop_up_x + 140, pop_up_y + 18))
 keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 140, pop_up_y + 38))
-
-
-
-
-
-
-
 
 #-----Gadget inventory images and dictionary
 
@@ -240,6 +223,15 @@ BLUE = (0, 0, 255) # For hover
 NUM_SNOWFLAKES = 300
 snowflakes = []
 
+#This for loop is also for snowflakes
+for _ in range(NUM_SNOWFLAKES):
+    x = random.randint(0, WIDTH)
+    y = random.randint(0, HEIGHT)
+    size = random.randint(2, 6)  # Random size
+    speed = random.uniform(15, 20)  # Falling speed
+    x_speed = random.uniform(-20, -10)  # Small horizontal drift
+    snowflakes.append([x, y, size, speed, x_speed])
+
 # Dictionary containing which tile corresponds to what
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: water, 4: jump_reset, 5: dash_powerup, 6: floating_ground, 7: thorn, 8: flag, 9: dirt_tile, 10: frost_walking_boots,
          11: water_block, 12: coin, 13: walkway, 14: flipped_walkway, 15: invisible_platform, 16: double_jump_boots, 17: flipped_thorn, 18: left_thorn, 19: right_thorn, 20: super_speed_powerup,
@@ -252,14 +244,6 @@ background_trees = {29, 157, 286} # Column numbers for all the background trees
 signs = {33, 162, 293} # Column numbers for all the signs
 
 def spawn_terrain():
-    #This for loop is also for snowflakes
-    for _ in range(NUM_SNOWFLAKES):
-        x = random.randint(0, WIDTH)
-        y = random.randint(0, HEIGHT)
-        size = random.randint(2, 6)  # Random size
-        speed = random.uniform(15, 20)  # Falling speed
-        x_speed = random.uniform(-20, -10)  # Small horizontal drift
-        snowflakes.append([x, y, size, speed, x_speed])
 
     for row_index in range(GROUND, level_height):
         row = [1] * level_width  # Default to full ground row
@@ -361,12 +345,8 @@ def spawn_terrain():
     level_map[SURFACE-7][41] = 7 # Thorn
     level_map[SURFACE-12][41] = 17 # Flipped Thorn
 
-    level_map[SURFACE-5][44] = 4 # Jump Reset
-
     level_map[SURFACE-5][48:52] = [2] * 4 # Platform 
     level_map[SURFACE-6][50:52] = [7] * 2 # Thorns
-
-    level_map[SURFACE-8][54] = 4 # Super Speed Powerup
 
     level_map[SURFACE-3][61:65] = [2] * 4 # Platform
     level_map[SURFACE-4][61] = 7 # Thorn
@@ -395,19 +375,6 @@ def spawn_terrain():
         level_map[row_index][107] = 19 # Right Thorns
 
     level_map[5][110] = 12 # Coin
-
-    level_map[SURFACE][118] = 23 # High Jump
-    level_map[SURFACE-10][114] = 23 # High Jump
-
-    for col_index in range(126, 143, 8):
-        level_map[4][col_index] = 32 # Down Dash
-    for col_index in range(130, 139, 8):
-        level_map[SURFACE-16][col_index] = 5 # Right Dash
-    for col_index in range(126, 143, 8):
-        level_map[SURFACE-8][col_index] = 4 # Jump Reset
-    level_map[SURFACE-12][122] = 4 # Jump Reset
-    level_map[SURFACE-16][142] = 4 # Jump Reset
-
     level_map[SURFACE-11][146] = 12 # Coin
 
     level_map[SURFACE-19][152] = 8 # Second Checkpoint (Flag)
@@ -418,10 +385,6 @@ def spawn_terrain():
     level_map[SURFACE-11][201] = 19 # Right Thorn
     level_map[SURFACE-12][196:201] = [7] * 5 # Thorns   
 
-    level_map[SURFACE-10][168] = 33 # Balloon
-    level_map[SURFACE-12][191] = 33 # Balloon
-    level_map[SURFACE-3][187] = 4 # Jump Reset
-    level_map[SURFACE-1][193] = 33 # Balloon
     level_map[SURFACE-19][205] = 30 # Speed Boots
 
     level_map[SURFACE-14][214:218] = [21] * 4 # Ice Tile
@@ -435,8 +398,6 @@ def spawn_terrain():
 
     level_map[SURFACE-2][250:254] = [21] * 4 # Ice Tile
     level_map[SURFACE-1][250:254] = [22] * 4 # Flipped Ice Tile
-
-    level_map[SURFACE-3][253] = 33 # Balloon
 
     level_map[SURFACE][10] = 34 # First NPC - (Placed next to the dash powerup)
     level_map[SURFACE-19][151] = 35 # Second NPC - (Placed next to the second checkpoint flag of the map)
@@ -482,12 +443,9 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     level_name = "Level Four"
 
-    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name, background)
+    show_level_complete_deaths(slot, 0, death_count, level_name, background)
 
 def show_game_over_screen(slot: int):
-
-    level_map[5][110] = 12 # Coin
-    level_map[SURFACE-11][146] = 12 # Coin
 
     level_map[SURFACE-19][39] = 16 # Double Jump Boots
     level_map[SURFACE-19][21] = 10 # Frost Walking Boots
@@ -564,9 +522,8 @@ def show_game_over_screen(slot: int):
                     sys.exit()  # Go back to level select
 
 def respawn_powerups():
-    level_map[SURFACE][13] = 31 # Dash Gadget
     level_map[SURFACE-5][44] = 4 # Jump Reset
-    # level_map[SURFACE-19][38] = 20 # Super Speed Powerup
+    level_map[SURFACE-8][54] = 4 # Jump Reset
     level_map[SURFACE][118] = 23 # High Jump
     level_map[SURFACE-10][114] = 23 # High Jump
     for col_index in range(126, 143, 8):
@@ -588,6 +545,7 @@ def respawn_powerups():
 pause_menu = PauseMenu(screen)
 
 def level_4(slot: int):
+
     spawn_terrain()
     respawn_powerups() # Respawn all powerups on the level
 
@@ -626,6 +584,18 @@ def level_4(slot: int):
     for i in range(checkpoint_idx+1):
         checkpoint_bool[i] = True
 
+    coin_locations = [(calculate_x_coordinate(110), calculate_y_coordinate(5)), (calculate_x_coordinate(146), calculate_y_coordinate(SURFACE-11))]
+    coin_picked_up = load_save(slot).get("Level 4 Coins")
+    if not coin_picked_up:
+        coin_picked_up = [False] * len(coin_locations)
+
+    for k, coin in enumerate(coin_picked_up):
+        if coin:
+            x, y = coin_locations[k]
+            row = calculate_row(y)
+            column = calculate_column(x)
+            level_map[row][column] = 0 # Get rid of the coins already picked up
+
     # Camera position
     camera_x = 0
     # (5, SURFACE) should be the starting point
@@ -645,15 +615,8 @@ def level_4(slot: int):
     speedBoots = False # Track if player has speed boots
     dashGadget = False # Track if player has the dash gadget
 
-
-
-
-
     times_passed_wooden_sign = 0
     time_before_pop_up_disappears = 0
-
-
-
 
     if checkpoint_idx == 0:
         level_map[SURFACE-19][21] = 10 # Frost Walking Boots
@@ -698,22 +661,16 @@ def level_4(slot: int):
     collidable_tiles = {1, 2, 3, 6, 9, 15, 21, 22, 28}
     dying_tiles = {3, 11, 18, 19, 7, 17} 
 
-    coin_count = 0
-
-
     start_time = load_save(slot).get("Level 4 Time") # Timer resumes from last time they saved
     if not start_time:
         start_time = 200  # Timer starts at 200 seconds
-
-    global counter_for_coin_increment
-    counter_for_coin_increment = coin_count
 
     timer = start_time
     clock = pygame.time.Clock()
 
     running = True
     while running:
-        
+
         screen.blit(background, (0, 0))
 
         for event in pygame.event.get():
@@ -987,8 +944,11 @@ def level_4(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        coin_count += 1
-                        counter_for_coin_increment = 0 
+
+                        coin_position = (tile_x, tile_y)
+                        idx = coin_locations.index(coin_position)
+                        coin_picked_up[idx] = True
+                        update_save(slot, {"Level 4 Coins": coin_picked_up}) # Save picked up coins
                         eclipse_increment(slot, 1)
                         level_map[row_index][col_index] = 0
                         coin_sound.play()

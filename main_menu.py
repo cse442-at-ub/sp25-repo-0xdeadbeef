@@ -25,18 +25,17 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Main Menu with Hover Effect")
 
 # BLIZZARD SETUP
-num_snowflakes = random.randint(0, 50) # randomly set the number of snowflakes to something between 50 and 200
+num_snowflakes = random.randint(50, 100) # randomly set the number of snowflakes to something between 50 and 100
 snowflakes = []
 
-def create_blizzard():
-    # Create initial snowflakes at random positions, with random speeds.
-    for _ in range(num_snowflakes):
-        x = random.randint(0, WIDTH)
-        y = random.randint(-HEIGHT, 0)  # start above the screen
-        speed_x = random.uniform(-1, 1) # wind: flakes drift left/right
-        speed_y = random.uniform(1, 0.5)  # fall speed (slow and steady)
-        size = random.randint(4, 7)    # flake size for thick snow
-        snowflakes.append([x, y, speed_x, speed_y, size])
+ # Create initial snowflakes at random positions, with random speeds.
+for _ in range(num_snowflakes):
+    x = random.randint(0, WIDTH)
+    y = random.randint(-HEIGHT, 0)  # start above the screen
+    speed_x = random.uniform(-1, 1) # wind: flakes drift left/right
+    speed_y = random.uniform(1, 0.5)  # fall speed (slow and steady)
+    size = random.randint(4, 7)    # flake size for thick snow
+    snowflakes.append([x, y, speed_x, speed_y, size])
 
 def update_and_draw_blizzard():
     # Move snowflakes in a slow, windy pattern and draw them.
@@ -91,8 +90,6 @@ def run_main_menu():
         # If not, load the "Background.mp3" again
         pygame.mixer.music.load("Audio/Background.mp3")
         pygame.mixer.music.play(-1)  # loop forever
-
-    create_blizzard() # Initialize snow
 
     running = True
     while running:

@@ -39,8 +39,6 @@ power_up_sound = pygame.mixer.Sound("Audio/PowerUpPickUp.mp3")
 # Coin pick up sound 
 coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
 
-counter_for_coin_increment = 0
-
 # Screen setting
 BASE_WIDTH = 1920
 BASE_HEIGHT = 1080
@@ -288,7 +286,7 @@ def show_level_completed_screen(slot: int, death_count: int):
     
     level_name = "Tutorial"
 
-    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name, background)
+    show_level_complete_deaths(slot, 0, death_count, level_name, background)
 
 def respawn_gadgets():
     level_map[SURFACE][28] = 3 # Jump Boots
@@ -341,6 +339,18 @@ def tutorial_level(slot: int):
     for i in range(checkpoint_idx+1):
         checkpoint_bool[i] = True
 
+    coin_locations = [(calculate_x_coordinate(68), calculate_y_coordinate(SURFACE-1))]
+    coin_picked_up = load_save(slot).get("Tutorial Coins")
+    if not coin_picked_up:
+        coin_picked_up = [False] * len(coin_locations)
+
+    for k, coin in enumerate(coin_picked_up):
+        if coin:
+            x, y = coin_locations[k]
+            row = calculate_row(y)
+            column = calculate_column(x)
+            level_map[row][column] = 0
+
     # Camera position
     camera_x = 0
     player_x = checkpoints[checkpoint_idx][0]  # Start x position, change this number to spawn in a different place
@@ -390,10 +400,6 @@ def tutorial_level(slot: int):
     death_count = load_save(slot).get("Tutorial Deaths")
     if not death_count:
         death_count = 0
-    coin_count = 0
-
-    global counter_for_coin_increment
-    counter_for_coin_increment = coin_count
 
     running = True
     while running:
@@ -670,11 +676,13 @@ def tutorial_level(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        coin_count += 1
-                        # global counter_for_coin_increment
-                        counter_for_coin_increment = 0 
+                        
+                        coin_position = (tile_x, tile_y)
+                        idx = coin_locations.index(coin_position)
+                        coin_picked_up[idx] = True
+                        update_save(slot, {"Tutorial Coins": coin_picked_up}) # Save picked up coins
                         eclipse_increment(slot, 1)
-                        level_map[SURFACE-1][68] = 0
+                        level_map[row_index][col_index] = 0
                         coin_sound.play() # Play coin pick up sound when contact
                         level_map[SURFACE-2][79:81] = [2] * 2   # Platform 
 
@@ -741,7 +749,8 @@ def tutorial_level(slot: int):
                     if speedBoots:
                         speedBoots = False
                         player_speed = player_speed / 1.25 # Revert their speed back to normal
-                    level_map[SURFACE-1][68] = 14  #Spawn coin after reaching 2nd checkpoint
+                    if not coin_picked_up[0]: # If coin was not picked up before
+                        level_map[SURFACE-1][68] = 14  #Spawn coin after reaching 2nd checkpoint
 
         # Camera follows player
         camera_x = max(0, min(player_x - WIDTH // 2, (level_width * TILE_SIZE) - WIDTH))

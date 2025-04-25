@@ -196,36 +196,19 @@ npc_3 = pygame.transform.scale(npc_3, (TILE_SIZE, TILE_SIZE))
 npc_4 = pygame.image.load("./Character Combinations/ginger hair_white_yellow shirt_brown pants.png")
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 
-
-
-
-
 level_almost_complete_popup = pygame.image.load("./images/level_near_completion_pop_up.png")
 level_almost_complete_popup = pygame.transform.scale(level_almost_complete_popup, (250, 60))
-
 
 level_almost_complete_font = pygame.font.Font('PixelifySans.ttf', 10)
 keep_heading_right_font = pygame.font.Font('PixelifySans.ttf', 10)
 level_almost_complete_text = level_almost_complete_font.render("Level 6 Almost Complete!", True, (255, 255, 255))
 keep_heading_right_text = keep_heading_right_font.render("Keep Heading Right!", True, (255, 255, 255))
 
-
-
 pop_up_x = WIDTH - (WIDTH * .20)
 pop_up_y = HEIGHT - (HEIGHT * .95)
 
-
-
 level_almost_complete_rect = level_almost_complete_text.get_rect(center=(pop_up_x + 140, pop_up_y + 18))
 keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 140, pop_up_y + 38))
-
-
-
-
-
-
-
-
 
 #-----Gadget inventory images and dictionary
 
@@ -269,9 +252,6 @@ BLUE = (0, 0, 255) # For hover
 
 # Initialize the PauseMenu
 pause_menu = PauseMenu(screen)
-
-level_map[SURFACE-6][56] = 12 # Coin
-level_map[2][196] = 12 # Coin
 
 # Sand storm (dusty mist) particles constants
 SAND_PALETTE = [                                           # warm, earthy hues
@@ -395,6 +375,9 @@ def respawn_terrain():
         for col_index, tile in enumerate(row):
             if (tile == 1) and ground_levels[col_index] == len(level_map):
                 ground_levels[col_index] = row_index
+
+    level_map[SURFACE-6][56] = 12 # Coin
+    level_map[2][196] = 12 # Coin
 
     level_map[SURFACE-4][13:15] = [4] * 2 # Thorns
 
@@ -673,6 +656,18 @@ def level_6(slot: int):
     for i in range(checkpoint_idx+1):
         checkpoint_bool[i] = True
 
+    coin_locations = [(calculate_x_coordinate(56), calculate_y_coordinate(SURFACE-6)), (calculate_x_coordinate(196), calculate_y_coordinate(2))]
+    coin_picked_up = load_save(slot).get("Level 6 Coins")
+    if not coin_picked_up:
+        coin_picked_up = [False] * len(coin_locations)
+
+    for k, coin in enumerate(coin_picked_up):
+        if coin:
+            x, y = coin_locations[k]
+            row = calculate_row(y)
+            column = calculate_column(x)
+            level_map[row][column] = 0 # Get rid of the coins already picked up
+
     # Camera position
     camera_x = 0
     # (5, SURFACE-4) should be the starting point
@@ -702,15 +697,9 @@ def level_6(slot: int):
     dashed = False
     dash_duration = 0
 
-    coin_count = 0
-
-
-    
     times_passed_wooden_sign = 0
     time_before_pop_up_disappears = 0
-
-
-
+    
     animation_index = 0  # Alternates between 0 and 1
     animation_timer = 0  # Tracks when to switch frames
     animation_speed = 4  # Adjust this to control animation speed
@@ -1005,8 +994,11 @@ def level_6(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        coin_count += 1
-                        # counter_for_coin_increment = 0 
+
+                        coin_position = (tile_x, tile_y)
+                        idx = coin_locations.index(coin_position)
+                        coin_picked_up[idx] = True
+                        update_save(slot, {"Level 6 Coins": coin_picked_up}) # Save picked up coins
                         eclipse_increment(slot, 1)
                         level_map[row_index][col_index] = 0
                         coin_sound.play()
