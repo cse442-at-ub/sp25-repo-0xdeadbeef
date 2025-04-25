@@ -131,7 +131,7 @@ def show_level_complete(slot: int, coin: int, level_name, background):
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
                     # level_name = "Level One"
                     achievement_counter(slot, level_name)
-                    eclipse_increment(slot, coin)
+                    #eclipse_increment(slot, coin)
                     world_select.World_Selector(slot)
                     sys.exit()
 
@@ -209,7 +209,7 @@ def show_level_complete_deaths(slot: int, coin: int, death_counter: int, level_n
                 if select_level_rect.collidepoint(mouse_x, mouse_y):
                     print(level_name)
                     achievement_counter(slot, level_name)
-                    eclipse_increment(slot, coin)
+                    #eclipse_increment(slot, coin)
                     world_select.World_Selector(slot)
                     sys.exit()
 

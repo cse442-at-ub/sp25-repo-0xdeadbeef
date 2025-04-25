@@ -544,6 +544,18 @@ def level_1(slot: int):
     for i in range(checkpoint_idx+1):
         checkpoint_bool[i] = True
 
+    coin_locations = []
+    coin_picked_up = load_save(slot).get("Level 1 Coins")
+    if not coin_picked_up:
+        coin_picked_up = [False] * len(coin_locations)
+
+    for k, coin in enumerate(coin_picked_up):
+        if coin:
+            x, y = coin_locations[k]
+            row = calculate_row(y)
+            column = calculate_column(x)
+            level_map[row][column] = 0 # Get rid of the coins already picked up
+
     # Camera position
     camera_x = 0
     player_x = checkpoints[checkpoint_idx][0]  # Start x position, change this number to spawn in a different place
@@ -572,13 +584,9 @@ def level_1(slot: int):
     dash_pickup_time = 0
     dash_duration = 0
     dashing = False
-
-
     
     times_passed_wooden_sign = 0
     time_before_pop_up_disappears = 0
-
-
 
     normal_friction = 0.25
     ice_friction = 0.95  # Lower friction for slippery effect
@@ -590,10 +598,6 @@ def level_1(slot: int):
     death_count = load_save(slot).get("Level 1 Deaths")
     if not death_count:
         death_count = 0
-    coin_count = 0
-
-    global counter_for_coin_increment
-    counter_for_coin_increment = coin_count
 
     collidable_tiles = {1, 2, 32, 26, 27, 28, 29, 31}
 
@@ -603,9 +607,6 @@ def level_1(slot: int):
 
     running = True
     while running:
-
-        #print(f"Row: SURFACE - {SURFACE - calculate_row(player_y)}")
-        #print(f"Column: {calculate_column(player_x)}")
 
         screen.blit(background, (0, 0))
 
@@ -878,8 +879,11 @@ def level_1(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        coin_count += 1
-                        counter_for_coin_increment = 0 
+            
+                        coin_position = (tile_x, tile_y)
+                        idx = coin_locations.index(coin_position)
+                        coin_picked_up[idx] = True
+                        update_save(slot, {"Level 1 Coins": coin_picked_up}) # Save picked up coins
                         eclipse_increment(slot, 1)
                         level_map[SURFACE-1][68] = 0
                         coin_sound.play()

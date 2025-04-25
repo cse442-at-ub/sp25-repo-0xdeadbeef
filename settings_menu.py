@@ -20,17 +20,16 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Settings Menu")
 
 # BLIZZARD SETUP (same as before, but we preserve it here)
-num_snowflakes = random.randint(0, 25)  # random between 0 and 25
+num_snowflakes = random.randint(25, 50)  # random between 25 and 50
 snowflakes = []
 
-def create_blizzard():
-    for i in range(num_snowflakes):
-        x = random.randint(0, WIDTH)
-        y = random.randint(-HEIGHT, 0)
-        speed_x = random.uniform(-1, 0.5)
-        speed_y = random.uniform(1, 0.5)
-        size = random.randint(4, 7)
-        snowflakes.append([x, y, speed_x, speed_y, size])
+for i in range(num_snowflakes):
+    x = random.randint(0, WIDTH)
+    y = random.randint(-HEIGHT, 0)
+    speed_x = random.uniform(-1, 0.5)
+    speed_y = random.uniform(1, 0.5)
+    size = random.randint(4, 7)
+    snowflakes.append([x, y, speed_x, speed_y, size])
 
 def update_and_draw_blizzard():
     for flake in snowflakes:
@@ -87,7 +86,7 @@ def run_settings_menu():
         pygame.mixer.music.load("Audio/Background.mp3")
         pygame.mixer.music.play(-1)  # loop forever
 
-    create_blizzard()
+    # create_blizzard()
 
     # Set up the volume slider 
     global slider, current_volume_value

@@ -246,9 +246,6 @@ BLUE = (0, 0, 255) # For hover
 # Initialize the PauseMenu
 pause_menu = PauseMenu(screen)
 
-level_map[5][13] = 12  # Coin
-level_map[6][133] = 12 # Coin
-
 # Sand storm (dusty mist) particles constants
 SAND_PALETTE = [                                           # warm, earthy hues
     (210, 190, 145),  # light tan
@@ -455,6 +452,9 @@ def respawn_terrain():
             if (tile == 1 or tile == 8) and ground_levels[col_index] == len(level_map):
                 ground_levels[col_index] = row_index
 
+    level_map[5][13] = 12  # Coin
+    level_map[6][133] = 12 # Coin
+
     level_map[7][12:15] = [2] * 3 # Platform Tiles
 
     level_map[SURFACE-7][25:35] = [31] * 10 # Floating Ground
@@ -632,6 +632,18 @@ def level_5(slot: int):
     for i in range(checkpoint_idx+1):
         checkpoint_bool[i] = True
 
+    coin_locations = [(calculate_x_coordinate(13), calculate_y_coordinate(5)), (calculate_x_coordinate(133), calculate_y_coordinate(6))]
+    coin_picked_up = load_save(slot).get("Level 5 Coins")
+    if not coin_picked_up:
+        coin_picked_up = [False] * len(coin_locations)
+
+    for k, coin in enumerate(coin_picked_up):
+        if coin:
+            x, y = coin_locations[k]
+            row = calculate_row(y)
+            column = calculate_column(x)
+            level_map[row][column] = 0 # Get rid of the coins already picked up
+
     # Camera position
     camera_x = 0
     # (5, SURFACE) should be the starting point
@@ -651,14 +663,8 @@ def level_5(slot: int):
     hasBalloon = False
     balloon_vel = 0  # Initial vertical velocity
 
-    coin_count = 0
-
-
-
     times_passed_wooden_sign = 0
     time_before_pop_up_disappears = 0
-
-
 
     # FOR KENNY TO USE (gadget booleans)
     doubleJumpBoots = False
@@ -908,7 +914,7 @@ def level_5(slot: int):
                 screen.blit(flipped_player, (player_x - camera_x, player_y))
 
         # Pop balloon mechanic
-        if keys[pygame.K_r]:
+        if keys[pygame.K_r] and hasBalloon:
             pop_balloon_sound.play()
             hasBalloon = False
 
@@ -972,8 +978,11 @@ def level_5(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        coin_count += 1
-                        # counter_for_coin_increment = 0 
+
+                        coin_position = (tile_x, tile_y)
+                        idx = coin_locations.index(coin_position)
+                        coin_picked_up[idx] = True
+                        update_save(slot, {"Level 5 Coins": coin_picked_up}) # Save picked up coins
                         eclipse_increment(slot, 1)
                         level_map[row_index][col_index] = 0
                         coin_sound.play()
@@ -1224,9 +1233,6 @@ def level_5(slot: int):
             screen.blit(gadget, inv_slot_dimensions[x])
         
 
-        
-        
-        # print(player_x)
         # Pop up near level completion 
         if (pygame.time.get_ticks() < time_before_pop_up_disappears):
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
@@ -1234,7 +1240,7 @@ def level_5(slot: int):
             screen.blit(keep_heading_right_text, keep_heading_right_rect)
 
 
-        if (player_x >= 9270 and times_passed_wooden_sign < 1):
+        if (calculate_column(player_x) >= 257 and times_passed_wooden_sign < 1):
             times_passed_wooden_sign += 1
             screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
             screen.blit(level_almost_complete_text, level_almost_complete_rect)

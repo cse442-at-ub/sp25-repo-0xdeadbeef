@@ -31,16 +31,11 @@ super_speed_sound = pygame.mixer.Sound("Audio/SuperSpeed.mp3")
 # Dash power up sound
 dash_sound = pygame.mixer.Sound("Audio/Dash.mp3")
 
-
 # Spring sound 
 spring_sound = pygame.mixer.Sound("Audio/Spring.mp3")
 
 # Coin pick up sound 
 coin_sound = pygame.mixer.Sound("Audio/Coin.mp3")
-
-counter_for_coin_increment = 0
-
-
 
 # Screen settings
 BASE_WIDTH = 1920
@@ -150,31 +145,19 @@ npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_b
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  
 
-
-
-
 level_almost_complete_popup = pygame.image.load("./images/level_near_completion_pop_up.png")
 level_almost_complete_popup = pygame.transform.scale(level_almost_complete_popup, (250, 60))
-
 
 level_almost_complete_font = pygame.font.Font('PixelifySans.ttf', 10)
 keep_heading_right_font = pygame.font.Font('PixelifySans.ttf', 10)
 level_almost_complete_text = level_almost_complete_font.render("Level 2 Almost Complete!", True, (255, 255, 255))
 keep_heading_right_text = keep_heading_right_font.render("Keep Heading Right!", True, (255, 255, 255))
 
-
-
 pop_up_x = WIDTH - (WIDTH * .20)
 pop_up_y = HEIGHT - (HEIGHT * .95)
 
-
-
 level_almost_complete_rect = level_almost_complete_text.get_rect(center=(pop_up_x + 140, pop_up_y + 18))
 keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 140, pop_up_y + 38))
-
-
-
-
 
 #-----Gadget inventory images and dictionary
 
@@ -431,7 +414,7 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     level_name = "Level Two"
 
-    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name, background)
+    show_level_complete_deaths(slot, 0, death_count, level_name, background)
 
 
 def show_game_over_screen(slot: int):
@@ -440,9 +423,6 @@ def show_game_over_screen(slot: int):
     level_map[SURFACE-14][63] = 11 # Speed Boots
     level_map[SURFACE-5][178] = 3 # Double Jump Boots
     level_map[SURFACE-11][208] = 11 # Super Speed Boots
-
-    level_map[SURFACE-18][1] = 12 # Respawn Coin
-    level_map[10][135] = 12 # Respawn Coin
 
     respawn_gadgets() # Respawn all gadgets on the level
     respawn_powerups() # Respawn all powerups on the level
@@ -514,6 +494,10 @@ def show_game_over_screen(slot: int):
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
 
+def respawn_coin_logic():
+    level_map[SURFACE-18][1] = 12 # Coin
+    level_map[10][135] = 12 # Coin
+
 def respawn_gadgets():
     level_map[SURFACE-8][62] = 3 # Double Jump Boots
     level_map[SURFACE-14][63] = 11 # Speed Boots
@@ -537,6 +521,7 @@ pause_menu = PauseMenu(screen)
 # Function to run the tutorial level
 def level_2(slot: int):
 
+    respawn_coin_logic() # Respawn all coins on the level
     respawn_gadgets() # Respawn all gadgets on the level
     respawn_powerups() # Respawn all powerups on the level
 
@@ -574,6 +559,18 @@ def level_2(slot: int):
         checkpoint_idx = 0
     for i in range(checkpoint_idx+1):
         checkpoint_bool[i] = True
+
+    coin_locations = [(calculate_x_coordinate(1), calculate_y_coordinate(SURFACE-18)), (calculate_x_coordinate(135), calculate_y_coordinate(10))]
+    coin_picked_up = load_save(slot).get("Level 2 Coins")
+    if not coin_picked_up:
+        coin_picked_up = [False] * len(coin_locations)
+
+    for k, coin in enumerate(coin_picked_up):
+        if coin:
+            x, y = coin_locations[k]
+            row = calculate_row(y)
+            column = calculate_column(x)
+            level_map[row][column] = 0 # Get rid of the coins already picked up
 
     # Camera position
     camera_x = 0
@@ -647,11 +644,6 @@ def level_2(slot: int):
     if not death_count:
         death_count = 0
     collidable_tiles = {1, 2, 5, 10, 14, 16, 17, 23}
-
-    coin_count = 0
-
-    global counter_for_coin_increment
-    counter_for_coin_increment = coin_count
 
     start_time = load_save(slot).get("Level 2 Time") # Timer resumes from last time they saved
     if not start_time:
@@ -935,8 +927,11 @@ def level_2(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        coin_count += 1
-                        counter_for_coin_increment = 0 
+                        
+                        coin_position = (tile_x, tile_y)
+                        idx = coin_locations.index(coin_position)
+                        coin_picked_up[idx] = True
+                        update_save(slot, {"Level 2 Coins": coin_picked_up}) # Save picked up coins
                         eclipse_increment(slot, 1)
                         level_map[row_index][col_index] = 0
                         coin_sound.play()
