@@ -78,7 +78,7 @@ back_button = TransparentButton("Back", "Assets/Save Slot Menu/PixelifySans.ttf"
 
 def draw_save_slot_stats(save_data, slot_number, start_y):
     # Calculate proportional positions based on screen height
-    slot_height = HEIGHT // 3  # Each slot takes 1/3 of the screen
+    slot_height = HEIGHT // 3.5  # Each slot takes portion of screen
     title_y = start_y + (slot_height * 0.15)  # Title at 15% of slot height
     stats_start_y = start_y + (slot_height * 0.3)  # Stats start at 30% of slot height
     line_spacing = slot_height * 0.15  # Spacing between stat lines
@@ -88,7 +88,7 @@ def draw_save_slot_stats(save_data, slot_number, start_y):
     title_rect = title.get_rect(center=(WIDTH // 2, title_y))
     screen.blit(title, title_rect)
 
-    # Calculate statistics (unchanged)
+    # Calculate statistics
     total_deaths = sum(
         int(value) for key, value in save_data.items() 
         if key.startswith("Level ") and key.endswith(" Deaths") and not key.startswith("Level 0 ")
@@ -102,7 +102,7 @@ def draw_save_slot_stats(save_data, slot_number, start_y):
     stats = [
         ("Total Deaths:", total_deaths),
         ("Yellow Eclipses:", save_data.get("Eclipse", 0)),
-        ("Levels Completed:", max(0, completed_levels))  # Simplified negative check
+        ("Levels Completed:", max(0, completed_levels))
     ]
 
     # Calculate dynamic horizontal positions
@@ -122,7 +122,6 @@ def draw_save_slot_stats(save_data, slot_number, start_y):
         value_rect = value_text.get_rect(midleft=(value_x, current_y))
         screen.blit(value_text, value_rect)
 
-        
 def run_statistics_menu():
     # Check if any music is currently playing
     if not pygame.mixer.music.get_busy():
