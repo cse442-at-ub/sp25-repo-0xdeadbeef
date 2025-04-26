@@ -19,14 +19,14 @@ pygame.display.set_caption("Statistics Menu")
 background_image = pygame.image.load("Assets/Achievement Menu/achievement_background.png")
 background_image = pygame.transform.scale(background_image, (WIDTH, HEIGHT))
 
-# Font settings
+# Font settings - use relative sizes based on screen height
 try:
-    title_font = pygame.font.Font("Assets/Save Slot Menu/PixelifySans.ttf", 55)
-    stat_font = pygame.font.Font("Assets/Save Slot Menu/PixelifySans.ttf", 45)
+    title_font = pygame.font.Font("Assets/Save Slot Menu/PixelifySans.ttf", int(HEIGHT * 0.05))
+    stat_font = pygame.font.Font("Assets/Save Slot Menu/PixelifySans.ttf", int(HEIGHT * 0.04))
 except FileNotFoundError:
     print("Error: Pixelify Sans font file not found. Using default font instead.")
-    title_font = pygame.font.Font(None, 80)
-    stat_font = pygame.font.Font(None, 70)
+    title_font = pygame.font.Font(None, int(HEIGHT * 0.05))
+    stat_font = pygame.font.Font(None, int(HEIGHT * 0.04))
 
 # Define TransparentButton and its helper function
 def render_text_with_outline(text, font, text_color, outline_color, outline_thickness):
@@ -45,8 +45,8 @@ class TransparentButton:
     def __init__(self, text, font_path, x, y):
         self.text = text
         self.font_path = font_path
-        self.base_size = 64
-        self.hover_size = 72
+        self.base_size = int(HEIGHT * 0.06)  # Relative to screen height
+        self.hover_size = int(HEIGHT * 0.065)  # Slightly larger
         self.x, self.y = x, y
         self.normal_font = pygame.font.Font(font_path, self.base_size)
         self.hover_font = pygame.font.Font(font_path, self.hover_size)
@@ -73,12 +73,12 @@ class TransparentButton:
                 self.current_font = self.normal_font
                 self.update_surface()
 
-# Create Back button
-back_button = TransparentButton("Back", "Assets/Save Slot Menu/PixelifySans.ttf", WIDTH // 2, HEIGHT - 100)
+# Create Back button - positioned relative to screen height
+back_button = TransparentButton("Back", "Assets/Save Slot Menu/PixelifySans.ttf", WIDTH // 2, HEIGHT - HEIGHT * 0.1)
 
 def draw_save_slot_stats(save_data, slot_number, start_y):
     # Calculate proportional positions based on screen height
-    slot_height = HEIGHT // 3  # Each slot takes 1/3 of the screen
+    slot_height = HEIGHT // 3.5  # Each slot takes portion of screen
     title_y = start_y + (slot_height * 0.15)  # Title at 15% of slot height
     stats_start_y = start_y + (slot_height * 0.3)  # Stats start at 30% of slot height
     line_spacing = slot_height * 0.15  # Spacing between stat lines
@@ -88,7 +88,7 @@ def draw_save_slot_stats(save_data, slot_number, start_y):
     title_rect = title.get_rect(center=(WIDTH // 2, title_y))
     screen.blit(title, title_rect)
 
-    # Calculate statistics (unchanged)
+    # Calculate statistics
     total_deaths = sum(
         int(value) for key, value in save_data.items() 
         if key.startswith("Level ") and key.endswith(" Deaths") and not key.startswith("Level 0 ")
@@ -102,7 +102,7 @@ def draw_save_slot_stats(save_data, slot_number, start_y):
     stats = [
         ("Total Deaths:", total_deaths),
         ("Yellow Eclipses:", save_data.get("Eclipse", 0)),
-        ("Levels Completed:", max(0, completed_levels))  # Simplified negative check
+        ("Levels Completed:", max(0, completed_levels))
     ]
 
     # Calculate dynamic horizontal positions
@@ -122,7 +122,6 @@ def draw_save_slot_stats(save_data, slot_number, start_y):
         value_rect = value_text.get_rect(midleft=(value_x, current_y))
         screen.blit(value_text, value_rect)
 
-        
 def run_statistics_menu():
     # Check if any music is currently playing
     if not pygame.mixer.music.get_busy():
@@ -166,10 +165,14 @@ def run_statistics_menu():
         # Draw the background
         screen.blit(background_image, (0, 0))
 
-        # Draw statistics for each save slot with more vertical spacing
-        draw_save_slot_stats(save_data_one, 1, 50)    # Start first slot higher
-        draw_save_slot_stats(save_data_two, 2, 450)   # More space between slots
-        draw_save_slot_stats(save_data_three, 3, 850) # More space between slots
+        # Calculate vertical positions based on screen height
+        slot_spacing = HEIGHT * 0.03  # Space between slots
+        slot_height = (HEIGHT - 3 * slot_spacing - HEIGHT * 0.2) / 3  # 20% reserved for bottom space
+        
+        # Draw statistics for each save slot with dynamic spacing
+        draw_save_slot_stats(save_data_one, 1, HEIGHT * 0.05)
+        draw_save_slot_stats(save_data_two, 2, HEIGHT * 0.05 + slot_height + slot_spacing)
+        draw_save_slot_stats(save_data_three, 3, HEIGHT * 0.05 + 2 * (slot_height + slot_spacing))
 
         # Update and draw back button
         mouse_pos = pygame.mouse.get_pos()
