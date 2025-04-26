@@ -26,18 +26,23 @@ class PauseMenu:
         elif self.paused:
                 
             resume_hover = False
+            restart_hover = False
             exit_hover = False
 
             resume_text = self.font.render("Resume", True, self.WHITE)
+            restart_text = self.font.render("Restart Level", True, self.WHITE)
             exit_text = self.font.render("Save and Quit", True, self.WHITE)
 
             # Position the texts
             self.resume_rect = resume_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))
-            self.exit_rect = exit_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
+            self.restart_rect = restart_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))
+            self.exit_rect = exit_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))
             box = self.resume_rect
             # Check if mouse is hovering
             if self.resume_rect.collidepoint(pygame.mouse.get_pos()):
                 resume_hover = True
+            if self.restart_rect.collidepoint(pygame.mouse.get_pos()):
+                restart_hover = True
             if self.exit_rect.collidepoint(pygame.mouse.get_pos()):
                 exit_hover = True
 
@@ -45,16 +50,20 @@ class PauseMenu:
             if resume_hover:
                 resume_text = self.font_hover.render("Resume", True, self.BLUE)
                 self.resume_rect = resume_text.get_rect(center=(WIDTH // 2, HEIGHT // 3))  # Recalculate position
+            if restart_hover:
+                restart_text = self.font_hover.render("Restart Level", True, self.BLUE)
+                self.restart_rect = restart_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120)) # Recalculate position
             if exit_hover:
                 exit_text = self.font_hover.render("Save and Quit", True, self.BLUE)
-                self.exit_rect = exit_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 120))  # Recalculate position
+                self.exit_rect = exit_text.get_rect(center=(WIDTH // 2, HEIGHT // 3 + 240))  # Recalculate position
 
             box_padding = 150
-            game_over_screen_box = pygame.Rect(box.left - box_padding, box.top, box.width + (box_padding*2), box.height + (box_padding))
+            game_over_screen_box = pygame.Rect(box.left - box_padding, box.top, box.width + (box_padding*2), box.height + (box_padding) * 1.75)
             pygame.draw.rect(self.screen, self.BLUE, game_over_screen_box, 10)
             
             # Draw the texts
             self.screen.blit(resume_text, self.resume_rect)
+            self.screen.blit(restart_text, self.restart_rect)
             self.screen.blit(exit_text, self.exit_rect)
 
             pygame.display.flip()
@@ -65,10 +74,15 @@ class PauseMenu:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.resume_rect.collidepoint(pygame.mouse.get_pos()):
                     self.paused = False
+                elif self.restart_rect.collidepoint(pygame.mouse.get_pos()):
+                    self.paused = False
+                    return "restart"
                 elif self.exit_rect.collidepoint(pygame.mouse.get_pos()):
+                    pygame.mixer.music.stop()                               # stop level music
+                    pygame.mixer.music.load("Audio/Background2.mp3")        # map/world selector background music 2
+                    pygame.mixer.music.play(-1)                             # loop forever
                     self.paused = False
                     world_select.World_Selector(slot)
                     sys.exit()  # Go back to level select
-            #keys = pygame.key.get_pressed()
             if event.type == pygame.K_ESCAPE:
                 self.paused = False

@@ -22,10 +22,6 @@ pygame.init()
 
 pygame.mixer.init() # Initialize Pygame Audio Mixer
 
-
-counter_for_coin_increment = 0
-
-
 # Load the level complete sound 
 level_complete_sound = pygame.mixer.Sound("Audio/LevelComplete.mp3")
 
@@ -156,9 +152,36 @@ npc_4 = pygame.image.load("./Character Combinations/black hair_dark_blue shirt_b
 npc_4 = pygame.transform.scale(npc_4, (TILE_SIZE, TILE_SIZE))
 flipped_npc_4 = pygame.transform.flip(npc_4, True, False)  
 
+
+
+
+level_almost_complete_popup = pygame.image.load("./images/level_near_completion_pop_up.png")
+level_almost_complete_popup = pygame.transform.scale(level_almost_complete_popup, (250, 60))
+
+
+level_almost_complete_font = pygame.font.Font('PixelifySans.ttf', 10)
+keep_heading_right_font = pygame.font.Font('PixelifySans.ttf', 10)
+level_almost_complete_text = level_almost_complete_font.render("Level 3 Almost Complete!", True, (255, 255, 255))
+keep_heading_right_text = keep_heading_right_font.render("Keep Heading Right!", True, (255, 255, 255))
+
+
+
+pop_up_x = WIDTH - (WIDTH * .20)
+pop_up_y = HEIGHT - (HEIGHT * .95)
+
+
+
+level_almost_complete_rect = level_almost_complete_text.get_rect(center=(pop_up_x + 140, pop_up_y + 18))
+keep_heading_right_rect = keep_heading_right_text.get_rect(center=(pop_up_x + 140, pop_up_y + 38))
+
+
+
+
+
+
 #-----Gadget inventory images and dictionary
 
-inventory = pygame.image.load("./images/inventory_slot.png").convert_alpha()
+inventory = pygame.image.load("./images/inventory_slot_opacity.png").convert_alpha()
 inventory = pygame.transform.scale(inventory, (250, 70))
 inventory_x = (WIDTH - 250) // 2
 inventory_y = HEIGHT - 100
@@ -200,204 +223,178 @@ for _ in range(NUM_SNOWFLAKES):
     x_speed = random.uniform(-2, 2)  # Small horizontal drift
     snowflakes.append([x, y, size, speed, x_speed])
 
-for row_index in range(GROUND, level_height):
-    row = [1] * level_width  # Default to full ground row
-    for col_index in range(15, 35):  # Remove ground in columns 15-35
-        row[col_index] = 0  # Set to air (pit)
-    for col_index in range(55, 75):  # Remove ground in columns 55-75
-        row[col_index] = 0  # Set to air (pit)
-    for col_index in range(95, 130):  # Remove ground in columns 95-130
-        row[col_index] = 0  # Set to air (pit)
-    for col_index in range(135, 150):  # Remove ground in columns 130-150
-        row[col_index] = 0  # Set to air (pit)
-    for col_index in range(160, level_width-20):  # Remove ground in columns 160-level_width-20
-        row[col_index] = 0  # Set to air (pit)
-    level_map[row_index] = row  # Add row to level map
-
-# Add solid ground at the very bottom
-level_map.append([1] * level_width)
-
-for row_index in range(SURFACE-2, GROUND): # Raised Ground
-    level_map[row_index][40:45] = [1] * 5
-for row_index in range(SURFACE-4, GROUND): # Raised Ground
-    level_map[row_index][45:55] = [1] * 10
-for row_index in range(SURFACE-4, GROUND): # Raised Ground
-    level_map[row_index][75:85] = [1] * 10
-for row_index in range(SURFACE-3, GROUND): # Raised Ground
-    level_map[row_index][85:90] = [1] * 5
-for row_index in range(SURFACE-1, GROUND): # Raised Ground
-    level_map[row_index][90:95] = [1] * 5
-for row_index in range(SURFACE-5, GROUND): # Raised Ground
-    level_map[row_index][110] = 1
-for row_index in range(0, 14): # Upside down dirt block
-    level_map[row_index][110] = 9
-for row_index in range(SURFACE-12, GROUND): # Raised Ground
-    level_map[row_index][120] = 1
-for row_index in range(0, 14): # Upside down dirt block
-    level_map[row_index][130] = 9
-for row_index in range(SURFACE-3, GROUND): # Raised Ground
-    level_map[row_index][150:160] = [1] * 10
-for row_index in range(8, 18): # Floating dirt block
-    level_map[row_index][176] = 9
-for row_index in range(0, 16): # Upside down dirt block
-    level_map[row_index][195] = 9
-for row_index in range(0, 20): # Upside down dirt block
-    level_map[row_index][224] = 9
-for row_index in range(SURFACE-13, GROUND): # Raised Ground
-    level_map[row_index][230:level_width] = [1] * 20
-
-# Make terrain before this line. The next code block calculates the ground levels
-
-# Find the ground level for each column
-ground_levels = [len(level_map)] * len(level_map[0])
-for row_index, row in enumerate(level_map):
-    for col_index, tile in enumerate(row):
-        if tile == 1 and ground_levels[col_index] == len(level_map):
-            ground_levels[col_index] = row_index
-
-for row_index in range(0, 6):
-    level_map[row_index][26] = 9
-
-# All code after this line should be for props, npcs, gadgets, and powerups. Terrain should not be made here.
-
-row = SURFACE - 3
-col = 12
-for i in range(6):
-    level_map[row][col] = 4 # Jump Reset
-    row -= 3
-    col = col - 4 if i % 2 == 0 else col + 4
-level_map[row][col] = 5
-
-level_map[6][20:33] = [6] * 13 # Floating Ground
-level_map[5][24] = 10 # Frost Walking Boots
-level_map[4][28] = 12 # Coin
-level_map[10][36] = 4 # Jump Reset
-level_map[14][43] = 4 # Jump Reset
-
-level_map[level_height-3][15:35] = [3] * 20 # Water
-level_map[level_height-2][15:35] = [11] * 20 # Water Block
-level_map[level_height-1][15:35] = [11] * 20 # Water Block
-
-level_map[SURFACE-2][57] = 4 # Jump Reset
-level_map[SURFACE-7][100] = 4 # Jump Reset
-
-level_map[SURFACE][39] = 7 # Thorn
-
-level_map[SURFACE-5][55] = 13 # Walkway
-level_map[SURFACE-4][55:59] = [15] * 4 # Invisible Platforms to ensure collision with walkway
-
-level_map[SURFACE-8][61] = 5 # Dash Powerup
-
-level_map[level_height-3][55:75] = [3] * 20 # Water
-level_map[level_height-2][55:75] = [11] * 20 # Water Block
-level_map[level_height-1][55:75] = [11] * 20 # Water Block
-
-level_map[SURFACE-5][77] = 8 # Flag
-level_map[SURFACE-5][82] = 16 # Double Jump Boots
-
-level_map[level_height-3][95:130] = [3] * 35 # Water
-level_map[level_height-2][95:130] = [11] * 35 # Water Block
-level_map[level_height-1][95:130] = [11] * 35 # Water Block
-
-level_map[SURFACE-7][105] = 4 # Jump Reset
-level_map[SURFACE-7][115] = 4 # Jump Reset
-level_map[SURFACE-14][115] = 4 # Jump Reset
-level_map[SURFACE-3][125] = 4 # Jump Reset
-level_map[SURFACE-6][130] = 20 # Super Speed Powerup
-
-level_map[SURFACE-6][110] = 7 # Thorn
-level_map[14][110] = 17 # Flipped Thorn
-for row_index in range(13, GROUND+1):
-    level_map[row_index][119] = 18 # Left Thorn
-for row_index in range(13, GROUND+1):
-    level_map[row_index][121] = 19 # Right Thorn
-level_map[12][120] = 7 # Thorn
-level_map[14][130] = 17 # Flipped Thorn
-level_map[SURFACE][130:135] = [7] * 5 # Thorns
-
-level_map[level_height-3][135:150] = [3] * 35 # Water
-level_map[level_height-2][135:150] = [11] * 35 # Water Block
-level_map[level_height-1][135:150] = [11] * 35 # Water Block
-
-level_map[SURFACE-4][146] = 14 # Flipped Walkway
-level_map[SURFACE-3][146:150] = [15] * 4 # Invisible Platforms to ensure collision with walkway
-
-level_map[SURFACE-4][153] = 8 # Flag
-
-level_map[SURFACE-5][165:170] = [21] * 5 # Ice
-level_map[SURFACE-4][165:170] = [22] * 5 # Flipped ice
-
-level_map[SURFACE-6][167] = 20 # Super Speed Powerup
-level_map[SURFACE-6][169] = 23 # High Jump Powerup
-
-level_map[SURFACE-7][182:187] = [21] * 5 # Ice
-level_map[SURFACE-6][182:187] = [22] * 5 # Flipped ice
-
-level_map[7][176] = 7 # Thorn
-level_map[18][176] = 17 # Flipped Thorn
-for row_index in range(8, 18):
-    level_map[row_index][175] = 18 # Left Thorn
-for row_index in range(8, 18):
-    level_map[row_index][177] = 19 # Right Thorn
-
-level_map[SURFACE-9][193:196] = [2] * 3 # Platform
-
-level_map[12][191] = 14 # Flipped Walkway
-level_map[13][191:195] = [15] * 4 # Invisible Platforms to ensure collision with walkway
-level_map[9][191] = 14 # Flipped Walkway
-level_map[10][191:195] = [15] * 4 # Invisible Platforms to ensure collision with walkway
-level_map[6][191] = 14 # Flipped Walkway
-level_map[7][191:195] = [15] * 4 # Invisible Platforms to ensure collision with walkway
-
-level_map[3][186] = 12 # Coin
-
-level_map[SURFACE-3][193] = 4 # Jump Reset
-level_map[SURFACE-5][198] = 4 # Jump Reset
-
-level_map[SURFACE-9][198] = 24 # Up Dash Powerup
-level_map[SURFACE-13][198] = 4 # Up Dash Powerup
-
-level_map[12][202:219] = [6] * 17 # Floating Ground
-level_map[12][201] = 18 # Left Thorn
-level_map[12][219] = 19 # Right Thorn
-level_map[13][202:219] = [17] * 17 # Upside Down Thorn
-level_map[4][203:206] = [2] * 3 # Platform
-level_map[4][215:218] = [2] * 3 # Platform
-level_map[11][210] = 23 # High Jump Powerup
-level_map[3][204] = 10 # Frost Walking Boots
-level_map[3][216] = 16 # Double Jump Boots
-
-level_map[20][224] = 17 # Flipped Thorn
-
-level_map[SURFACE-8][227] = 4 # Jump Reset
-
-level_map[SURFACE-19][235] = 25 # House
-
-level_map[level_height-6][160:level_width-20] = [3] * (level_width-180) # Water
-for row_index in range(level_height-5, level_height):
-    level_map[row_index][160:level_width-20] = [11] * (level_width-180) # Water Block
+ground_levels = []
 
 # Dictionary containing which tile corresponds to what
 tiles = {0: background, 1: ground_tile, 2: platform_tile, 3: water, 4: jump_reset, 5: dash_powerup, 6: floating_ground, 7: thorn, 8: flag, 9: dirt_tile, 10: frost_walking_boots,
-         11: water_block, 12: coin, 13: walkway, 14: flipped_walkway, 15: invisible_platform, 16: double_jump_boots, 17: flipped_thorn, 18: left_thorn, 19: right_thorn, 20: super_speed_powerup,
-         21: ice_tile, 22: flipped_ice, 23: high_jump, 24: up_dash, 25: house, 26: tree, 27: background_tree, 28: ice_block, 29: npc_1, 30: npc_2, 31: npc_3, 32: npc_4}
+        11: water_block, 12: coin, 13: walkway, 14: flipped_walkway, 15: invisible_platform, 16: double_jump_boots, 17: flipped_thorn, 18: left_thorn, 19: right_thorn, 20: super_speed_powerup,
+        21: ice_tile, 22: flipped_ice, 23: high_jump, 24: up_dash, 25: house, 26: tree, 27: background_tree, 28: ice_block, 29: npc_1, 30: npc_2, 31: npc_3, 32: npc_4}
 
-level_map[9][203] = 26 # Tree
-level_map[9][216] = 26 # Tree
-
-level_map[10][206] = 27 # Background Tree
-level_map[10][213] = 27 # Background Tree
-
-# NPCs placements
-level_map[SURFACE][8] = 29 # First NPC (Placed at the start of the map)
-level_map[SURFACE-5][52] = 30 # Second NPC - (Placed at the bridge at the start of the lake)
-level_map[11][208] = 31 # Third NPC - (Placed next to the high jump boost)
-level_map[SURFACE-14][237] = 32 # Fourth NPC - (Placed at the house at the end of the map)
 
 rocks = {3, 36, 41, 91, 246} # Column numbers for all the rocks
 trees = {48, 157, 247} # Column numbers for all the trees
 background_trees = {6, 86, 232} # Column numbers for all the background trees
 signs = {10, 94, 230} # Column numbers for all the signs
+
+def spawn_terrain():
+
+    for row_index in range(GROUND, level_height):
+        row = [1] * level_width  # Default to full ground row
+        for col_index in range(15, 35):  # Remove ground in columns 15-35
+            row[col_index] = 0  # Set to air (pit)
+        for col_index in range(55, 75):  # Remove ground in columns 55-75
+            row[col_index] = 0  # Set to air (pit)
+        for col_index in range(95, 130):  # Remove ground in columns 95-130
+            row[col_index] = 0  # Set to air (pit)
+        for col_index in range(135, 150):  # Remove ground in columns 130-150
+            row[col_index] = 0  # Set to air (pit)
+        for col_index in range(160, level_width-20):  # Remove ground in columns 160-level_width-20
+            row[col_index] = 0  # Set to air (pit)
+        level_map[row_index] = row  # Add row to level map
+
+    # Add solid ground at the very bottom
+    level_map.append([1] * level_width)
+
+    for row_index in range(SURFACE-2, GROUND): # Raised Ground
+        level_map[row_index][40:45] = [1] * 5
+    for row_index in range(SURFACE-4, GROUND): # Raised Ground
+        level_map[row_index][45:55] = [1] * 10
+    for row_index in range(SURFACE-4, GROUND): # Raised Ground
+        level_map[row_index][75:85] = [1] * 10
+    for row_index in range(SURFACE-3, GROUND): # Raised Ground
+        level_map[row_index][85:90] = [1] * 5
+    for row_index in range(SURFACE-1, GROUND): # Raised Ground
+        level_map[row_index][90:95] = [1] * 5
+    for row_index in range(SURFACE-5, GROUND): # Raised Ground
+        level_map[row_index][110] = 1
+    for row_index in range(0, 14): # Upside down dirt block
+        level_map[row_index][110] = 9
+    for row_index in range(SURFACE-12, GROUND): # Raised Ground
+        level_map[row_index][120] = 1
+    for row_index in range(0, 14): # Upside down dirt block
+        level_map[row_index][130] = 9
+    for row_index in range(SURFACE-3, GROUND): # Raised Ground
+        level_map[row_index][150:160] = [1] * 10
+    for row_index in range(8, 18): # Floating dirt block
+        level_map[row_index][176] = 9
+    for row_index in range(0, 16): # Upside down dirt block
+        level_map[row_index][195] = 9
+    for row_index in range(0, 20): # Upside down dirt block
+        level_map[row_index][224] = 9
+    for row_index in range(SURFACE-13, GROUND): # Raised Ground
+        level_map[row_index][230:level_width] = [1] * 20
+
+    # Make terrain before this line. The next code block calculates the ground levels
+
+    # Find the ground level for each column
+    global ground_levels
+    ground_levels = [len(level_map)] * len(level_map[0])
+    for row_index, row in enumerate(level_map):
+        for col_index, tile in enumerate(row):
+            if tile == 1 and ground_levels[col_index] == len(level_map):
+                ground_levels[col_index] = row_index
+
+    for row_index in range(0, 6):
+        level_map[row_index][26] = 9
+
+    # All code after this line should be for props, npcs, gadgets, and powerups. Terrain should not be made here.
+
+    level_map[6][20:33] = [6] * 13 # Floating Ground
+    level_map[5][24] = 10 # Frost Walking Boots
+    level_map[4][28] = 12 # Coin
+
+    level_map[level_height-3][15:35] = [3] * 20 # Water
+    level_map[level_height-2][15:35] = [11] * 20 # Water Block
+    level_map[level_height-1][15:35] = [11] * 20 # Water Block
+
+    level_map[SURFACE][39] = 7 # Thorn
+
+    level_map[SURFACE-5][55] = 13 # Walkway
+    level_map[SURFACE-4][55:59] = [15] * 4 # Invisible Platforms to ensure collision with walkway
+
+    level_map[level_height-3][55:75] = [3] * 20 # Water
+    level_map[level_height-2][55:75] = [11] * 20 # Water Block
+    level_map[level_height-1][55:75] = [11] * 20 # Water Block
+
+    level_map[SURFACE-5][77] = 8 # Flag
+    level_map[SURFACE-5][82] = 16 # Double Jump Boots
+
+    level_map[level_height-3][95:130] = [3] * 35 # Water
+    level_map[level_height-2][95:130] = [11] * 35 # Water Block
+    level_map[level_height-1][95:130] = [11] * 35 # Water Block
+
+    level_map[SURFACE-6][110] = 7 # Thorn
+    level_map[14][110] = 17 # Flipped Thorn
+    for row_index in range(13, GROUND+1):
+        level_map[row_index][119] = 18 # Left Thorn
+    for row_index in range(13, GROUND+1):
+        level_map[row_index][121] = 19 # Right Thorn
+    level_map[12][120] = 7 # Thorn
+    level_map[14][130] = 17 # Flipped Thorn
+    level_map[SURFACE][130:135] = [7] * 5 # Thorns
+
+    level_map[level_height-3][135:150] = [3] * 35 # Water
+    level_map[level_height-2][135:150] = [11] * 35 # Water Block
+    level_map[level_height-1][135:150] = [11] * 35 # Water Block
+
+    level_map[SURFACE-4][146] = 14 # Flipped Walkway
+    level_map[SURFACE-3][146:150] = [15] * 4 # Invisible Platforms to ensure collision with walkway
+
+    level_map[SURFACE-4][153] = 8 # Flag
+
+    level_map[SURFACE-5][165:170] = [21] * 5 # Ice
+    level_map[SURFACE-4][165:170] = [22] * 5 # Flipped ice
+
+    level_map[SURFACE-7][182:187] = [21] * 5 # Ice
+    level_map[SURFACE-6][182:187] = [22] * 5 # Flipped ice
+
+    level_map[7][176] = 7 # Thorn
+    level_map[18][176] = 17 # Flipped Thorn
+    for row_index in range(8, 18):
+        level_map[row_index][175] = 18 # Left Thorn
+    for row_index in range(8, 18):
+        level_map[row_index][177] = 19 # Right Thorn
+
+    level_map[SURFACE-9][193:196] = [2] * 3 # Platform
+
+    level_map[12][191] = 14 # Flipped Walkway
+    level_map[13][191:195] = [15] * 4 # Invisible Platforms to ensure collision with walkway
+    level_map[9][191] = 14 # Flipped Walkway
+    level_map[10][191:195] = [15] * 4 # Invisible Platforms to ensure collision with walkway
+    level_map[6][191] = 14 # Flipped Walkway
+    level_map[7][191:195] = [15] * 4 # Invisible Platforms to ensure collision with walkway
+
+    level_map[3][186] = 12 # Coin
+
+    level_map[12][202:219] = [6] * 17 # Floating Ground
+    level_map[12][201] = 18 # Left Thorn
+    level_map[12][219] = 19 # Right Thorn
+    level_map[13][202:219] = [17] * 17 # Upside Down Thorn
+    level_map[4][203:206] = [2] * 3 # Platform
+    level_map[4][215:218] = [2] * 3 # Platform
+    level_map[11][210] = 23 # High Jump Powerup
+    level_map[3][204] = 10 # Frost Walking Boots
+    level_map[3][216] = 16 # Double Jump Boots
+
+    level_map[20][224] = 17 # Flipped Thorn
+
+    level_map[SURFACE-19][235] = 25 # House
+
+    level_map[level_height-6][160:level_width-20] = [3] * (level_width-180) # Water
+    for row_index in range(level_height-5, level_height):
+        level_map[row_index][160:level_width-20] = [11] * (level_width-180) # Water Block
+
+    level_map[9][203] = 26 # Tree
+    level_map[9][216] = 26 # Tree
+
+    level_map[10][206] = 27 # Background Tree
+    level_map[10][213] = 27 # Background Tree
+
+    # NPCs placements
+    level_map[SURFACE][8] = 29 # First NPC (Placed at the start of the map)
+    level_map[SURFACE-5][52] = 30 # Second NPC - (Placed at the bridge at the start of the lake)
+    level_map[11][208] = 31 # Third NPC - (Placed next to the high jump boost)
+    level_map[SURFACE-14][237] = 32 # Fourth NPC - (Placed at the house at the end of the map)
 
 # Converts the x coordinates to the column on the map
 def calculate_column(x): 
@@ -429,7 +426,6 @@ def show_level_completed_screen(slot: int, death_count: int):
     level_map[3][204] = 10 # Frost Walking Boots
     level_map[3][216] = 16 # Double Jump Boots
 
-
     respawn_powerups() # Respawn all powerups on the level
 
     update_save(slot, {"Level 3 Checkpoint": 0}) # Set checkpoint to 0
@@ -440,9 +436,8 @@ def show_level_completed_screen(slot: int, death_count: int):
 
     level_name = "Level Three"
 
-
     # Change this 0 for coin increment code
-    show_level_complete_deaths(slot, counter_for_coin_increment, death_count, level_name)
+    show_level_complete_deaths(slot, 0, death_count, level_name, background)
 
 def respawn_powerups():
     row = SURFACE - 3
@@ -451,7 +446,7 @@ def respawn_powerups():
         level_map[row][col] = 4 # Jump Reset
         row -= 3
         col = col - 4 if i % 2 == 0 else col + 4
-    level_map[row][col] = 5
+    level_map[row][col] = 5 # Right Dash Powerup
     level_map[10][36] = 4 # Jump Reset
     level_map[14][43] = 4 # Jump Reset
     level_map[SURFACE-2][57] = 4 # Jump Reset
@@ -466,6 +461,7 @@ def respawn_powerups():
     level_map[SURFACE-3][193] = 4 # Jump Reset
     level_map[SURFACE-5][198] = 4 # Jump Reset
     level_map[SURFACE-9][198] = 24 # Up Dash Powerup
+    level_map[SURFACE-13][198] = 4 # Jump Reset
     level_map[11][210] = 23 # High Jump Powerup
     level_map[SURFACE-8][227] = 4 # Jump Reset
 
@@ -473,6 +469,9 @@ def respawn_powerups():
 pause_menu = PauseMenu(screen)
 
 def level_3(slot: int):
+    
+    spawn_terrain()
+    respawn_powerups()
 
     # Stop any previously playing music 
     pygame.mixer.music.stop()
@@ -509,6 +508,18 @@ def level_3(slot: int):
     for i in range(checkpoint_idx+1):
         checkpoint_bool[i] = True
 
+    coin_locations = [(calculate_x_coordinate(28), calculate_y_coordinate(4)), (calculate_x_coordinate(186), calculate_y_coordinate(3))]
+    coin_picked_up = load_save(slot).get("Level 3 Coins")
+    if not coin_picked_up:
+        coin_picked_up = [False] * len(coin_locations)
+
+    for k, coin in enumerate(coin_picked_up):
+        if coin:
+            x, y = coin_locations[k]
+            row = calculate_row(y)
+            column = calculate_column(x)
+            level_map[row][column] = 0 # Get rid of the coins already picked up
+
     # Camera position
     camera_x = 0
     # (5, SURFACE) should be the starting point
@@ -517,6 +528,7 @@ def level_3(slot: int):
     
     # 8.5 should be standard speed
     player_speed = 8.5 * scale_factor # Adjust player speed according to their resolution
+    default_speed = player_speed
     
     player_vel_x = 0 # Horizontal velocity for friction/sliding
     player_vel_y = 0 # Vertical velocity for jumping
@@ -526,6 +538,11 @@ def level_3(slot: int):
     doubleJumpBoots = False # Track if player has double jump boots
     doubleJumped = False # Track if player double jumped already
     frostWalkBoots = False # Track if player has frost walk boots
+
+
+
+    times_passed_wooden_sign = 0
+    time_before_pop_up_disappears = 0
 
     if checkpoint_idx == 0:
         level_map[5][24] = 10 # Frost Walking Boots
@@ -551,11 +568,6 @@ def level_3(slot: int):
     collidable_tiles = {1, 2, 3, 6, 9, 15, 21, 22}
     dying_tiles = {3, 7, 11, 17, 18, 19}
 
-    coin_count = 0
-
-    global counter_for_coin_increment
-    counter_for_coin_increment = coin_count
-
     # State Variables for Gadgets
     bubbleJump = False
     bubbleJump_respawns = {}
@@ -580,7 +592,11 @@ def level_3(slot: int):
             if event.type == pygame.QUIT:
                 running = False
             # Pass events to the PauseMenu
-            pause_menu.handle_event(event, slot)
+            result = pause_menu.handle_event(event, slot)
+            if result == "restart":
+                update_save(slot, {"Level 3 Checkpoint": 0}) # Set checkpoint to 0
+                level_3(slot)
+                sys.exit()
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 if bubbleJump and doubleJumpBoots and not doubleJumped:
                     player_vel_y = jump_power  # Double jump
@@ -818,8 +834,12 @@ def level_3(slot: int):
                     tile_x, tile_y = col_index * TILE_SIZE, row_index * TILE_SIZE
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
-                        coin_count += 1
-                        counter_for_coin_increment = coin_count
+
+                        coin_position = (tile_x, tile_y)
+                        idx = coin_locations.index(coin_position)
+                        coin_picked_up[idx] = True
+                        update_save(slot, {"Level 3 Coins": coin_picked_up}) # Save picked up coins
+                        eclipse_increment(slot, 1)
                         level_map[row_index][col_index] = 0
                         coin_sound.play()
 
@@ -851,7 +871,7 @@ def level_3(slot: int):
                         dash_duration = dash_pickup_time + 800
                         dashing = True
                         level_map[row_index][col_index] = 0 
-                        player_speed = player_speed * 3
+                        player_speed = player_speed * 3 * scale_factor
                         direction = 1
                         if player_speed < 0:
                             player_speed *= -1
@@ -902,7 +922,7 @@ def level_3(slot: int):
                     if (player_x + TILE_SIZE > tile_x and player_x < tile_x + TILE_SIZE and 
                         player_y + TILE_SIZE > tile_y and player_y < tile_y + TILE_SIZE):
                         level_map[row_index][col_index] = 0 
-                        player_vel_y = -30
+                        player_vel_y = -30 * scale_factor
                         dash_sound.play()
                         up_dash_respawns[(row_index, col_index)] = pygame.time.get_ticks() + 5000
 
@@ -919,6 +939,10 @@ def level_3(slot: int):
             death_sound.play()
 
         if dying:
+            respawn_powerups()
+            if super_speed_effects:
+                player_speed = default_speed  # Reset to normal speed
+                super_speed_effects.clear()   # Remove all ongoing effect
             player_x, player_y = checkpoints[checkpoint_idx][0], checkpoints[checkpoint_idx][1]
             death_count += 1
             update_save(slot, {"Level 3 Deaths": death_count})
@@ -1018,6 +1042,25 @@ def level_3(slot: int):
             elif (doubleJumpBoots) and (frostWalkBoots) and (double_first == False):
                 screen.blit(inventory_frost_boots, first_slot)
                 screen.blit(inventory_jump_boots, second_slot)
+
+
+
+        # print(calculate_column(player_x))
+        # Pop up near level completion 
+        if (pygame.time.get_ticks() < time_before_pop_up_disappears):
+            screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
+            screen.blit(level_almost_complete_text, level_almost_complete_rect)
+            screen.blit(keep_heading_right_text, keep_heading_right_rect)
+
+
+        if (calculate_column(player_x) >= 229 and times_passed_wooden_sign < 1):
+            times_passed_wooden_sign += 1
+            screen.blit(level_almost_complete_popup, (pop_up_x, pop_up_y))
+            screen.blit(level_almost_complete_text, level_almost_complete_rect)
+            screen.blit(keep_heading_right_text, keep_heading_right_rect)
+            time_before_pop_up_disappears = pygame.time.get_ticks() + 5000
+
+
 
 
         
